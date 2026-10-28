@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 64" width="270" height="64" fill="none">
+  <defs>
+    <linearGradient id="somroyal-grad-primary" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f2b5c"/>
+      <stop offset="60%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="somroyal-grad-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="somroyal-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="somroyal-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f2b5c" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Emblem Mark -->
+  <g transform="translate(6, 6)" filter="url(#somroyal-shadow)">
+    <!-- Rounded Shield Background -->
+    <rect width="52" height="52" rx="14" fill="url(#somroyal-grad-primary)"/>
+    
+    <!-- Stylized Crown & Book Motif -->
+    <!-- Open Book / Wings -->
+    <path d="M14 36C18 34 23 34.5 26 37C29 34.5 34 34 38 36V22C34 20 29 20.5 26 23C23 20.5 18 20 14 22V36Z" fill="#ffffff" fill-opacity="0.95"/>
+    <path d="M26 23.5V37" stroke="#0f2b5c" stroke-width="1.5" stroke-linecap="round"/>
+
+    <!-- Regal Crown Peak Above Book -->
+    <path d="M19 19L23 14L26 17L29 14L33 19H19Z" fill="url(#somroyal-gold)"/>
+    <circle cx="26" cy="12.5" r="1.5" fill="#fbbf24"/>
+
+    <!-- Emerald Tech Accent Dot -->
+    <circle cx="41" cy="13" r="3.5" fill="url(#somroyal-grad-accent)"/>
+    <circle cx="41" cy="13" r="1.5" fill="#ffffff"/>
+  </g>
+
+  <!-- Brand Typography -->
+  <g transform="translate(68, 16)">
+    <!-- Main Brand Name -->
+    <text x="0" y="20" font-family="'Outfit', 'Inter', -apple-system, sans-serif" font-size="22" font-weight="800" letter-spacing="-0.5" fill="#0f2b5c">
+      SOMROYAL
+    </text>
+    <text x="122" y="20" font-family="'Outfit', 'Inter', -apple-system, sans-serif" font-size="22" font-weight="800" letter-spacing="-0.5" fill="#10b981">
+      EMS
+    </text>
+    
+    <!-- Subtitle / Platform Name -->
+    <text x="1" y="34" font-family="'Inter', -apple-system, sans-serif" font-size="8.75" font-weight="600" letter-spacing="0.75" fill="#64748b">
+      EDUCATIONAL MANAGEMENT SYSTEM
+    </text>
+  </g>
+</svg>
