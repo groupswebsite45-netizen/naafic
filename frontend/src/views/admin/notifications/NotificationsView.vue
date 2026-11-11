@@ -1667,7 +1667,7 @@ watch(resultAcademicYear, () => {
           <p>No communications recorded with the current filters.</p>
         </div>
 
-        <div v-else class="table-responsive" tabindex="0" role="region" aria-label="Notification delivery history table">
+        <div v-else class="table-responsive">
           <table class="data-table">
             <thead>
               <tr>
@@ -2288,7 +2288,6 @@ watch(resultAcademicYear, () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  min-height: 44px;
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
@@ -2298,7 +2297,6 @@ watch(resultAcademicYear, () => {
   color: #64748b;
   cursor: pointer;
   white-space: nowrap;
-  flex: none;
   transition: all 0.15s ease;
 }
 
@@ -2334,7 +2332,7 @@ watch(resultAcademicYear, () => {
 /* Metric Cards */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -2347,8 +2345,6 @@ watch(resultAcademicYear, () => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 0.75rem;
-  min-width: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
@@ -2361,7 +2357,6 @@ watch(resultAcademicYear, () => {
 .metric-info {
   display: flex;
   flex-direction: column;
-  min-width: 0;
 }
 
 .metric-label {
@@ -2690,7 +2685,6 @@ watch(resultAcademicYear, () => {
 
 .data-table {
   width: 100%;
-  min-width: 820px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.875rem;
@@ -2702,7 +2696,6 @@ watch(resultAcademicYear, () => {
   font-weight: 600;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #e2e8f0;
-  white-space: nowrap;
 }
 
 .data-table td {
@@ -3048,7 +3041,7 @@ watch(resultAcademicYear, () => {
 /* Templates Tab */
 .templates-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 1rem;
 }
 
@@ -3227,16 +3220,8 @@ input:checked + .slider:before { transform: translateX(20px); }
   background: none;
   border: none;
   font-size: 1.5rem;
-  line-height: 1;
   color: #64748b;
   cursor: pointer;
-  min-width: 40px;
-  min-height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  flex-shrink: 0;
 }
 
 .modal-body {
@@ -3345,7 +3330,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 .channel-list-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
@@ -3646,8 +3631,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 .diag-detail-val {
   color: #991b1b;
-  overflow-wrap: break-word;
-  word-break: normal;
+  word-break: break-all;
 }
 
 .hormuud-actions-bar {
@@ -3672,17 +3656,6 @@ input:checked + .slider:before { transform: translateX(20px); }
     padding: 1rem;
   }
 
-  .metrics-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-
-  .metric-card {
-    padding: 0.85rem;
-    flex-direction: column;
-    gap: 0.45rem;
-  }
-
   .overview-grid {
     grid-template-columns: 1fr;
   }
@@ -3702,27 +3675,6 @@ input:checked + .slider:before { transform: translateX(20px); }
 
   .guardian-info-col, .status-col {
     grid-column: 2;
-  }
-
-  .template-card-header,
-  .diag-header,
-  .diag-detail-row {
-    flex-wrap: wrap;
-    gap: 0.35rem 0.5rem;
-  }
-
-  .diag-detail-label {
-    min-width: 0;
-  }
-}
-
-@media (max-width: 480px) {
-  .notifications-page {
-    padding: 0.75rem;
-  }
-
-  .preview-stats-bar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>

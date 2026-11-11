@@ -86,6 +86,13 @@ class StudentResponse(StudentBase):
     has_portal_access: bool = False
     portal_username: Optional[str] = None
     portal_is_active: Optional[bool] = None
+    photo_path: Optional[str] = None
+    photo_url: Optional[str] = None
+    photo_filename: Optional[str] = None
+    photo_mime_type: Optional[str] = None
+    photo_size: Optional[int] = None
+    photo_uploaded_at: Optional[datetime] = None
+    photo_updated_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
     current_class: Optional[SchoolClassResponse] = None
@@ -144,4 +151,43 @@ class UpdateStudentPortalStatusPayload(BaseModel):
 
 class UpdateStudentPortalUsernamePayload(BaseModel):
     username: str = Field(..., min_length=3, max_length=50, description="New portal username (min 3 chars)")
+
+
+class BatchEnablePortalsPayload(BaseModel):
+    academic_year: Optional[str] = None
+    class_id: Optional[int] = None
+    student_ids: Optional[List[int]] = None
+    default_password: Optional[str] = "Student@123"
+
+
+class BatchStudentPortalItem(BaseModel):
+    student_id: int
+    student_name: str
+    admission_number: str
+    username: str
+    status: str  # "CREATED", "ACTIVATED", "ALREADY_ACTIVE"
+
+
+class BatchEnablePortalsResponse(BaseModel):
+    success: bool = True
+    message: str
+    total_processed: int
+    enabled_count: int
+    already_active_count: int
+    default_password: str
+    students: List[BatchStudentPortalItem] = []
+
+
+class ToggleStudentPortalPayload(BaseModel):
+    is_active: Optional[bool] = None
+    default_password: Optional[str] = "Student@123"
+
+
+class StudentPortalLoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    student_id: int
+    student_name: str
+    username: str
+    portal_url: str = "/student/exams"
 

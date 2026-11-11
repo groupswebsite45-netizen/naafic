@@ -45,6 +45,30 @@ def _ensure_tenant_schema(engine: Engine, db_name: str) -> None:
                 conn.execute(text("ALTER TABLE timetables ADD COLUMN IF NOT EXISTS published_at TIMESTAMP WITH TIME ZONE;"))
                 conn.execute(text("ALTER TABLE timetables ADD COLUMN IF NOT EXISTS published_by_id INTEGER;"))
                 conn.commit()
+
+            student_cols = {
+                r[0].lower() for r in conn.execute(text(
+                    "SELECT column_name FROM information_schema.columns WHERE table_name = 'students'"
+                )).fetchall()
+            }
+            if student_cols and "photo_path" not in student_cols:
+                conn.execute(text("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_path VARCHAR(500);"))
+                conn.execute(text("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_filename VARCHAR(255);"))
+                conn.execute(text("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_mime_type VARCHAR(100);"))
+                conn.execute(text("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_size INTEGER;"))
+                conn.execute(text("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_uploaded_at TIMESTAMP WITH TIME ZONE;"))
+                conn.execute(text("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_updated_at TIMESTAMP WITH TIME ZONE;"))
+                conn.commit()
+
+            exam_cols = {
+                r[0].lower() for r in conn.execute(text(
+                    "SELECT column_name FROM information_schema.columns WHERE table_name = 'exams'"
+                )).fetchall()
+            }
+            if exam_cols and "published_at" not in exam_cols:
+                conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS published_at TIMESTAMP WITH TIME ZONE;"))
+                conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS published_by_id INTEGER;"))
+                conn.commit()
     except Exception as exc:
         logger.debug(f"Schema auto-check on {db_name}: {exc}")
 
@@ -151,10 +175,15 @@ def extract_tenant_context_from_request(request: Request) -> Dict[str, Optional[
     if not context["id"]:
         context["id"] = request.query_params.get("institution_id") or None
 
-    # 3. JWT Token Payload
+    # 3. JWT Token Payload (Authorization header or ?token= query parameter)
+    token = None
     auth_header = request.headers.get("authorization", "")
     if auth_header.startswith("Bearer "):
         token = auth_header[7:].strip()
+    elif request.query_params.get("token"):
+        token = request.query_params.get("token").strip()
+
+    if token:
         try:
             payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
             if not context["code"] and payload.get("institution_code"):

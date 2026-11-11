@@ -10,6 +10,7 @@ from app.schemas.student_portal import (
     StudentProfileResponse,
     StudentClassDetailsResponse,
     StudentFeesPortalResponse,
+    StudentPublishedExamItem,
 )
 from app.schemas.attendance import StudentAttendancePortalResponse
 from app.schemas.timetable import TimetableResponse
@@ -168,15 +169,34 @@ def get_my_fees(
 
 @router.get(
     "/exams",
-    response_model=List[ExamResultResponse],
-    summary="Get officially released exam results for authenticated student"
+    response_model=List[StudentPublishedExamItem],
+    summary="Get published examinations and schedules for authenticated student's enrolled class"
 )
+@router.get(
+    "/published-exams",
+    response_model=List[StudentPublishedExamItem],
+    summary="Get published examinations and schedules for authenticated student's enrolled class (Alias)"
+)
+def get_my_exams(
+    academic_year: Optional[str] = Query(None, description="Filter by academic year"),
+    current_student_user: User = Depends(get_current_active_student),
+    db: Session = Depends(get_db)
+):
+    """
+    CRITICAL GATE: Returns all examinations published by school administration for the
+    student's currently enrolled class. Marks and scores remain strictly hidden until
+    official results release.
+    """
+    service = StudentPortalService(db)
+    return service.get_my_published_exams(current_student_user, academic_year=academic_year)
+
+
 @router.get(
     "/results",
     response_model=List[ExamResultResponse],
-    summary="Get officially released exam results for authenticated student (Alias for /exams)"
+    summary="Get officially released exam results/grades for authenticated student"
 )
-def get_my_exams(
+def get_my_results(
     academic_year: Optional[str] = Query(None, description="Filter by academic year"),
     current_student_user: User = Depends(get_current_active_student),
     db: Session = Depends(get_db)

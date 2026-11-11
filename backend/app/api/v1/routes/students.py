@@ -1,9 +1,15 @@
 from typing import List, Optional
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, Query, status, UploadFile, File, Form, Response, HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app.api.dependencies.database import get_db
-from app.api.dependencies.auth import get_current_active_admin, get_current_user, get_current_staff_user
+from app.api.dependencies.auth import (
+    get_current_active_admin,
+    get_current_user,
+    get_current_staff_user,
+    get_current_user_for_media,
+)
 from app.models.user import User
 from app.services.student_service import StudentService
 from app.services.student_import_service import StudentImportService
@@ -20,6 +26,10 @@ from app.schemas.student import (
     ResetStudentPortalPasswordPayload,
     UpdateStudentPortalStatusPayload,
     UpdateStudentPortalUsernamePayload,
+    BatchEnablePortalsPayload,
+    BatchEnablePortalsResponse,
+    ToggleStudentPortalPayload,
+    StudentPortalLoginResponse,
 )
 from app.schemas.student_import import (
     StudentImportPreviewResponse,
@@ -199,6 +209,7 @@ def get_student_summary(
     summary="List and search students with rich filtering (Admin and Teachers only)"
 )
 def list_students(
+    response: Response,
     query: Optional[str] = None,
     search: Optional[str] = None,
     class_id: Optional[int] = None,
@@ -213,7 +224,7 @@ def list_students(
 ):
     service = StudentService(db)
     search_term = query or search
-    students, _ = service.list_students(
+    students, total = service.list_students(
         query=search_term,
         class_id=class_id,
         academic_year=academic_year,
@@ -223,6 +234,8 @@ def list_students(
         skip=skip,
         limit=limit
     )
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
     return students
 
 
@@ -269,6 +282,75 @@ def get_student_full_profile(
                 detail="Access denied. You can only view your own student profile."
             )
     return service.get_full_profile(student_id)
+
+
+@router.get(
+    "/{student_id}/photo",
+    summary="Stream or retrieve student profile photograph",
+    response_class=FileResponse
+)
+def get_student_photo(
+    student_id: int,
+    auth_user: Optional[User] = Depends(get_current_user_for_media),
+    db: Session = Depends(get_db)
+):
+    service = StudentService(db)
+    student = service.get_student(student_id)
+
+    if not auth_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required to view student profile photograph."
+        )
+
+    roles = [r.upper() for r in auth_user.role_names]
+    if "ADMIN" not in roles and "TEACHER" not in roles and not auth_user.is_superuser:
+        if student.user_id != auth_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied. You can only view your own student photograph."
+            )
+
+    photo_info = service.get_student_photo_file(student_id)
+    return FileResponse(
+        path=photo_info["full_path"],
+        media_type=photo_info["mime_type"],
+        filename=photo_info["filename"],
+        headers={
+            "Cache-Control": "private, max-age=3600",
+            "Content-Disposition": f'inline; filename="{photo_info["filename"]}"'
+        }
+    )
+
+
+@router.post(
+    "/{student_id}/photo",
+    response_model=StudentResponse,
+    summary="Upload or update student profile photograph (Admin only)"
+)
+async def upload_student_photo(
+    student_id: int,
+    file: UploadFile = File(...),
+    current_admin: User = Depends(get_current_active_admin),
+    db: Session = Depends(get_db)
+):
+    service = StudentService(db)
+    return await service.upload_student_photo(student_id=student_id, file=file, user_id=current_admin.id)
+
+
+@router.delete(
+    "/{student_id}/photo",
+    response_model=StudentResponse,
+    summary="Remove student profile photograph (Admin only)"
+)
+def delete_student_photo(
+    student_id: int,
+    current_admin: User = Depends(get_current_active_admin),
+    db: Session = Depends(get_db)
+):
+    service = StudentService(db)
+    return service.delete_student_photo(student_id=student_id, user_id=current_admin.id)
+
 
 
 @router.post(
@@ -423,6 +505,55 @@ def update_portal_username(
         "message": "Portal username updated successfully.",
         "username": user.username
     }
+
+
+@router.post(
+    "/portal/batch-enable",
+    response_model=BatchEnablePortalsResponse,
+    summary="One-click batch enablement of student portal accounts (Admin only)"
+)
+def batch_enable_student_portals(
+    payload: BatchEnablePortalsPayload,
+    current_admin: User = Depends(get_current_active_admin),
+    db: Session = Depends(get_db)
+):
+    service = StudentService(db)
+    return service.batch_enable_portals(payload, creator_id=current_admin.id)
+
+
+@router.post(
+    "/{student_id}/portal/toggle",
+    summary="One-click instant toggle of individual student portal access (Admin only)"
+)
+def toggle_individual_portal(
+    student_id: int,
+    payload: Optional[ToggleStudentPortalPayload] = None,
+    current_admin: User = Depends(get_current_active_admin),
+    db: Session = Depends(get_db)
+):
+    service = StudentService(db)
+    is_active = payload.is_active if payload else None
+    default_pwd = payload.default_password if (payload and payload.default_password) else "Student@123"
+    return service.toggle_portal_quick(
+        student_id=student_id,
+        is_active=is_active,
+        default_password=default_pwd,
+        creator_id=current_admin.id
+    )
+
+
+@router.post(
+    "/{student_id}/portal-login",
+    response_model=StudentPortalLoginResponse,
+    summary="Generate authentic student portal login token for seamless admin view / testing (Admin only)"
+)
+def admin_impersonate_student(
+    student_id: int,
+    current_admin: User = Depends(get_current_active_admin),
+    db: Session = Depends(get_db)
+):
+    service = StudentService(db)
+    return service.get_student_portal_token(student_id=student_id, admin_user=current_admin)
 
 
 @router.post(

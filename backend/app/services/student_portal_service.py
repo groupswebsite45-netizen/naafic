@@ -1,7 +1,7 @@
 from datetime import datetime, date, time
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
-from sqlalchemy import func, extract
+from sqlalchemy import func, extract, or_, and_
 from fastapi import HTTPException, status
 
 from app.models.user import User
@@ -27,6 +27,7 @@ from app.schemas.student_portal import (
     StudentFeeSummary,
     StudentFeesPortalResponse,
     StudentDashboardResponse,
+    StudentPublishedExamItem,
 )
 from app.schemas.attendance import (
     AttendanceOverallSummary,
@@ -92,7 +93,9 @@ class StudentPortalService:
             current_class_name=current_class.name if current_class else None,
             current_class_code=current_class.code if current_class else None,
             academic_year=active_enrollment.academic_year if active_enrollment else None,
-            portal_account_status="Active" if user.is_active else "Inactive"
+            portal_account_status="Active" if user.is_active else "Inactive",
+            photo_url=student.photo_url,
+            photo_path=student.photo_path
         )
 
     def get_academic_years(self, user: User) -> List[str]:
@@ -563,6 +566,114 @@ class StudentPortalService:
             fees=fee_responses
         )
 
+    def get_my_published_exams(self, user: User, academic_year: Optional[str] = None) -> List[StudentPublishedExamItem]:
+        """
+        Get all PUBLISHED examinations and schedules for the authenticated student's enrolled class.
+        Strict class, academic year, and institution isolation.
+        Results / marks remain completely hidden unless officially RELEASED by school administration.
+        """
+        student = self.get_authenticated_student(user)
+
+        # 1. Resolve student's enrollments
+        active_enrollments = [enr for enr in student.enrollments if enr.status == "ACTIVE"]
+        enrollments = active_enrollments if active_enrollments else student.enrollments
+        if not enrollments:
+            return []
+
+        enrolled_class_ids = list({enr.class_id for enr in enrollments if enr.class_id})
+        if not enrolled_class_ids:
+            return []
+
+        # 2. Year normalization helper to bridge '2026/2027' vs '2026-2027'
+        def _get_year_variants(yr: Optional[str]) -> List[str]:
+            if not yr:
+                return []
+            cleaned = yr.strip()
+            return list({cleaned, cleaned.replace("-", "/"), cleaned.replace("/", "-")})
+
+        query = (
+            self.db.query(Exam)
+            .filter(
+                Exam.class_id.in_(enrolled_class_ids),
+                func.upper(Exam.status) == "PUBLISHED"
+            )
+        )
+
+        if academic_year:
+            query = query.filter(Exam.academic_year.in_(_get_year_variants(academic_year)))
+        else:
+            student_years = set()
+            for enr in enrollments:
+                if enr.academic_year:
+                    student_years.update(_get_year_variants(enr.academic_year))
+            if student_years:
+                query = query.filter(Exam.academic_year.in_(list(student_years)))
+
+        exams = query.order_by(Exam.start_date.asc(), Exam.start_time.asc(), Exam.id.asc()).all()
+
+        output: List[StudentPublishedExamItem] = []
+        for exam in exams:
+            # Check if there is an officially RELEASED result for this student and exam
+            released_result = (
+                self.db.query(ExamResult)
+                .filter(
+                    ExamResult.exam_id == exam.id,
+                    ExamResult.student_id == student.id,
+                    or_(
+                        ExamResult.status == "RELEASED",
+                        and_(
+                            func.upper(exam.status) == "PUBLISHED",
+                            ExamResult.status.in_(["SUBMITTED", "APPROVED", "RELEASED"])
+                        )
+                    )
+                )
+                .first()
+            )
+
+            has_released = released_result is not None
+            c_name = exam.school_class.name if exam.school_class else None
+            c_code = exam.school_class.code if exam.school_class else None
+            c_sec = exam.school_class.section if exam.school_class else None
+            s_name = exam.subject.name if exam.subject else None
+            s_code = exam.subject.code if exam.subject else None
+            t_name = exam.teacher.full_name if (exam.teacher and hasattr(exam.teacher, 'full_name')) else None
+
+            output.append(
+                StudentPublishedExamItem(
+                    id=exam.id,
+                    name=exam.name,
+                    exam_type=exam.exam_type,
+                    academic_year=exam.academic_year,
+                    class_id=exam.class_id,
+                    class_name=c_name,
+                    class_code=c_code,
+                    section=c_sec,
+                    subject_id=exam.subject_id,
+                    subject_name=s_name,
+                    subject_code=s_code,
+                    teacher_name=t_name,
+                    start_date=exam.start_date,
+                    end_date=exam.end_date,
+                    start_time=exam.start_time,
+                    end_time=exam.end_time,
+                    instructions=exam.instructions,
+                    max_marks=float(exam.max_marks) if exam.max_marks is not None else 100.0,
+                    pass_marks=float(exam.pass_marks) if exam.pass_marks is not None else 50.0,
+                    status=exam.status,
+                    published_at=exam.published_at,
+                    result_submission_deadline=exam.result_submission_deadline,
+                    has_released_result=has_released,
+                    marks_obtained=float(released_result.marks_obtained) if (has_released and released_result.marks_obtained is not None) else None,
+                    grade=released_result.grade if has_released else None,
+                    remarks=released_result.remarks if has_released else None,
+                    attendance_status=released_result.attendance_status if has_released else None,
+                    percentage=released_result.percentage if has_released else None,
+                    total_marks=float(exam.max_marks) if exam.max_marks is not None else 100.0,
+                )
+            )
+
+        return output
+
     def get_my_exam_results(self, user: User, academic_year: Optional[str] = None) -> List[ExamResultResponse]:
         """
         Get officially RELEASED exam results for the authenticated student.
@@ -575,12 +686,20 @@ class StudentPortalService:
             .join(Exam, ExamResult.exam_id == Exam.id)
             .filter(
                 ExamResult.student_id == student.id,
-                ExamResult.status == "RELEASED"
+                or_(
+                    ExamResult.status == "RELEASED",
+                    and_(
+                        func.upper(Exam.status) == "PUBLISHED",
+                        ExamResult.status.in_(["SUBMITTED", "APPROVED", "RELEASED"])
+                    )
+                )
             )
         )
 
         if academic_year:
-            query = query.filter(Exam.academic_year == academic_year)
+            cleaned = academic_year.strip()
+            variants = list({cleaned, cleaned.replace("-", "/"), cleaned.replace("/", "-")})
+            query = query.filter(Exam.academic_year.in_(variants))
 
         results = query.order_by(Exam.start_date.desc(), Exam.id.desc()).all()
         return [ExamResultResponse.model_validate(r) for r in results]

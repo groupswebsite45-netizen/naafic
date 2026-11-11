@@ -154,9 +154,6 @@ function formatExamDate(dateStr?: string | null) {
 }
 
 .widget-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
   font-size: 0.825rem;
   font-weight: 600;
   color: #0284c7;
@@ -181,8 +178,7 @@ function formatExamDate(dateStr?: string | null) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
+  gap: 1rem;
   padding: 0.85rem 1rem;
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -318,26 +314,5 @@ function formatExamDate(dateStr?: string | null) {
   color: #64748b;
   margin: 0;
   line-height: 1.35;
-}
-
-@media (max-width: 480px) {
-  .exam-name {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
-    overflow-wrap: break-word;
-    word-break: normal;
-  }
-
-  .exam-date-status {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-  }
-
-  .empty-exams-box {
-    flex-wrap: wrap;
-  }
 }
 </style>

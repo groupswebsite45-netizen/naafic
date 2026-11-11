@@ -106,9 +106,9 @@ function handlePlanSelection(planName: string) {
 
 <style scoped>
 .public-home-page {
-  min-height: 100dvh;
+  min-height: 100vh;
   width: 100%;
-  overflow-x: clip;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
@@ -118,6 +118,6 @@ function handlePlanSelection(planName: string) {
 #main-content {
   flex: 1;
   width: 100%;
-  overflow-x: clip;
+  overflow-x: hidden;
 }
 </style>

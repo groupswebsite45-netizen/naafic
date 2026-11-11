@@ -534,7 +534,7 @@ function emitScroll(target: string) {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  overflow: clip;
+  overflow: hidden;
   z-index: 1;
 }
 
@@ -639,7 +639,6 @@ function emitScroll(target: string) {
 .contact-item {
   display: flex;
   align-items: center;
-  min-height: 26px;
   gap: 0.75rem;
   font-size: 0.88rem;
   color: #D6E2F5;
@@ -950,16 +949,13 @@ function emitScroll(target: string) {
 }
 
 .legal-link-btn {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
   background: none;
   border: none;
   color: #B8C8E0;
   font-size: 0.825rem;
   font-family: inherit;
   cursor: pointer;
-  padding: 0.15rem 0;
+  padding: 0;
   transition: color 0.2s ease;
 }
 

@@ -503,7 +503,7 @@ function formatFileSize(bytes: number): string {
 
           <!-- Bounded Horizontally-Scrollable Table Container -->
           <div class="preview-table-wrapper">
-            <div class="preview-table-scroller" tabindex="0" role="region" aria-label="Excel parsed student preview table">
+            <div class="preview-table-scroller">
               <table class="preview-table" aria-label="Excel parsed student preview table">
                 <thead>
                   <tr>

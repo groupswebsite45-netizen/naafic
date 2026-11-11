@@ -496,7 +496,7 @@ function getInvoiceStatusVariant(status: string | null | undefined): 'success' |
             <!-- Invoices Ledger Content -->
             <div v-else>
               <!-- Desktop Table -->
-              <div class="table-responsive desktop-only" tabindex="0" role="region" aria-label="Fee invoices table">
+              <div class="table-responsive desktop-only">
                 <table class="premium-table">
                   <thead>
                     <tr>
@@ -583,7 +583,7 @@ function getInvoiceStatusVariant(status: string | null | undefined): 'success' |
             <!-- Payments Table Content -->
             <div v-else>
               <!-- Desktop Table -->
-              <div class="table-responsive desktop-only" tabindex="0" role="region" aria-label="Payment transactions table">
+              <div class="table-responsive desktop-only">
                 <table class="premium-table">
                   <thead>
                     <tr>
@@ -1627,13 +1627,11 @@ function getInvoiceStatusVariant(status: string | null | undefined): 'success' |
 
 @media (max-width: 480px) {
   .identity-details-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.65rem;
+    grid-template-columns: 1fr;
   }
 
   .financial-cards-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.65rem;
+    grid-template-columns: 1fr;
   }
 
   .student-name {

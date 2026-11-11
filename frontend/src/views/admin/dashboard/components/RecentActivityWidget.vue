@@ -139,8 +139,6 @@ const activities = [
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem 0.75rem;
 }
 
 .header-left {
@@ -176,9 +174,8 @@ const activities = [
 }
 
 .view-all-link {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  min-height: 28px;
   gap: 0.35rem;
   font-size: 0.82rem;
   font-weight: 700;
@@ -257,7 +254,6 @@ const activities = [
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0;
 }
 
 .activity-time-group {
@@ -266,35 +262,6 @@ const activities = [
   gap: 0.65rem;
   margin-left: auto;
   flex-shrink: 0;
-}
-
-@media (max-width: 640px) {
-  .activity-row {
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 0.5rem 0.65rem;
-  }
-
-  .activity-details {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.2rem;
-  }
-
-  .activity-title,
-  .activity-entity {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
-    overflow-wrap: break-word;
-    word-break: normal;
-  }
-
-  .activity-time-group {
-    width: 100%;
-    margin-left: 0;
-    justify-content: flex-end;
-  }
 }
 
 .activity-time {

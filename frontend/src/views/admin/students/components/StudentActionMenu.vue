@@ -11,6 +11,8 @@ const emit = defineEmits<{
   (e: 'edit', student: Student): void;
   (e: 'changeClass', student: Student): void;
   (e: 'managePortal', student: Student): void;
+  (e: 'togglePortal', student: Student): void;
+  (e: 'loginPortal', student: Student): void;
   (e: 'toggleStatus', student: Student): void;
 }>();
 
@@ -46,6 +48,16 @@ function handleChangeClass() {
 function handleManagePortal() {
   isOpen.value = false;
   emit('managePortal', props.student);
+}
+
+function handleTogglePortal() {
+  isOpen.value = false;
+  emit('togglePortal', props.student);
+}
+
+function handleLoginPortal() {
+  isOpen.value = false;
+  emit('loginPortal', props.student);
 }
 
 function handleToggleStatus() {
@@ -103,11 +115,25 @@ onUnmounted(() => {
           <span>Change Class</span>
         </button>
 
+        <button type="button" class="menu-item" role="menuitem" @click="handleTogglePortal">
+          <svg class="menu-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+          </svg>
+          <span>{{ student.has_portal_access ? 'Disable Portal Access' : 'Quick Enable Portal' }}</span>
+        </button>
+
+        <button type="button" class="menu-item text-emerald-700" role="menuitem" @click="handleLoginPortal">
+          <svg class="menu-item-icon text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+          </svg>
+          <span style="font-weight: 600; color: #047857;">Log in as Student</span>
+        </button>
+
         <button type="button" class="menu-item" role="menuitem" @click="handleManagePortal">
           <svg class="menu-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
           </svg>
-          <span>{{ student.has_portal_access ? 'Portal Account' : 'Enable Portal' }}</span>
+          <span>Advanced Portal Settings</span>
         </button>
 
         <div class="menu-divider" />

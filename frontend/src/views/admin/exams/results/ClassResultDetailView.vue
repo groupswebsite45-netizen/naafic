@@ -533,9 +533,6 @@ watch([academicYear, examName], () => {
   gap: 0.5rem;
   border-bottom: 1px solid #334155;
   padding-bottom: 0.25rem;
-  overflow-x: auto;
-  max-width: 100%;
-  -webkit-overflow-scrolling: touch;
 }
 
 .tab-btn {
@@ -547,12 +544,9 @@ watch([academicYear, examName], () => {
   border-bottom: 2px solid transparent;
   color: #94a3b8;
   padding: 0.65rem 1rem;
-  min-height: 44px;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
-  flex: none;
   transition: all 0.15s ease;
 }
 

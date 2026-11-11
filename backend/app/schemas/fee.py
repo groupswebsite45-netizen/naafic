@@ -64,6 +64,7 @@ class FeePaymentCreate(BaseModel):
         description="CASH, EVC_PLUS, EDAHAB, ZAAD, SAHAL, BANK_TRANSFER, CHEQUE, OTHER"
     )
     reference_number: Optional[str] = Field(None, description="Transaction ID or mobile money code")
+    fee_month: Optional[str] = Field(None, description="Selected billing month (e.g. November 2026)")
     notes: Optional[str] = None
 
 
@@ -85,6 +86,7 @@ class FeePaymentResponse(BaseModel):
     recorded_by_id: Optional[int] = None
     recorded_by_name: Optional[str] = None
     notes: Optional[str] = None
+    fee_month: Optional[str] = None
     status: str = "VERIFIED"
     created_at: datetime
 
@@ -113,6 +115,13 @@ class OfficialReceiptData(BaseModel):
     school_address: str = "Hawlwadaag District, Mogadishu, Somalia"
     school_contact: str = "+252 61 5000000 | finance@hawlwadaagschool.edu.so"
     verified_stamp: str = "OFFICIAL FINANCE RECEIPT - VERIFIED"
+    payment_id: Optional[int] = None
+    admission_number: Optional[str] = None
+    fee_type: Optional[str] = None
+    net_amount: Optional[float] = None
+    recorded_by: Optional[str] = None
+    guardian_name: Optional[str] = None
+    fee_month: Optional[str] = None
 
 
 # =========================================================================

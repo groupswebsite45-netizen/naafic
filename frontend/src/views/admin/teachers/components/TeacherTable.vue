@@ -52,7 +52,7 @@ function handleRowClick(teacher: Teacher, e: MouseEvent) {
 </script>
 
 <template>
-  <div tabindex="0" role="region" aria-label="Faculty member directory table" class="table-responsive-box">
+  <div class="table-responsive-box">
     <table class="premium-teacher-table" aria-label="Faculty member directory">
       <thead>
         <tr>

@@ -65,7 +65,7 @@ function emitScroll(target: string) {
   background: linear-gradient(135deg, #071735 0%, #0B1F4B 60%, #12264A 100%);
   border-radius: 24px;
   padding: 4.5rem 2rem;
-  overflow: clip;
+  overflow: hidden;
   box-shadow: 0 24px 60px -12px rgba(7, 23, 53, 0.45);
   text-align: center;
 }
@@ -185,25 +185,11 @@ function emitScroll(target: string) {
 }
 
 @media (max-width: 640px) {
-  .cta-container {
-    padding: 0 1rem;
-  }
   .cta-title {
-    font-size: clamp(1.5rem, 6vw, 2rem);
+    font-size: 2rem;
   }
   .cta-card {
-    padding: 2.5rem 1.25rem;
-  }
-  .cta-btn-group {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .btn-cta-primary,
-  .btn-cta-ghost {
-    width: 100%;
-    justify-content: center;
-    padding: 0.85rem 1.25rem;
-    min-height: 44px;
+    padding: 3rem 1.5rem;
   }
 }
 </style>

@@ -1119,12 +1119,20 @@ class ResultWorkflowService:
         """
         student = self.get_student_from_user(user)
 
-        # Query only RELEASED results
+        from sqlalchemy import or_, and_, func
+
+        # Query RELEASED results or results belonging to PUBLISHED exams
         results = self.db.query(ExamResult).join(
             Exam, ExamResult.exam_id == Exam.id
         ).filter(
             ExamResult.student_id == student.id,
-            ExamResult.status == "RELEASED"
+            or_(
+                ExamResult.status == "RELEASED",
+                and_(
+                    func.upper(Exam.status) == "PUBLISHED",
+                    ExamResult.status.in_(["SUBMITTED", "APPROVED", "RELEASED"])
+                )
+            )
         ).order_by(Exam.start_date.desc(), Exam.id.desc()).all()
 
         return results

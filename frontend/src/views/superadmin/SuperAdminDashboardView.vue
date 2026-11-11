@@ -603,8 +603,8 @@ onMounted(() => {
           </router-link>
         </div>
 
-        <div class="sad-table-wrapper sad-desktop-table" tabindex="0" role="region" aria-label="Recent institutions table">
-          <table class="sad-table sad-table-institutions">
+        <div class="sad-table-wrapper">
+          <table class="sad-table">
             <thead>
               <tr>
                 <th class="w-8 text-center">#</th>
@@ -690,58 +690,6 @@ onMounted(() => {
             </tbody>
           </table>
         </div>
-
-        <!-- Mobile Recent Institutions Cards (<= 640px) -->
-        <div class="sad-mobile-records">
-          <div v-if="!stats?.recent_institutions?.length" class="sad-mobile-empty">
-            No registered institutions found.
-          </div>
-          <article
-            v-for="(inst, idx) in (stats?.recent_institutions || [])"
-            :key="'m-inst-' + inst.id"
-            class="sad-mobile-record-card"
-          >
-            <div class="sad-mobile-record-head">
-              <div class="sad-inst-cell">
-                <div class="sad-inst-logo-badge">
-                  <img v-if="inst.logo_url" :src="inst.logo_url" alt="" class="w-full h-full object-cover rounded-full" />
-                  <div v-else class="sad-inst-initial">{{ inst.name.charAt(0).toUpperCase() }}</div>
-                </div>
-                <div class="sad-inst-names">
-                  <div class="sad-inst-title">{{ inst.name }}</div>
-                  <div class="sad-inst-code">#{{ idx + 1 }} • {{ inst.code }}</div>
-                </div>
-              </div>
-              <span class="sad-badge-pill" :class="inst.status === 'ACTIVE' ? 'badge-active' : 'badge-expired'">
-                {{ inst.status === 'ACTIVE' ? 'Active' : 'Expired' }}
-              </span>
-            </div>
-            <div class="sad-mobile-kv-grid">
-              <div class="sad-mobile-kv">
-                <span class="sad-kv-label">Type</span>
-                <span class="sad-badge-pill" :class="inst.type.toLowerCase().includes('school') ? 'badge-school' : 'badge-academy'">
-                  {{ inst.type.toLowerCase().includes('school') ? 'School' : 'Academy' }}
-                </span>
-              </div>
-              <div class="sad-mobile-kv">
-                <span class="sad-kv-label">Location</span>
-                <span class="sad-kv-val">{{ inst.city || inst.region || 'Mogadishu' }}</span>
-              </div>
-              <div class="sad-mobile-kv">
-                <span class="sad-kv-label">Date</span>
-                <span class="sad-kv-val">{{ formatDate(inst.created_at) }}</span>
-              </div>
-            </div>
-            <div class="sad-mobile-record-foot">
-              <button class="sad-btn-open-sms sad-btn-open-mobile" @click="openSmsForInstitution(inst)">
-                <span>Open SMS Workspace</span>
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </button>
-            </div>
-          </article>
-        </div>
       </div>
 
       <!-- Right Card: Recent Payments (~42% width) -->
@@ -767,8 +715,8 @@ onMounted(() => {
           </router-link>
         </div>
 
-        <div class="sad-table-wrapper sad-desktop-table" tabindex="0" role="region" aria-label="Recent payments table">
-          <table class="sad-table sad-table-payments">
+        <div class="sad-table-wrapper">
+          <table class="sad-table">
             <thead>
               <tr>
                 <th class="w-8 text-center">#</th>
@@ -784,7 +732,7 @@ onMounted(() => {
                 <td>
                   <span class="font-semibold text-slate-900 text-xs">{{ pay.institution }}</span>
                 </td>
-                <td class="whitespace-nowrap">
+                <td>
                   <span class="font-bold text-slate-900 text-xs">${{ pay.amount }}</span>
                 </td>
                 <td class="text-slate-500 text-xs whitespace-nowrap">{{ pay.date }}</td>
@@ -799,39 +747,6 @@ onMounted(() => {
               </tr>
             </tbody>
           </table>
-        </div>
-
-        <!-- Mobile Recent Payments Cards (<= 640px) -->
-        <div class="sad-mobile-records">
-          <div v-if="!displayPayments.length" class="sad-mobile-empty">
-            No recent payments found.
-          </div>
-          <article
-            v-for="pay in displayPayments"
-            :key="'m-pay-' + pay.id"
-            class="sad-mobile-record-card"
-          >
-            <div class="sad-mobile-record-head">
-              <span class="sad-record-id">Payment Record #{{ pay.id }}</span>
-              <span
-                class="sad-badge-pill"
-                :class="pay.status.toLowerCase() === 'completed' ? 'badge-completed' : 'badge-failed'"
-              >
-                {{ pay.status }}
-              </span>
-            </div>
-            <div class="sad-record-primary">{{ pay.institution }}</div>
-            <div class="sad-mobile-kv-grid sad-mobile-kv-2col">
-              <div class="sad-mobile-kv">
-                <span class="sad-kv-label">Amount</span>
-                <span class="sad-kv-val sad-kv-money">${{ pay.amount }}</span>
-              </div>
-              <div class="sad-mobile-kv">
-                <span class="sad-kv-label">Date</span>
-                <span class="sad-kv-val">{{ pay.date }}</span>
-              </div>
-            </div>
-          </article>
         </div>
       </div>
     </div>
@@ -1077,7 +992,7 @@ onMounted(() => {
 /* Row of 3 Analytics Cards */
 .sad-analytics-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.35rem;
 }
 
@@ -1089,17 +1004,12 @@ onMounted(() => {
   padding: 1.25rem 1.35rem;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  max-width: 100%;
-  box-sizing: border-box;
 }
 
 .sad-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem 0.75rem;
   margin-bottom: 1.25rem;
 }
 
@@ -1141,7 +1051,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  flex-wrap: wrap;
   padding: 0.5rem 0 0.75rem;
   gap: 1.25rem;
 }
@@ -1185,19 +1094,14 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  flex: 1 1 130px;
-  min-width: 0;
-  word-break: normal;
-  overflow-wrap: normal;
+  flex: 1;
+  max-width: 160px;
 }
 
 .sad-legend-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.35rem;
-  font-size: 0.78rem;
-  flex-wrap: wrap;
 }
 
 /* Monthly Revenue Bar Panel */
@@ -1226,7 +1130,6 @@ onMounted(() => {
 
 .sad-barchart-container {
   flex: 1;
-  min-width: 0;
   height: 100%;
   position: relative;
   display: flex;
@@ -1291,7 +1194,6 @@ onMounted(() => {
   font-size: 0.68rem;
   color: #64748b;
   font-weight: 500;
-  white-space: nowrap;
 }
 
 .sad-bar-tooltip {
@@ -1320,10 +1222,9 @@ onMounted(() => {
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  overflow: clip;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-width: 0;
 }
 
 .sad-panel-top {
@@ -1331,8 +1232,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem 0.75rem;
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -1356,9 +1255,8 @@ onMounted(() => {
 }
 
 .sad-view-all-link {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  min-height: 28px;
   font-size: 0.8rem;
   font-weight: 700;
   color: #ff6500;
@@ -1379,16 +1277,6 @@ onMounted(() => {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  word-break: normal;
-  overflow-wrap: normal;
-}
-
-.sad-table-institutions {
-  min-width: 680px;
-}
-
-.sad-table-payments {
-  min-width: 500px;
 }
 
 .sad-table th {
@@ -1400,7 +1288,6 @@ onMounted(() => {
   background: #f8fafc;
   letter-spacing: 0.03em;
   border-bottom: 1px solid #e2e8f0;
-  white-space: nowrap;
 }
 
 .sad-table td {
@@ -1409,100 +1296,6 @@ onMounted(() => {
   color: #334155;
   border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
-}
-
-/* Mobile Record Cards (Option A) */
-.sad-mobile-records {
-  display: none;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 0.875rem;
-}
-
-.sad-mobile-empty {
-  text-align: center;
-  padding: 1.5rem 0.75rem;
-  font-size: 0.82rem;
-  color: #94a3b8;
-}
-
-.sad-mobile-record-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 0.85rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.sad-mobile-record-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.sad-record-id {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #64748b;
-}
-
-.sad-record-primary {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #061737;
-  line-height: 1.3;
-}
-
-.sad-mobile-kv-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem 0.75rem;
-  padding-top: 0.4rem;
-  border-top: 1px dashed #e2e8f0;
-}
-
-.sad-mobile-kv {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 0;
-}
-
-.sad-kv-label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: #64748b;
-}
-
-.sad-kv-val {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #1e293b;
-  white-space: nowrap;
-}
-
-.sad-kv-money {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: #061737;
-}
-
-.sad-mobile-record-foot {
-  padding-top: 0.35rem;
-}
-
-.sad-btn-open-mobile {
-  width: 100%;
-  justify-content: center;
-  min-height: 40px;
 }
 
 .sad-table tr:hover td {
@@ -1647,164 +1440,13 @@ onMounted(() => {
 
 @media (max-width: 640px) {
   .sad-kpi-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-
-  .sad-kpi-card {
-    padding: 0.85rem;
-    gap: 0.65rem;
-    border-radius: 12px;
-    min-width: 0;
-  }
-
-  .sad-kpi-header {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 0.45rem 0.55rem;
-  }
-
-  .sad-kpi-icon-wrap {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-  }
-
-  .sad-kpi-icon-wrap svg {
-    width: 19px;
-    height: 19px;
-  }
-
-  .sad-kpi-body {
-    grid-column: 1 / -1;
-    min-width: 0;
-  }
-
-  .sad-kpi-ring-box {
-    grid-row: 1;
-    grid-column: 2;
-    justify-self: end;
-    width: 38px;
-    height: 38px;
-  }
-
-  .sad-kpi-label {
-    font-size: 0.74rem;
-    line-height: 1.25;
-  }
-
-  .sad-kpi-val-row {
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  }
-
-  .sad-kpi-value {
-    font-size: clamp(1.2rem, 4.5vw, 1.55rem);
-    white-space: nowrap;
-  }
-
-  .sad-kpi-footer {
-    flex-wrap: wrap;
-    gap: 0.35rem 0.65rem;
-    padding-top: 0.55rem;
-  }
-
-  .sad-footer-item {
-    font-size: 0.72rem;
-    white-space: nowrap;
-  }
-
-  .sad-desktop-table {
-    display: none;
-  }
-
-  .sad-mobile-records {
-    display: flex;
+    grid-template-columns: 1fr;
   }
 
   .sad-welcome-right {
     width: 100%;
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .sad-analytics-card {
-    padding: 0.9rem;
-  }
-
-  .sad-donut-panel-body {
-    gap: 0.85rem;
-  }
-
-  .sad-donut-wrap {
-    width: 112px;
-    height: 112px;
-  }
-
-  .sad-bar-panel-body {
-    gap: 0.4rem;
-  }
-
-  .sad-bar-yaxis {
-    width: 30px;
-  }
-
-  .sad-bar-track {
-    width: 12px;
-  }
-
-  .sad-bar-label {
-    font-size: 0.56rem;
-  }
-
-  .sad-action-buttons {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-  }
-}
-
-/* Ensure legend dots always render visible spacing without Tailwind utility dependency */
-.sad-dot {
-  flex-shrink: 0;
-}
-.sad-dot.bg-blue-600 { background-color: #2563eb; }
-.sad-dot.bg-orange-500 { background-color: #f97316; }
-.sad-dot.bg-emerald-500 { background-color: #10b981; }
-.sad-dot.bg-red-500 { background-color: #ef4444; }
-.sad-dot.bg-amber-400 { background-color: #fbbf24; }
-.sad-legend-row > div:first-child {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-/* Desktop side-by-side bottom tables: keep both tables unclipped inside 1366px-1920px containers */
-@media (min-width: 1281px) {
-  .sad-bottom-grid {
-    grid-template-columns: 1.4fr 1fr;
-  }
-
-  .sad-table-institutions,
-  .sad-table-payments {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .sad-table th {
-    padding: 0.65rem 0.5rem;
-    font-size: 0.66rem;
-    letter-spacing: 0.03em;
-  }
-
-  .sad-table td {
-    padding: 0.75rem 0.5rem;
-    font-size: 0.78rem;
-  }
-
-  .sad-table .sad-pill {
-    padding: 0.16rem 0.48rem;
-    font-size: 0.7rem;
   }
 }
 </style>

@@ -119,7 +119,7 @@ onMounted(() => {
 
     <!-- Table Card -->
     <div class="sas-card">
-      <div class="sas-table-wrap sas-desktop-table" tabindex="0" role="region" aria-label="Subscriptions table">
+      <div class="sas-table-wrap">
         <table class="sas-table">
           <thead>
             <tr>
@@ -143,9 +143,9 @@ onMounted(() => {
                 <span class="font-semibold text-blue-900">{{ sub.plan_name }}</span>
               </td>
               <td>{{ sub.billing_cycle }}</td>
-              <td class="font-bold text-slate-800 whitespace-nowrap">${{ sub.price }}</td>
-              <td class="whitespace-nowrap">{{ formatDate(sub.start_date) }}</td>
-              <td class="whitespace-nowrap">{{ formatDate(sub.end_date) }}</td>
+              <td class="font-bold text-slate-800">${{ sub.price }}</td>
+              <td>{{ formatDate(sub.start_date) }}</td>
+              <td>{{ formatDate(sub.end_date) }}</td>
               <td>
                 <span
                   class="sas-pill"
@@ -167,49 +167,6 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
-      </div>
-
-      <!-- Mobile Subscription Cards (<= 768px) -->
-      <div class="sas-mobile-cards">
-        <div v-if="!subscriptions.length && !isLoading" class="sas-mobile-empty">
-          No subscription records found.
-        </div>
-        <article v-for="sub in subscriptions" :key="'m-sub-' + sub.id" class="sas-mobile-card">
-          <div class="sas-mobile-head">
-            <div>
-              <div class="sas-mobile-inst">{{ sub.institution_name }}</div>
-              <div class="sas-mobile-code">{{ sub.institution_code }}</div>
-            </div>
-            <span
-              class="sas-pill"
-              :class="sub.status.toLowerCase() === 'active' ? 'pill-active' : 'pill-expired'"
-            >
-              {{ sub.status }}
-            </span>
-          </div>
-          <div class="sas-mobile-kv-grid">
-            <div class="sas-mobile-kv">
-              <span class="sas-kv-label">Plan</span>
-              <span class="sas-kv-val">{{ sub.plan_name }}</span>
-            </div>
-            <div class="sas-mobile-kv">
-              <span class="sas-kv-label">Price</span>
-              <span class="sas-kv-val sas-kv-money">${{ sub.price }} / {{ sub.billing_cycle }}</span>
-            </div>
-            <div class="sas-mobile-kv">
-              <span class="sas-kv-label">Start Date</span>
-              <span class="sas-kv-val">{{ formatDate(sub.start_date) }}</span>
-            </div>
-            <div class="sas-mobile-kv">
-              <span class="sas-kv-label">End Date</span>
-              <span class="sas-kv-val">{{ formatDate(sub.end_date) }}</span>
-            </div>
-            <div class="sas-mobile-kv">
-              <span class="sas-kv-label">Auto Renew</span>
-              <span class="sas-kv-val">{{ sub.auto_renew ? 'Enabled' : 'Manual' }}</span>
-            </div>
-          </div>
-        </article>
       </div>
     </div>
 
@@ -349,7 +306,6 @@ onMounted(() => {
 
 .sas-table {
   width: 100%;
-  min-width: 820px;
   border-collapse: collapse;
   text-align: left;
 }
@@ -362,83 +318,6 @@ onMounted(() => {
   color: #64748b;
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
-  white-space: nowrap;
-}
-
-.sas-mobile-cards {
-  display: none;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 0.875rem;
-}
-
-.sas-mobile-empty {
-  text-align: center;
-  padding: 2rem 1rem;
-  color: #94a3b8;
-  font-size: 0.85rem;
-}
-
-.sas-mobile-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 0.9rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-
-.sas-mobile-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.sas-mobile-inst {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #061737;
-}
-
-.sas-mobile-code {
-  font-family: monospace;
-  font-size: 0.74rem;
-  color: #64748b;
-}
-
-.sas-mobile-kv-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem 0.75rem;
-  padding-top: 0.45rem;
-  border-top: 1px dashed #e2e8f0;
-}
-
-.sas-mobile-kv {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.sas-kv-label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.sas-kv-val {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.sas-kv-money {
-  font-weight: 800;
-  color: #061737;
-  white-space: nowrap;
 }
 
 .sas-table td {
@@ -482,9 +361,8 @@ onMounted(() => {
   background: #ffffff;
   border-radius: 14px;
   width: 100%;
-  max-width: min(520px, calc(100vw - 1.5rem));
-  max-height: calc(100dvh - 1.5rem);
-  overflow-y: auto;
+  max-width: 520px;
+  overflow: hidden;
 }
 
 .sas-modal-header {
@@ -509,12 +387,6 @@ onMounted(() => {
   font-size: 1.2rem;
   color: #94a3b8;
   cursor: pointer;
-  min-width: 40px;
-  min-height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
 }
 
 .sas-modal-body {
@@ -526,7 +398,7 @@ onMounted(() => {
 
 .sas-modal-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
@@ -534,7 +406,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  min-width: 0;
 }
 
 .sas-modal-label {
@@ -544,9 +415,6 @@ onMounted(() => {
 }
 
 .sas-modal-input {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
   padding: 0.55rem 0.8rem;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
@@ -561,7 +429,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  flex-wrap: wrap;
   gap: 0.75rem;
 }
 
@@ -591,43 +458,9 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
-@media (max-width: 768px) {
-  .sas-desktop-table {
-    display: none;
-  }
-
-  .sas-mobile-cards {
-    display: flex;
-  }
-}
-
 @media (max-width: 640px) {
   .sas-stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-
-  .sas-stat-card {
-    padding: 0.9rem;
-  }
-
-  .sas-stat-val {
-    font-size: clamp(1.25rem, 4.5vw, 1.65rem);
-  }
-
-  .sas-modal-grid {
     grid-template-columns: 1fr;
-  }
-
-  .sas-btn-renew {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .sas-modal-header,
-  .sas-modal-body,
-  .sas-modal-footer {
-    padding: 1rem;
   }
 }
 </style>

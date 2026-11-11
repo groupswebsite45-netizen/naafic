@@ -147,13 +147,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.sas-header > div {
-  min-width: 0;
-  flex: 1 1 240px;
 }
 
 .sas-title {
@@ -198,7 +191,7 @@ onMounted(() => {
 
 .sas-settings-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
 }
 
@@ -210,7 +203,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  min-width: 0;
 }
 
 .sas-panel-title {
@@ -239,9 +231,6 @@ onMounted(() => {
 }
 
 .sas-input {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
   padding: 0.6rem 0.85rem;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
@@ -259,30 +248,6 @@ onMounted(() => {
 @media (max-width: 900px) {
   .sas-settings-grid {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .sas-title {
-    font-size: 1.35rem;
-  }
-
-  .sas-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .sas-btn-save {
-    width: 100%;
-    min-height: 44px;
-  }
-
-  .sas-panel {
-    padding: 1.1rem;
-  }
-
-  .sas-info-box {
-    overflow-wrap: anywhere;
   }
 }
 </style>

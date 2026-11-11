@@ -370,11 +370,6 @@ onUnmounted(() => {
 }
 
 .lang-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 26px;
-  min-width: 28px;
   font-size: 0.75rem;
   font-weight: 600;
   padding: 3px 8px;
@@ -471,8 +466,6 @@ onUnmounted(() => {
   display: none;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
   padding: 0.5rem;
   background: #F7F9FC;
   border: 1px solid #D9E2EC;
@@ -522,13 +515,8 @@ onUnmounted(() => {
 .drawer-close {
   background: #F7F9FC;
   border: none;
-  min-width: 44px;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 0.4rem;
-  border-radius: 8px;
+  border-radius: 6px;
   color: #586983;
   cursor: pointer;
 }
@@ -595,16 +583,6 @@ onUnmounted(() => {
   .btn-ghost-login,
   .btn-primary-cta,
   .btn-secondary-nav {
-    display: none;
-  }
-}
-
-@media (max-width: 420px) {
-  .brand-logo {
-    height: 36px;
-  }
-
-  .lang-selector-group {
     display: none;
   }
 }

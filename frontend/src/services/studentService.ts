@@ -62,7 +62,15 @@ export const studentService = {
     }
     const res = await apiClient.get<Student[]>('/students', { params: queryParams });
     const data = res.data;
-    return Array.isArray(data) ? data : (data as any)?.items || (data as any)?.data || [];
+    const items: any = Array.isArray(data) ? data : (data as any)?.items || (data as any)?.data || [];
+    const totalHeader = res.headers ? (res.headers['x-total-count'] || res.headers['X-Total-Count']) : undefined;
+    if (totalHeader !== undefined) {
+      const parsed = parseInt(String(totalHeader), 10);
+      if (!isNaN(parsed)) {
+        items.total = parsed;
+      }
+    }
+    return items;
   },
 
   async getStudentById(id: number): Promise<Student> {
@@ -83,6 +91,43 @@ export const studentService = {
   async updateStudent(id: number, payload: Partial<CreateStudentPayload>): Promise<Student> {
     const res = await apiClient.put<Student>(`/students/${id}`, payload);
     return res.data;
+  },
+
+  async uploadPhoto(id: number, file: File): Promise<Student> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await apiClient.post<Student>(`/students/${id}/photo`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return res.data;
+  },
+
+  async deletePhoto(id: number): Promise<Student> {
+    const res = await apiClient.delete<Student>(`/students/${id}/photo`);
+    return res.data;
+  },
+
+  getPhotoUrl(id?: number | null, photoPath?: string | null): string | null {
+    if (!id || !photoPath) return null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('sms_access_token') : null;
+    let extraParams = '';
+    if (typeof window !== 'undefined') {
+      const activeInstStr = localStorage.getItem('sms_active_institution');
+      if (activeInstStr) {
+        try {
+          const inst = JSON.parse(activeInstStr);
+          if (inst?.id) {
+            extraParams += `&institution_id=${encodeURIComponent(inst.id)}`;
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+    const tokenQuery = token ? `?token=${encodeURIComponent(token)}${extraParams}` : (extraParams ? `?${extraParams.slice(1)}` : '');
+    return `/api/v1/students/${id}/photo${tokenQuery}`;
   },
 
   async updateStatus(id: number, status: string, reason?: string): Promise<Student> {
@@ -112,6 +157,21 @@ export const studentService = {
 
   async changePortalUsername(id: number, username: string): Promise<{ message: string; old_username: string; new_username: string }> {
     const res = await apiClient.patch<{ message: string; old_username: string; new_username: string }>(`/students/${id}/account/username`, { username });
+    return res.data;
+  },
+
+  async batchEnablePortals(payload?: { academic_year?: string; class_id?: number; default_password?: string; student_ids?: number[] }): Promise<any> {
+    const res = await apiClient.post('/students/portal/batch-enable', payload || {});
+    return res.data;
+  },
+
+  async togglePortalQuick(studentId: number, isActive?: boolean): Promise<{ student_id: number; has_portal_access: boolean; portal_username: string; portal_is_active: boolean; message: string }> {
+    const res = await apiClient.post(`/students/${studentId}/portal/toggle`, { is_active: isActive });
+    return res.data;
+  },
+
+  async loginAsStudent(studentId: number): Promise<{ access_token: string; portal_url: string; student_name: string; username: string }> {
+    const res = await apiClient.post(`/students/${studentId}/portal-login`);
     return res.data;
   },
 

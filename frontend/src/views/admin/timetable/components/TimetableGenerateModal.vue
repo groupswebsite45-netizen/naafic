@@ -690,7 +690,6 @@ async function handleGenerate() {
 
 .subjects-table {
   width: 100%;
-  min-width: 520px;
   border-collapse: collapse;
   font-size: 0.8125rem;
 }

@@ -422,7 +422,7 @@ onMounted(() => {
             class="action-btn publish"
             @click="openPublishModal(true)"
           >
-            Publish Results
+            Publish to Portal
           </button>
           <button
             v-else
@@ -430,7 +430,7 @@ onMounted(() => {
             class="action-btn unpublish"
             @click="openPublishModal(false)"
           >
-            Unpublish
+            Unpublish from Portal
           </button>
 
           <button
@@ -612,7 +612,7 @@ onMounted(() => {
           <span class="roster-count">{{ profile.student_sheet.length }} students enrolled</span>
         </div>
 
-        <div class="table-responsive" tabindex="0" role="region" aria-label="Class roster and score status table">
+        <div class="table-responsive">
           <table class="roster-table">
             <thead>
               <tr>
@@ -849,7 +849,7 @@ onMounted(() => {
             class="publish-btn"
             @click="openPublishModal(true)"
           >
-            Publish Results to Student Portal
+            Publish Exam to Student Portal
           </button>
           <button
             v-else
@@ -1107,8 +1107,6 @@ onMounted(() => {
 .back-link {
   display: inline-flex;
   align-items: center;
-  min-height: 32px;
-  padding: 0.25rem 0;
   gap: 0.35rem;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -1429,7 +1427,6 @@ onMounted(() => {
 
 .roster-table {
   width: 100%;
-  min-width: 720px;
   border-collapse: collapse;
   text-align: left;
 }
@@ -1691,18 +1688,10 @@ onMounted(() => {
 
 .close-btn {
   font-size: 1.5rem;
-  line-height: 1;
   background: none;
   border: none;
   color: #64748b;
   cursor: pointer;
-  min-width: 40px;
-  min-height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  flex-shrink: 0;
 }
 
 .modal-body {
@@ -1943,7 +1932,6 @@ onMounted(() => {
 
 .sheet-table {
   width: 100%;
-  min-width: 680px;
   border-collapse: collapse;
   font-size: 0.875rem;
   text-align: left;

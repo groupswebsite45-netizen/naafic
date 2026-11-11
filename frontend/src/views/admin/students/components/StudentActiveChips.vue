@@ -138,9 +138,7 @@ const chips = computed(() => {
   background: none;
   border: none;
   color: #3b82f6;
-  width: 24px;
-  height: 24px;
-  padding: 0;
+  padding: 0.15rem;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -162,9 +160,6 @@ const chips = computed(() => {
   font-weight: 600;
   color: #e11d48;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
   transition: all 0.12s ease;

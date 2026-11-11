@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.core.security import decode_token
@@ -103,7 +103,6 @@ def get_current_active_admin(
     return current_user
 
 
-
 def get_current_active_teacher(
     current_user: User = Depends(get_current_user)
 ) -> User:
@@ -140,3 +139,43 @@ def get_current_staff_user(
             detail="Administrative or faculty staff privileges required to access this resource."
         )
     return current_user
+
+
+def get_current_user_for_media(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
+    token: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+) -> Optional[User]:
+    """
+    Validate JWT access token from Authorization header or ?token= query parameter.
+    Used for media/photo endpoints so standard browser img/video tags can authenticate.
+    """
+    raw_token = credentials.credentials if credentials else token
+    if not raw_token:
+        return None
+
+    payload = decode_token(raw_token)
+    if not payload or payload.get("type") != "access":
+        return None
+
+    user_id = payload.get("sub")
+    if not user_id:
+        return None
+
+    user_repo = UserRepository(db)
+    user = user_repo.get_by_id(int(user_id))
+    if not user:
+        try:
+            from app.core.tenant_context import get_central_sessionmaker
+            central_session = get_central_sessionmaker()()
+            try:
+                user = UserRepository(central_session).get_by_id(int(user_id))
+            finally:
+                central_session.close()
+        except Exception:
+            user = None
+
+    if not user or not user.is_active:
+        return None
+
+    return user

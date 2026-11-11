@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { Student } from '../../../../types/school';
+import { studentService } from '../../../../services/studentService';
 import StudentActionMenu from './StudentActionMenu.vue';
 import StudentStatusBadge from './StudentStatusBadge.vue';
 
@@ -12,6 +13,8 @@ const emit = defineEmits<{
   (e: 'edit', student: Student): void;
   (e: 'changeClass', student: Student): void;
   (e: 'managePortal', student: Student): void;
+  (e: 'togglePortal', student: Student): void;
+  (e: 'loginPortal', student: Student): void;
   (e: 'toggleStatus', student: Student): void;
 }>();
 
@@ -38,10 +41,14 @@ function getAvatarBg(name: string): string {
     'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)'
   ];
   let hash = 0;
-  for (let i = 0; i < name.length; i++) {
+  for (let i = 0; i < (name || '').length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
   return gradients[Math.abs(hash) % gradients.length];
+}
+
+function getStudentPhotoSrc(student: Student): string | null {
+  return studentService.getPhotoUrl(student.id, student.photo_path);
 }
 
 function handleRowClick(student: Student, e: MouseEvent) {
@@ -52,7 +59,7 @@ function handleRowClick(student: Student, e: MouseEvent) {
 </script>
 
 <template>
-  <div tabindex="0" role="region" aria-label="Students roster table" class="table-responsive-box">
+  <div class="table-responsive-box">
     <table class="premium-student-table" aria-label="Students roster">
       <thead>
         <tr>
@@ -81,10 +88,18 @@ function handleRowClick(student: Student, e: MouseEvent) {
             <div class="student-cell">
               <div
                 class="student-avatar"
-                :style="{ background: getAvatarBg(student.full_name || student.first_name) }"
+                :class="{ 'has-photo': !!student.photo_path }"
+                :style="!student.photo_path ? { background: getAvatarBg(student.full_name || student.first_name) } : {}"
                 aria-hidden="true"
               >
-                {{ getInitials(student.full_name || student.first_name) }}
+                <img
+                  v-if="student.photo_path"
+                  :src="getStudentPhotoSrc(student) || ''"
+                  :alt="student.full_name || student.first_name"
+                  class="student-avatar-img"
+                  @error="student.photo_path = null"
+                />
+                <span v-else>{{ getInitials(student.full_name || student.first_name) }}</span>
               </div>
               <div class="student-text">
                 <span class="student-full-name">
@@ -129,13 +144,16 @@ function handleRowClick(student: Student, e: MouseEvent) {
 
           <!-- Portal Access -->
           <td class="td-portal">
-            <span
-              class="portal-status-pill"
+            <button
+              type="button"
+              class="portal-status-pill interactive"
               :class="student.has_portal_access ? 'enabled' : 'disabled'"
+              :title="student.has_portal_access ? 'Click to Disable Portal Access' : 'Click to Enable Portal Access'"
+              @click.stop="emit('togglePortal', student)"
             >
               <span class="dot" />
               <span>{{ student.has_portal_access ? 'Enabled' : 'Disabled' }}</span>
-            </span>
+            </button>
           </td>
 
           <!-- Status -->
@@ -150,6 +168,8 @@ function handleRowClick(student: Student, e: MouseEvent) {
               @edit="emit('edit', $event)"
               @change-class="emit('changeClass', $event)"
               @manage-portal="emit('managePortal', $event)"
+              @toggle-portal="emit('togglePortal', $event)"
+              @login-portal="emit('loginPortal', $event)"
               @toggle-status="emit('toggleStatus', $event)"
             />
           </td>
@@ -236,6 +256,18 @@ function handleRowClick(student: Student, e: MouseEvent) {
   flex-shrink: 0;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   letter-spacing: 0.03em;
+  overflow: hidden;
+}
+
+.student-avatar.has-photo {
+  background: #f1f5f9;
+}
+
+.student-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .student-text {
@@ -344,6 +376,21 @@ function handleRowClick(student: Student, e: MouseEvent) {
   font-size: 0.78rem;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.portal-status-pill.interactive {
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  outline: none;
+}
+
+.portal-status-pill.interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.portal-status-pill.interactive:active {
+  transform: translateY(0);
 }
 
 .portal-status-pill .dot {

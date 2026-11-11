@@ -31,6 +31,8 @@ class StudentProfileResponse(BaseModel):
     current_class_code: Optional[str] = None
     academic_year: Optional[str] = None
     portal_account_status: str = "Active"
+    photo_url: Optional[str] = None
+    photo_path: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -102,3 +104,39 @@ class StudentDashboardResponse(BaseModel):
     next_class_period: Optional[TimetableResponse] = None
     today_schedule: List[TimetableResponse] = []
     recent_exam_results: List[ExamResultResponse] = []
+
+
+class StudentPublishedExamItem(BaseModel):
+    id: int
+    name: str
+    exam_type: str
+    academic_year: str
+    class_id: int
+    class_name: Optional[str] = None
+    class_code: Optional[str] = None
+    section: Optional[str] = None
+    subject_id: int
+    subject_name: Optional[str] = None
+    subject_code: Optional[str] = None
+    teacher_name: Optional[str] = None
+    start_date: date
+    end_date: Optional[date] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    instructions: Optional[str] = None
+    max_marks: float = 100.0
+    pass_marks: float = 50.0
+    status: str = "PUBLISHED"
+    published_at: Optional[datetime] = None
+    result_submission_deadline: Optional[datetime] = None
+    # Results publication isolation (marks remain None unless officially RELEASED)
+    has_released_result: bool = False
+    marks_obtained: Optional[float] = None
+    grade: Optional[str] = None
+    remarks: Optional[str] = None
+    attendance_status: Optional[str] = None
+    percentage: Optional[float] = None
+    total_marks: float = 100.0
+
+    model_config = ConfigDict(from_attributes=True)
+

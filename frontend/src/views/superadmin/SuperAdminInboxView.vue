@@ -943,8 +943,6 @@ onMounted(() => {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
   margin-bottom: 24px;
 }
 
@@ -1014,7 +1012,7 @@ onMounted(() => {
 /* KPI Grid */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
 }
 
@@ -1302,11 +1300,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-width: 0;
-}
-
-.sender-info > div {
-  min-width: 0;
 }
 
 .avatar-circle {
@@ -1337,7 +1330,7 @@ onMounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
+  max-width: 180px;
 }
 
 .meta-right {
@@ -1458,8 +1451,7 @@ onMounted(() => {
 .detail-identity-header {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 14px 18px;
+  gap: 18px;
   margin-bottom: 20px;
 }
 
@@ -1533,7 +1525,6 @@ onMounted(() => {
 .status-change-group {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 6px;
 }
 
@@ -1569,7 +1560,6 @@ onMounted(() => {
 .convert-btn-wrapper {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -1682,7 +1672,7 @@ onMounted(() => {
 /* SPECS GRID */
 .lead-specs-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 14px;
 }
 
@@ -1694,7 +1684,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 0;
 }
 
 .spec-label {
@@ -1707,15 +1696,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
 }
 
 .spec-value {
   font-size: 14px;
   font-weight: 600;
   color: #0f172a;
-  overflow-wrap: anywhere;
-  min-width: 0;
 }
 
 .btn-copy {
@@ -1723,12 +1709,6 @@ onMounted(() => {
   border: none;
   cursor: pointer;
   font-size: 14px;
-  min-width: 28px;
-  min-height: 28px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
 }
 
 /* MESSAGE CARD */
@@ -1765,8 +1745,6 @@ onMounted(() => {
   color: #1e293b;
   margin: 0;
   white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 /* CRM NOTES CARD */
@@ -1873,7 +1851,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   z-index: 100;
-  padding: 0.75rem;
+  padding: 20px;
 }
 
 .modal-card {
@@ -1881,9 +1859,7 @@ onMounted(() => {
   border-radius: 16px;
   width: 100%;
   max-width: 580px;
-  max-height: calc(100dvh - 1.5rem);
-  overflow-y: auto;
-  padding: clamp(1rem, 4vw, 1.75rem);
+  padding: 28px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
@@ -1891,7 +1867,6 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 0.75rem;
   margin-bottom: 20px;
 }
 
@@ -1911,15 +1886,9 @@ onMounted(() => {
 .modal-close-btn {
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 18px;
   color: #94a3b8;
   cursor: pointer;
-  min-width: 44px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
 }
 
 .modal-form {
@@ -1930,7 +1899,7 @@ onMounted(() => {
 
 .form-row-2 {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
 
@@ -2022,8 +1991,6 @@ onMounted(() => {
 .cred-row {
   display: flex;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.75rem;
   font-size: 13px;
 }
 
@@ -2035,61 +2002,5 @@ onMounted(() => {
 .cred-val {
   font-weight: 700;
   color: #0f172a;
-  overflow-wrap: anywhere;
-}
-
-@media (max-width: 640px) {
-  .kpi-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.65rem;
-  }
-
-  .kpi-card {
-    padding: 0.75rem;
-    gap: 0.6rem;
-    min-width: 0;
-  }
-
-  .kpi-icon-wrap {
-    width: 36px;
-    height: 36px;
-  }
-
-  .inbox-header,
-  .detail-header-card,
-  .direct-engagement-bar,
-  .msg-card-header,
-  .msg-body-box,
-  .crm-notes-card {
-    padding: 1rem;
-  }
-
-  .header-title {
-    font-size: 1.35rem;
-  }
-
-  .lead-person-name {
-    font-size: 1.2rem;
-  }
-
-  .btn-refresh {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .lead-specs-grid,
-  .form-row-2 {
-    grid-template-columns: 1fr;
-  }
-
-  .btn-channel {
-    flex: 1 1 140px;
-    justify-content: center;
-    min-height: 44px;
-  }
-
-  .modal-actions-right {
-    flex-wrap: wrap;
-  }
 }
 </style>

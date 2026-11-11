@@ -402,12 +402,8 @@ def run_seed():
 
                     for en in enrollments:
                         sf = StudentFee(
-                            invoice_number=f"INV-{year[:4]}-{fs.id:03d}-{en.student_id:04d}",
                             student_id=en.student_id,
-                            class_id=c.id,
                             fee_structure_id=fs.id,
-                            academic_year=year,
-                            fee_type="Tuition Fee",
                             amount_due=amt,
                             discount_amount=Decimal("0.00"),
                             due_date=due,

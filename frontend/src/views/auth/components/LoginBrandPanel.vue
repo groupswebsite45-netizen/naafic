@@ -150,8 +150,8 @@ import { SCHOOL_BRANDING } from '../../../constants/branding';
 <style scoped>
 .brand-panel {
   flex: 1.15;
-  height: 100dvh;
-  max-height: 100dvh;
+  height: 100vh;
+  max-height: 100vh;
   position: relative;
   background: linear-gradient(145deg, #031A3A 0%, #071F49 45%, #0B2B68 100%);
   color: #ffffff;
@@ -159,7 +159,7 @@ import { SCHOOL_BRANDING } from '../../../constants/branding';
   align-items: center;
   justify-content: center;
   padding: 2.25rem 3.5rem;
-  overflow: clip;
+  overflow: hidden;
   z-index: 1;
 }
 
@@ -494,9 +494,7 @@ import { SCHOOL_BRANDING } from '../../../constants/branding';
   .brand-panel {
     flex: none;
     width: 100%;
-    height: auto;
-    max-height: none;
-    padding: 2.25rem 1.5rem 3.75rem 1.5rem;
+    padding: 2.75rem 1.5rem 4.25rem 1.5rem;
     align-items: flex-start;
   }
 

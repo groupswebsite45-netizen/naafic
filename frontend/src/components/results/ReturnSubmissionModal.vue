@@ -200,7 +200,6 @@ function handleSubmit() {
   background-color: #0f172a;
   border-top: 1px solid #334155;
   display: flex;
-  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.75rem;
 }
@@ -229,18 +228,5 @@ function handleSubmit() {
 
 .btn-return:hover {
   background-color: #dc2626;
-}
-
-@media (max-width: 480px) {
-  .modal-footer {
-    flex-direction: column-reverse;
-    align-items: stretch;
-  }
-
-  .btn-cancel,
-  .btn-return {
-    width: 100%;
-    min-height: 44px;
-  }
 }
 </style>

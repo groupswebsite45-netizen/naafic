@@ -59,7 +59,7 @@ const emit = defineEmits<{
           <span>Pending: <strong>{{ submission?.pending_students }}</strong></span>
         </div>
 
-        <div tabindex="0" role="region" aria-label="Submission marks review table" class="table-container">
+        <div class="table-container">
           <table class="review-table">
             <thead>
               <tr>
@@ -213,13 +213,7 @@ const emit = defineEmits<{
   line-height: 1;
   cursor: pointer;
   padding: 0.25rem;
-  min-width: 40px;
-  min-height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  flex-shrink: 0;
+  border-radius: 4px;
 }
 
 .close-btn:hover {
@@ -273,7 +267,6 @@ const emit = defineEmits<{
 
 .review-table {
   width: 100%;
-  min-width: 520px;
   border-collapse: collapse;
   font-size: 0.8125rem;
   text-align: left;
@@ -330,13 +323,11 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem 1rem;
+  gap: 1rem;
 }
 
 .footer-right {
   display: flex;
-  flex-wrap: wrap;
   gap: 0.75rem;
 }
 

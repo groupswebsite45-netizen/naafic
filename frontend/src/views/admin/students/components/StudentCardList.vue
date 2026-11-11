@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { Student } from '../../../../types/school';
+import { studentService } from '../../../../services/studentService';
 import StudentActionMenu from './StudentActionMenu.vue';
 import StudentStatusBadge from './StudentStatusBadge.vue';
 
@@ -12,6 +13,8 @@ const emit = defineEmits<{
   (e: 'edit', student: Student): void;
   (e: 'changeClass', student: Student): void;
   (e: 'managePortal', student: Student): void;
+  (e: 'togglePortal', student: Student): void;
+  (e: 'loginPortal', student: Student): void;
   (e: 'toggleStatus', student: Student): void;
 }>();
 
@@ -38,10 +41,14 @@ function getAvatarBg(name: string): string {
     'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)'
   ];
   let hash = 0;
-  for (let i = 0; i < name.length; i++) {
+  for (let i = 0; i < (name || '').length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
   return gradients[Math.abs(hash) % gradients.length];
+}
+
+function getStudentPhotoSrc(student: Student): string | null {
+  return studentService.getPhotoUrl(student.id, student.photo_path);
 }
 
 function navigateToProfile(id: number) {
@@ -66,10 +73,18 @@ function navigateToProfile(id: number) {
         <div class="card-profile-cell">
           <div
             class="student-avatar"
-            :style="{ background: getAvatarBg(student.full_name || student.first_name) }"
+            :class="{ 'has-photo': !!student.photo_path }"
+            :style="!student.photo_path ? { background: getAvatarBg(student.full_name || student.first_name) } : {}"
             aria-hidden="true"
           >
-            {{ getInitials(student.full_name || student.first_name) }}
+            <img
+              v-if="student.photo_path"
+              :src="getStudentPhotoSrc(student) || ''"
+              :alt="student.full_name || student.first_name"
+              class="student-avatar-img"
+              @error="student.photo_path = null"
+            />
+            <span v-else>{{ getInitials(student.full_name || student.first_name) }}</span>
           </div>
           <div class="student-name-block">
             <h4 class="student-name">
@@ -133,10 +148,16 @@ function navigateToProfile(id: number) {
         <div class="data-cell">
           <span class="data-label">Portal</span>
           <div class="data-content">
-            <span class="portal-pill" :class="student.has_portal_access ? 'enabled' : 'disabled'">
+            <button
+              type="button"
+              class="portal-pill interactive-pill"
+              :class="student.has_portal_access ? 'enabled' : 'disabled'"
+              :title="student.has_portal_access ? 'Click to Disable Portal' : 'Click to Enable Portal'"
+              @click.stop="emit('togglePortal', student)"
+            >
               <span class="dot" />
               <span>{{ student.has_portal_access ? 'Enabled' : 'Disabled' }}</span>
-            </span>
+            </button>
           </div>
         </div>
 
@@ -232,6 +253,18 @@ function navigateToProfile(id: number) {
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+}
+
+.student-avatar.has-photo {
+  background: #f1f5f9;
+}
+
+.student-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .student-name-block {

@@ -1,4 +1,3 @@
-from typing import Optional
 from sqlalchemy import Column, Integer, String, Text, Numeric, Date, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -29,6 +28,8 @@ class Exam(Base, TimestampMixin):
     max_marks = Column(Numeric(5, 2), default=100.00, nullable=False)
     pass_marks = Column(Numeric(5, 2), default=50.00, nullable=False)
     status = Column(String(30), default="SCHEDULED", nullable=False, index=True)  # "DRAFT", "SCHEDULED", "OPEN_FOR_RESULTS", "CLOSED", "PUBLISHED", "CANCELLED"
+    published_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    published_by_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
     # Relationships
     school_class = relationship("SchoolClass", back_populates="exams", lazy="joined")
@@ -36,6 +37,7 @@ class Exam(Base, TimestampMixin):
     teacher = relationship("Teacher", foreign_keys=[teacher_id], lazy="joined")
     created_by = relationship("User", foreign_keys=[created_by_id])
     reopened_by = relationship("User", foreign_keys=[reopened_by_id])
+    published_by = relationship("User", foreign_keys=[published_by_id])
     results = relationship("ExamResult", back_populates="exam", cascade="all, delete-orphan")
     deadline_extensions = relationship("ExamDeadlineExtension", back_populates="exam", cascade="all, delete-orphan")
 
@@ -143,6 +145,26 @@ class ExamResult(Base, TimestampMixin):
     @property
     def student_admission_number(self) -> str:
         return self.student.admission_number if self.student else ""
+
+    @property
+    def pass_marks(self) -> float:
+        return float(self.exam.pass_marks) if (self.exam and self.exam.pass_marks is not None) else 50.0
+
+    @property
+    def is_passed(self) -> Optional[bool]:
+        if self.marks_obtained is None:
+            return False
+        return float(self.marks_obtained) >= self.pass_marks
+
+    @property
+    def pass_status(self) -> str:
+        if self.attendance_status in ("ABSENT", "EXCUSED"):
+            return self.attendance_status
+        return "PASS" if self.is_passed else "FAIL"
+
+    @property
+    def exam_type(self) -> str:
+        return self.exam.exam_type if self.exam else "Monthly Test"
 
     __table_args__ = (
         UniqueConstraint("exam_id", "student_id", "subject_id", name="uq_exam_student_subject"),

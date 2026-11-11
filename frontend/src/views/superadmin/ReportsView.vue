@@ -97,7 +97,7 @@ onMounted(() => {
 
 .sar-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.25rem;
 }
 
@@ -108,7 +108,6 @@ onMounted(() => {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  min-width: 0;
 }
 
 .sar-card-title {
@@ -143,21 +142,6 @@ onMounted(() => {
 @media (max-width: 900px) {
   .sar-grid {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .sar-title {
-    font-size: 1.4rem;
-  }
-
-  .sar-card {
-    padding: 1.1rem;
-  }
-
-  .sar-stat-row {
-    flex-wrap: wrap;
-    gap: 0.25rem;
   }
 }
 </style>

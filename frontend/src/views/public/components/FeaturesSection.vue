@@ -505,7 +505,7 @@ const displayedFeatures = computed(() => {
   position: relative;
   background-color: #F5F8FD;
   padding: 85px 0 95px;
-  overflow: clip;
+  overflow: hidden;
   font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #071D49;
 }
@@ -516,7 +516,7 @@ const displayedFeatures = computed(() => {
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  overflow: clip;
+  overflow: hidden;
 }
 
 .bg-radial-glow-top {

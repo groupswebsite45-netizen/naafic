@@ -70,6 +70,8 @@ export interface StudentFeeInvoice {
   due_date: string
   status: InvoiceStatus
   created_at: string
+  payments?: FeePayment[]
+  payment_id?: number
 }
 
 export interface PaginatedInvoices {
@@ -133,6 +135,7 @@ export interface FeePaymentCreate {
   payment_method: PaymentMethod
   reference_number?: string | null
   notes?: string | null
+  fee_month?: string | null
 }
 
 export interface OfficialReceipt {
@@ -144,6 +147,7 @@ export interface OfficialReceipt {
   reference_number?: string | null
   recorded_by: string
   notes?: string | null
+  fee_month?: string | null
   status: PaymentStatus
   school_name: string
   school_address?: string | null
@@ -163,6 +167,10 @@ export interface OfficialReceipt {
   net_amount: number
   total_paid_to_date: number
   remaining_balance: number
+  student_admission_number?: string
+  fee_name?: string
+  invoice_total_amount?: number
+  recorded_by_name?: string
   invoice_status: InvoiceStatus
   invoice_due_date: string
 }

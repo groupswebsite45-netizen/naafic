@@ -185,6 +185,10 @@ class ExamResultResponse(BaseModel):
     student_name: Optional[str] = None
     student_admission_number: Optional[str] = None
     roll_number: Optional[str] = None
+    is_passed: Optional[bool] = None
+    pass_status: Optional[str] = None
+    pass_marks: Optional[float] = 50.0
+    exam_type: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -203,6 +207,8 @@ class ExamResponse(ExamBase):
     is_overdue: Optional[bool] = False
     deadline_status: Optional[str] = None  # ON_TRACK, APPROACHING, OVERDUE, CLOSED, EXTENDED
     deadline_extensions: Optional[List[ExamDeadlineExtensionResponse]] = []
+    published_at: Optional[datetime] = None
+    published_by_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
 

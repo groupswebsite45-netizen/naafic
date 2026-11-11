@@ -44,7 +44,7 @@ function formatDateTime(dateStr?: string | null): string {
 </script>
 
 <template>
-  <div tabindex="0" role="region" aria-label="Examinations table" class="table-responsive">
+  <div class="table-responsive">
     <table class="exam-data-table">
       <thead>
         <tr>

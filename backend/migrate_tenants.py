@@ -57,7 +57,44 @@ def migrate_database(db_name: str) -> None:
                         "EXCEPTION WHEN duplicate_object THEN NULL; END $$;"
                     ))
 
-            # 3. Ensure default timetable_settings exists
+            # 3. Ensure student photo columns exist
+            student_cols_query = text(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name = 'students' AND table_schema = " + 
+                ("current_schema()" if is_postgres else "DATABASE()")
+            )
+            existing_student_cols = {r[0].lower() for r in conn.execute(student_cols_query).fetchall()}
+            if existing_student_cols:
+                if "photo_path" not in existing_student_cols:
+                    print(f"  Adding student photo columns to {db_name}")
+                    conn.execute(text("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_path VARCHAR(500);"))
+                    conn.execute(text("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_filename VARCHAR(255);"))
+                    conn.execute(text("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_mime_type VARCHAR(100);"))
+                    conn.execute(text("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_size INTEGER;"))
+                    conn.execute(text("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_uploaded_at TIMESTAMP WITH TIME ZONE;"))
+                    conn.execute(text("ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_updated_at TIMESTAMP WITH TIME ZONE;"))
+
+            # 4. Ensure exam publication columns exist
+            exam_cols_query = text(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name = 'exams' AND table_schema = " + 
+                ("current_schema()" if is_postgres else "DATABASE()")
+            )
+            existing_exam_cols = {r[0].lower() for r in conn.execute(exam_cols_query).fetchall()}
+            if existing_exam_cols:
+                if "published_at" not in existing_exam_cols:
+                    print(f"  Adding exam publication columns to {db_name}")
+                    conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS published_at TIMESTAMP WITH TIME ZONE;"))
+                    conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS published_by_id INTEGER;"))
+                    if is_postgres:
+                        conn.execute(text(
+                            "DO $$ BEGIN "
+                            "  ALTER TABLE exams ADD CONSTRAINT fk_exams_published_by_id "
+                            "  FOREIGN KEY (published_by_id) REFERENCES users(id) ON DELETE SET NULL; "
+                            "EXCEPTION WHEN duplicate_object THEN NULL; END $$;"
+                        ))
+
+            # 5. Ensure default timetable_settings exists
             has_setting = conn.execute(text("SELECT count(*) FROM timetable_settings;")).scalar()
             if has_setting == 0:
                 print(f"  Seeding default timetable_settings for {db_name}")

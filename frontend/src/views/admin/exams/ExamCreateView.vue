@@ -689,11 +689,9 @@ onMounted(() => {
 
 .mode-tabs {
   display: flex;
-  flex-wrap: wrap;
   background-color: #f1f5f9;
   border-radius: 8px;
   padding: 0.25rem;
-  max-width: 100%;
 }
 
 .mode-btn {
@@ -820,7 +818,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  min-width: 0;
 }
 
 .field-label {
@@ -836,10 +833,6 @@ onMounted(() => {
 .form-input,
 .form-select,
 .form-textarea {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  box-sizing: border-box;
   padding: 0.55rem 0.75rem;
   font-size: 0.875rem;
   color: #0f172a;
@@ -1125,38 +1118,5 @@ onMounted(() => {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
-}
-
-@media (max-width: 640px) {
-  .exam-create-page {
-    padding: 1rem 0.75rem;
-  }
-
-  .form-card {
-    padding: 1.15rem 1rem;
-    gap: 1.25rem;
-  }
-
-  .mode-tabs {
-    width: 100%;
-  }
-
-  .mode-btn {
-    flex: 1 1 auto;
-    min-height: 40px;
-    padding: 0.45rem 0.65rem;
-  }
-
-  .form-actions-footer {
-    flex-direction: column-reverse;
-    align-items: stretch;
-  }
-
-  .btn-cancel,
-  .btn-save {
-    width: 100%;
-    justify-content: center;
-    min-height: 44px;
-  }
 }
 </style>

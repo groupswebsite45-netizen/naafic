@@ -3,6 +3,7 @@ import { ref, reactive, watch, computed, onMounted } from 'vue';
 import { SchoolClass, Student } from '../../../../types/school';
 import { useFormDraft } from '../../../../composables/useFormDraft';
 import { classService } from '../../../../services/classService';
+import { studentService } from '../../../../services/studentService';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -44,6 +45,85 @@ const form = reactive({
 });
 
 const formErrors = reactive<Record<string, string>>({});
+
+// Profile Photo Upload State
+const fileInputRef = ref<HTMLInputElement | null>(null);
+const selectedPhotoFile = ref<File | null>(null);
+const photoPreviewUrl = ref<string | null>(null);
+const photoError = ref<string>('');
+const shouldRemovePhoto = ref<boolean>(false);
+
+function getInitials(name: string): string {
+  if (!name) return 'ST';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+}
+
+function getAvatarBg(name: string): string {
+  const gradients = [
+    'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+    'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)',
+    'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+    'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+    'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
+    'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)',
+    'linear-gradient(135deg, #6366F1 0%, #4338CA 100%)',
+    'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)'
+  ];
+  let hash = 0;
+  for (let i = 0; i < (name || '').length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return gradients[Math.abs(hash) % gradients.length];
+}
+
+function handlePhotoSelect(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  photoError.value = '';
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+  const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+  const allowedExts = ['.jpg', '.jpeg', '.png', '.webp'];
+
+  if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext)) {
+    photoError.value = 'Invalid file type. Please upload a JPG, JPEG, PNG, or WEBP image.';
+    input.value = '';
+    return;
+  }
+
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  if (file.size > maxSize) {
+    photoError.value = 'Image size exceeds maximum limit of 5MB. Please choose a smaller file.';
+    input.value = '';
+    return;
+  }
+
+  selectedPhotoFile.value = file;
+  photoPreviewUrl.value = URL.createObjectURL(file);
+  shouldRemovePhoto.value = false;
+  input.value = '';
+}
+
+function handlePhotoRemove() {
+  if (props.isEditing && props.student?.photo_path && !selectedPhotoFile.value) {
+    const confirmRemove = window.confirm('Are you sure you want to remove this student profile photograph?');
+    if (!confirmRemove) return;
+    shouldRemovePhoto.value = true;
+    photoPreviewUrl.value = null;
+  } else {
+    selectedPhotoFile.value = null;
+    if (props.isEditing && props.student?.photo_path && !shouldRemovePhoto.value) {
+      photoPreviewUrl.value = studentService.getPhotoUrl(props.student.id, props.student.photo_path);
+    } else {
+      photoPreviewUrl.value = null;
+    }
+  }
+}
 
 const internalClasses = ref<SchoolClass[]>([]);
 
@@ -180,7 +260,16 @@ watch(
       Object.keys(formErrors).forEach((k) => delete formErrors[k]);
       await loadModalClasses();
 
+      selectedPhotoFile.value = null;
+      shouldRemovePhoto.value = false;
+      photoError.value = '';
+
       if (props.isEditing && props.student) {
+        if (props.student.photo_path) {
+          photoPreviewUrl.value = studentService.getPhotoUrl(props.student.id, props.student.photo_path);
+        } else {
+          photoPreviewUrl.value = null;
+        }
         currentStep.value = 1;
         form.first_name = props.student.first_name || '';
         form.middle_name = props.student.middle_name || '';
@@ -354,6 +443,9 @@ function handleSave() {
     }
   }
 
+  payload.photoFile = selectedPhotoFile.value;
+  payload.shouldRemovePhoto = shouldRemovePhoto.value;
+
   emit('save', payload);
 }
 </script>
@@ -432,6 +524,62 @@ function handleSave() {
         <!-- STEP 1: Personal Details -->
         <div v-if="currentStep === 1" class="tab-pane">
           <div class="form-grid">
+            <!-- Profile Photograph Section -->
+            <div class="photo-upload-section col-span-2">
+              <label class="form-label">Student Profile Photograph (Optional)</label>
+              <div class="photo-upload-card">
+                <div class="photo-preview-wrap">
+                  <img
+                    v-if="photoPreviewUrl"
+                    :src="photoPreviewUrl"
+                    alt="Student Photo Preview"
+                    class="photo-preview-img"
+                  />
+                  <div
+                    v-else
+                    class="photo-placeholder"
+                    :style="{ background: getAvatarBg(form.full_name || form.first_name || 'Student') }"
+                  >
+                    <span class="placeholder-initials">{{ getInitials(form.full_name || form.first_name) }}</span>
+                  </div>
+                </div>
+                <div class="photo-controls">
+                  <div class="photo-btn-row">
+                    <input
+                      ref="fileInputRef"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/jpg"
+                      class="hidden-file-input"
+                      @change="handlePhotoSelect"
+                    />
+                    <button
+                      type="button"
+                      class="btn-photo-upload"
+                      @click="fileInputRef?.click()"
+                    >
+                      <svg class="photo-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span>{{ photoPreviewUrl ? 'Change Photo' : 'Upload Photo' }}</span>
+                    </button>
+                    <button
+                      v-if="photoPreviewUrl"
+                      type="button"
+                      class="btn-photo-remove"
+                      @click="handlePhotoRemove"
+                    >
+                      <svg class="photo-btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span>Remove Photo</span>
+                    </button>
+                  </div>
+                  <p class="photo-hint">Supported formats: JPG, JPEG, PNG, WEBP (Maximum size: 5MB)</p>
+                  <span v-if="photoError" class="form-error photo-error">{{ photoError }}</span>
+                </div>
+              </div>
+            </div>
+
             <!-- Full Name (Unified Helper) -->
             <div class="form-group col-span-2">
               <label class="form-label required">Student Full Name</label>
@@ -1144,5 +1292,133 @@ function handleSave() {
   .btn-footer-save {
     width: 100%;
   }
+}
+
+/* Photo Upload Styles */
+.photo-upload-section {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.15rem 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.photo-upload-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.photo-preview-wrap {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.65rem;
+  user-select: none;
+}
+
+.photo-controls {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.photo-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.btn-photo-upload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2563eb;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-photo-upload:hover {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.btn-photo-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #dc2626;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-photo-remove:hover {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.photo-btn-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.photo-hint {
+  margin: 0;
+  font-size: 0.775rem;
+  color: #64748b;
+}
+
+.photo-error {
+  color: #ef4444;
+  font-size: 0.775rem;
+  font-weight: 500;
 }
 </style>

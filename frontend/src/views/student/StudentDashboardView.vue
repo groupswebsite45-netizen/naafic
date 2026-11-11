@@ -196,7 +196,7 @@ onMounted(() => {
           <span class="empty-sub">Enjoy your study time or check the weekly schedule for upcoming days.</span>
         </div>
 
-        <div v-else class="table-responsive" tabindex="0" role="region" aria-label="Student portal table">
+        <div v-else class="table-responsive">
           <table class="portal-table">
             <thead>
               <tr>
@@ -238,7 +238,7 @@ onMounted(() => {
           <span class="empty-sub">Exam marks are being processed and verified by School Administration.</span>
         </div>
 
-        <div v-else class="table-responsive" tabindex="0" role="region" aria-label="Student portal table">
+        <div v-else class="table-responsive">
           <table class="portal-table">
             <thead>
               <tr>
@@ -390,22 +390,19 @@ onMounted(() => {
 .kpi-top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.35rem;
+  align-items: center;
 }
 
 .kpi-label {
-  font-size: clamp(0.62rem, 2.2vw, 0.72rem);
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
-  line-height: 1.25;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
 }
 
 .kpi-icon {
-  width: 1.1rem;
-  height: 1.1rem;
-  flex-shrink: 0;
+  width: 1.2rem;
+  height: 1.2rem;
   color: var(--text-muted);
 }
 
@@ -471,16 +468,13 @@ onMounted(() => {
 }
 
 .view-all-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
   background: none;
   border: none;
   color: #10b981;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  padding: 0 0.25rem;
+  padding: 0;
 }
 
 .view-all-link:hover {
@@ -522,15 +516,9 @@ onMounted(() => {
 
 .portal-table {
   width: 100%;
-  min-width: 640px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.88rem;
-}
-
-.portal-table th,
-.portal-table td {
-  white-space: nowrap;
 }
 
 .portal-table th {
@@ -645,14 +633,7 @@ onMounted(() => {
 
 @media (max-width: 640px) {
   .summary-cards-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-  .summary-card {
-    padding: 0.85rem;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+    grid-template-columns: 1fr;
   }
   .welcome-banner {
     padding: 1.25rem;

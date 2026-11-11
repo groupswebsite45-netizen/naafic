@@ -527,7 +527,7 @@ function handleToggleStatus() {
           </div>
 
           <div v-if="classProfile.students && classProfile.students.length > 0" class="table-card">
-            <div class="table-responsive" tabindex="0" role="region" aria-label="Enrolled students table">
+            <div class="table-responsive">
               <table class="data-table">
                 <thead>
                   <tr>
@@ -592,7 +592,7 @@ function handleToggleStatus() {
           </div>
 
           <div v-if="classProfile.teachers && classProfile.teachers.length > 0" class="table-card">
-            <div class="table-responsive" tabindex="0" role="region" aria-label="Assigned teachers table">
+            <div class="table-responsive">
               <table class="data-table">
                 <thead>
                   <tr>
@@ -675,7 +675,7 @@ function handleToggleStatus() {
           </div>
 
           <div v-if="classProfile.timetables && classProfile.timetables.length > 0" class="table-card">
-            <div class="table-responsive" tabindex="0" role="region" aria-label="Class timetable table">
+            <div class="table-responsive">
               <table class="data-table">
                 <thead>
                   <tr>
@@ -717,7 +717,7 @@ function handleToggleStatus() {
           </div>
 
           <div v-if="classProfile.exams && classProfile.exams.length > 0" class="table-card">
-            <div class="table-responsive" tabindex="0" role="region" aria-label="Class exams table">
+            <div class="table-responsive">
               <table class="data-table">
                 <thead>
                   <tr>
@@ -1217,10 +1217,6 @@ function handleToggleStatus() {
 }
 
 .link-btn {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 0 0.25rem;
   background: transparent;
   border: none;
   font-size: 0.75rem;
@@ -1342,7 +1338,6 @@ function handleToggleStatus() {
 
 .data-table {
   width: 100%;
-  min-width: 660px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.8125rem;

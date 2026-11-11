@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Text, Date, ForeignKey
+from typing import Optional
+from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 from app.models.base import TimestampMixin
@@ -24,6 +25,12 @@ class Student(Base, TimestampMixin):
     guardian_relationship = Column(String(50), nullable=True)  # "Father", "Mother", "Guardian"
     admission_date = Column(Date, nullable=True)
     status = Column(String(20), default="ACTIVE", nullable=False)  # "ACTIVE", "GRADUATED", "TRANSFERRED", "SUSPENDED", "INACTIVE"
+    photo_path = Column(String(500), nullable=True)
+    photo_filename = Column(String(255), nullable=True)
+    photo_mime_type = Column(String(100), nullable=True)
+    photo_size = Column(Integer, nullable=True)
+    photo_uploaded_at = Column(DateTime(timezone=True), nullable=True)
+    photo_updated_at = Column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     user = relationship("User", foreign_keys=[user_id])
@@ -86,6 +93,12 @@ class Student(Base, TimestampMixin):
     @portal_username.setter
     def portal_username(self, val):
         self._portal_username = val
+
+    @property
+    def photo_url(self) -> Optional[str]:
+        if self.photo_path:
+            return f"/api/v1/students/{self.id}/photo"
+        return None
 
     def __repr__(self) -> str:
         return f"<Student(id={self.id}, admission_number='{self.admission_number}', name='{self.full_name}')>"

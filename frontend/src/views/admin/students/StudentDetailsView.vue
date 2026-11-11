@@ -77,7 +77,13 @@ async function handleSaveEdit(payload: any) {
   if (!profile.value) return;
   isSubmitting.value = true;
   try {
-    await studentService.updateStudent(profile.value.id, payload);
+    const { photoFile, shouldRemovePhoto, ...studentData } = payload;
+    await studentService.updateStudent(profile.value.id, studentData);
+    if (shouldRemovePhoto) {
+      await studentService.deletePhoto(profile.value.id);
+    } else if (photoFile) {
+      await studentService.uploadPhoto(profile.value.id, photoFile);
+    }
     successMessage.value = 'Student profile updated successfully.';
     isEditModalOpen.value = false;
     await loadProfile();
@@ -165,11 +171,33 @@ onMounted(() => {
         <div class="hero-top-layout">
           <!-- Identity block -->
           <div class="hero-identity">
-            <div
-              class="hero-avatar"
-              :style="{ backgroundColor: getAvatarBg(profile.full_name || profile.first_name) }"
-            >
-              {{ getInitials(profile.full_name || profile.first_name) }}
+            <div class="hero-avatar-container">
+              <div
+                class="hero-avatar"
+                :class="{ 'has-photo': !!profile.photo_path }"
+                :style="!profile.photo_path ? { backgroundColor: getAvatarBg(profile.full_name || profile.first_name) } : {}"
+              >
+                <img
+                  v-if="profile.photo_path"
+                  :src="studentService.getPhotoUrl(profile.id, profile.photo_path) || ''"
+                  :alt="profile.full_name || profile.first_name"
+                  class="hero-avatar-img"
+                  @error="profile.photo_path = null"
+                />
+                <span v-else>{{ getInitials(profile.full_name || profile.first_name) }}</span>
+              </div>
+              <button
+                type="button"
+                class="avatar-edit-badge"
+                title="Update Profile Photo"
+                aria-label="Update Profile Photo"
+                @click="isEditModalOpen = true"
+              >
+                <svg class="badge-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
             </div>
             <div class="hero-name-block">
               <div class="hero-title-row">
@@ -469,7 +497,7 @@ onMounted(() => {
             <p>No enrollment history found for this student.</p>
           </div>
 
-          <div v-else class="subtable-wrapper" tabindex="0" role="region" aria-label="Enrollment history table">
+          <div v-else class="subtable-wrapper">
             <table class="enterprise-subtable">
               <thead>
                 <tr>
@@ -505,7 +533,7 @@ onMounted(() => {
             <p>No fee records assigned to this student yet.</p>
           </div>
 
-          <div v-else class="subtable-wrapper" tabindex="0" role="region" aria-label="Student fee invoices table">
+          <div v-else class="subtable-wrapper">
             <table class="enterprise-subtable">
               <thead>
                 <tr>
@@ -545,7 +573,7 @@ onMounted(() => {
             <p>No exam results recorded for this student.</p>
           </div>
 
-          <div v-else class="subtable-wrapper" tabindex="0" role="region" aria-label="Student exam report card table">
+          <div v-else class="subtable-wrapper">
             <table class="enterprise-subtable">
               <thead>
                 <tr>
@@ -738,18 +766,65 @@ onMounted(() => {
   flex: 1 1 auto;
 }
 
+.hero-avatar-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .hero-avatar {
-  width: 46px;
-  height: 46px;
+  width: 52px;
+  height: 52px;
   border-radius: 9999px;
   color: #ffffff;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  border: 2px solid #ffffff;
+}
+
+.hero-avatar.has-photo {
+  background: #f1f5f9;
+}
+
+.hero-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-edit-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.avatar-edit-badge:hover {
+  background: #1d4ed8;
+  transform: scale(1.1);
+}
+
+.badge-icon {
+  width: 12px;
+  height: 12px;
+  color: #ffffff;
 }
 
 .hero-name-block {
@@ -1389,8 +1464,7 @@ onMounted(() => {
 /* Ultra-compact screen (<360px) */
 @media (max-width: 359px) {
   .hero-stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.35rem;
+    grid-template-columns: 1fr;
   }
 }
 </style>

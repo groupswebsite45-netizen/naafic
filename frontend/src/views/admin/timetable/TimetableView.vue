@@ -940,10 +940,7 @@ function showSuccess(msg: string) {
 .class-picker-wrap {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 0.5rem;
-  min-width: 0;
-  flex: 1 1 auto;
 }
 
 .class-picker-label {
@@ -961,9 +958,7 @@ function showSuccess(msg: string) {
   font-weight: 600;
   color: #0f172a;
   background: #ffffff;
-  min-width: 0;
-  width: 100%;
-  max-width: 280px;
+  min-width: 240px;
 }
 
 .class-first-actions {

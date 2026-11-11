@@ -100,9 +100,11 @@ class UserRepository(BaseRepository[User]):
             UserRole.role_id == role.id
         ).first()
         if not user_role:
+            from datetime import datetime, timezone
             user_role = UserRole(
                 user_id=user.id,
                 role_id=role.id,
+                assigned_at=datetime.now(timezone.utc),
                 assigned_by=assigned_by_id
             )
             self.db.add(user_role)

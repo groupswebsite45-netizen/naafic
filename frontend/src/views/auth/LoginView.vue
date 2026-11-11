@@ -80,25 +80,23 @@ async function handleLoginSubmit(credentials: {
 
 <style scoped>
 .login-view-container {
-  height: 100dvh;
-  max-height: 100dvh;
-  width: 100%;
-  max-width: 100%;
+  height: 100vh;
+  max-height: 100vh;
+  width: 100vw;
   display: flex;
   background-color: #f7f9fc;
   color: var(--text-primary, #0f172a);
   font-family: var(--font-family-base, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
   position: relative;
-  overflow: clip;
+  overflow: hidden;
 }
 
 @media (max-width: 860px) {
   .login-view-container {
     flex-direction: column;
     height: auto;
-    min-height: 100dvh;
+    min-height: 100vh;
     max-height: none;
-    overflow-x: clip;
     overflow-y: auto;
   }
 }

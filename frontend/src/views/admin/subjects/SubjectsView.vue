@@ -710,8 +710,8 @@ function handleApplyDrawerFilters(payload: {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  min-height: 44px;
-  padding: 0 0.85rem;
+  height: 2rem;
+  padding: 0 0.75rem;
   font-size: 0.8125rem;
   font-weight: 500;
   color: #334155;

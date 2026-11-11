@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { studentPortalService } from '../../services/studentPortalService';
+import { studentService } from '../../services/studentService';
 import { StudentProfileData } from '../../types/studentPortal';
 
 const profile = ref<StudentProfileData | null>(null);
@@ -78,7 +79,14 @@ onMounted(() => {
       <!-- Profile Hero Card -->
       <div class="card hero-card">
         <div class="avatar-wrap">
-          <div class="avatar-initials">
+          <img
+            v-if="profile.photo_path"
+            :src="studentService.getPhotoUrl(profile.id, profile.photo_path) || ''"
+            :alt="profile.full_name"
+            class="avatar-photo-img"
+            @error="profile.photo_path = null"
+          />
+          <div v-else class="avatar-initials">
             {{ profile.first_name?.[0] }}{{ profile.last_name?.[0] }}
           </div>
         </div>
@@ -297,6 +305,14 @@ onMounted(() => {
   font-size: 1.6rem;
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  overflow: hidden;
+}
+
+.avatar-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .hero-info {
@@ -363,7 +379,6 @@ onMounted(() => {
   gap: 1rem;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  min-width: 0;
 }
 
 .full-width {
@@ -401,8 +416,6 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.75rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px dashed var(--border-subtle);
   font-size: 0.88rem;
@@ -415,10 +428,6 @@ onMounted(() => {
 .info-val {
   color: var(--text-primary);
   text-align: right;
-  min-width: 0;
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 .font-semibold {
@@ -541,8 +550,7 @@ onMounted(() => {
 
 @media (max-width: 480px) {
   .academic-stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.65rem;
+    grid-template-columns: 1fr;
   }
   .info-row {
     flex-direction: column;

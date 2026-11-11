@@ -85,6 +85,47 @@ onUnmounted(() => {
         </svg>
         <span>Review in Results Center</span>
       </button>
+
+      <div class="menu-divider" />
+
+      <!-- Publish / Unpublish -->
+      <button
+        v-if="exam.status !== 'PUBLISHED'"
+        type="button"
+        class="menu-item text-emerald"
+        @click="handleAction('publish')"
+      >
+        <svg class="item-icon text-emerald" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <span>Publish Exam to Portal</span>
+      </button>
+      <button
+        v-else
+        type="button"
+        class="menu-item text-amber"
+        @click="handleAction('unpublish')"
+      >
+        <svg class="item-icon text-amber" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
+        </svg>
+        <span>Unpublish from Portal</span>
+      </button>
+
+      <div class="menu-divider" />
+
+      <!-- Delete -->
+      <button
+        type="button"
+        class="menu-item danger"
+        :disabled="exam.status === 'PUBLISHED'"
+        @click="handleAction('delete')"
+      >
+        <svg class="item-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+        <span>Delete Exam</span>
+      </button>
     </div>
   </div>
 </template>
@@ -99,10 +140,8 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 36px;
-  min-height: 36px;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 6px;
   border: 1px solid transparent;
   background: transparent;
@@ -127,7 +166,6 @@ onUnmounted(() => {
   right: 0;
   z-index: 50;
   min-width: 180px;
-  max-width: calc(100vw - 32px);
   margin-top: 4px;
   padding: 0.35rem 0;
   background-color: #ffffff;
@@ -141,7 +179,6 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.625rem;
   width: 100%;
-  min-height: 38px;
   padding: 0.5rem 0.875rem;
   font-size: 0.8125rem;
   font-weight: 500;

@@ -21,6 +21,8 @@ export interface StudentProfileData {
   current_class_code?: string | null;
   academic_year?: string | null;
   portal_account_status: string;
+  photo_url?: string | null;
+  photo_path?: string | null;
 }
 
 export interface StudentSubjectDetail {
@@ -201,6 +203,38 @@ export interface StudentExamResultItem {
   total_marks: number;
   percentage?: number | null;
   created_at?: string | null;
+}
+
+export interface StudentPublishedExamItem {
+  id: number;
+  name: string;
+  exam_type: string;
+  academic_year: string;
+  class_id: number;
+  class_name?: string | null;
+  class_code?: string | null;
+  section?: string | null;
+  subject_id: number;
+  subject_name?: string | null;
+  subject_code?: string | null;
+  teacher_name?: string | null;
+  start_date: string;
+  end_date?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
+  instructions?: string | null;
+  max_marks: number;
+  pass_marks: number;
+  status: string;
+  published_at?: string | null;
+  result_submission_deadline?: string | null;
+  has_released_result: boolean;
+  marks_obtained?: number | null;
+  grade?: string | null;
+  remarks?: string | null;
+  attendance_status?: string | null;
+  percentage?: number | null;
+  total_marks: number;
 }
 
 export interface StudentDashboardData {

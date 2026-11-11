@@ -30,7 +30,7 @@ const emit = defineEmits<{
         </div>
         <div>
           <h2 class="modal-title">
-            {{ isPublishing ? 'Publish Examination Results' : 'Unpublish Examination Results' }}
+            {{ isPublishing ? 'Publish Examination to Student Portal' : 'Unpublish Examination from Portal' }}
           </h2>
           <span class="exam-subtitle">{{ exam.name }} ({{ exam.academic_year }})</span>
         </div>
@@ -43,7 +43,7 @@ const emit = defineEmits<{
           </svg>
           <div class="notice-text">
             <strong>Immediate Visibility:</strong>
-            Publishing these results will immediately make scores, grades, and remarks accessible to enrolled students and their guardians on the Student Portal.
+            Publishing this examination will immediately make its schedule, dates, subject, instructions, and announcement accessible to students enrolled in <strong>{{ exam.school_class?.name || exam.class_name }}</strong> on their Student Portal.
           </div>
         </div>
 
@@ -53,7 +53,7 @@ const emit = defineEmits<{
           </svg>
           <div class="notice-text">
             <strong>Revoke Visibility:</strong>
-            Unpublishing will revoke visibility of these results from the Student Portal. Students will no longer see marks for this examination until it is republished.
+            Unpublishing will revoke visibility of this examination and its schedule from the Student Portal. Students will no longer see this exam until republished.
           </div>
         </div>
 
@@ -90,7 +90,7 @@ const emit = defineEmits<{
           @click="emit('confirm', exam, isPublishing)"
         >
           <span v-if="isLoading" class="spinner" />
-          <span>{{ isPublishing ? 'Confirm & Publish Results' : 'Confirm & Unpublish' }}</span>
+          <span>{{ isPublishing ? 'Confirm & Publish to Portal' : 'Confirm & Unpublish' }}</span>
         </button>
       </div>
     </div>

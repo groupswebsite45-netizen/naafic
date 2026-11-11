@@ -109,8 +109,7 @@ withDefaults(defineProps<Props>(), {
   gap: 1.15rem;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  overflow: clip;
-  min-width: 0;
+  overflow: hidden;
 }
 
 .stat-card:hover {
@@ -303,16 +302,14 @@ withDefaults(defineProps<Props>(), {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.5rem;
+  gap: 0.5rem;
 }
 
 .stat-title {
   font-size: 0.85rem;
   font-weight: 700;
   color: #334155;
-  overflow-wrap: break-word;
-  word-break: normal;
+  white-space: nowrap;
 }
 
 .trend-badge {
@@ -323,7 +320,6 @@ withDefaults(defineProps<Props>(), {
   padding: 0.15rem 0.5rem;
   border-radius: 9999px;
   line-height: 1.2;
-  white-space: nowrap;
 }
 
 .stat-value-row {
@@ -331,22 +327,20 @@ withDefaults(defineProps<Props>(), {
 }
 
 .stat-value {
-  font-size: clamp(1.2rem, 2.2vw, 1.75rem);
+  font-size: 1.85rem;
   font-weight: 800;
   color: #0F172A;
   line-height: 1.2;
   letter-spacing: -0.02em;
-  white-space: nowrap;
-  overflow-wrap: normal;
-  word-break: normal;
 }
 
 .stat-subtext {
   font-size: 0.76rem;
   color: #475569;
   font-weight: 600;
-  overflow-wrap: break-word;
-  word-break: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Right Chevron with Soft Circle Badge */
@@ -388,61 +382,5 @@ withDefaults(defineProps<Props>(), {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
-}
-
-@media (max-width: 640px) {
-  .stat-card {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: start;
-    gap: 0.55rem 0.65rem;
-    padding: 0.85rem;
-    border-radius: 14px;
-    height: 100%;
-    box-sizing: border-box;
-  }
-
-  .stat-icon-wrap {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-  }
-
-  .stat-icon-wrap svg {
-    width: 19px;
-    height: 19px;
-  }
-
-  .stat-body {
-    grid-column: 1 / -1;
-  }
-
-  .stat-chevron-wrap {
-    grid-row: 1;
-    grid-column: 2;
-    justify-self: end;
-    align-self: center;
-    margin-left: 0;
-  }
-
-  .chevron-circle {
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
-  }
-
-  .stat-title {
-    font-size: 0.78rem;
-    line-height: 1.25;
-  }
-
-  .stat-value {
-    font-size: clamp(1.15rem, 4.5vw, 1.45rem);
-  }
-
-  .stat-subtext {
-    font-size: 0.72rem;
-    line-height: 1.3;
-  }
 }
 </style>

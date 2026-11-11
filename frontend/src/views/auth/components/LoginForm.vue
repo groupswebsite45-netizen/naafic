@@ -523,15 +523,12 @@ function handleFormSubmit() {
 }
 
 .forgot-password-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
   font-size: 0.8rem;
   font-weight: 600;
   color: #174ea6;
   background: none;
   border: none;
-  padding: 0.15rem 0;
+  padding: 0;
   cursor: pointer;
   transition: color 0.15s ease;
 }
@@ -1004,28 +1001,22 @@ function handleFormSubmit() {
 
 @media (max-width: 430px) {
   .login-workspace {
-    padding: 1.25rem 0.85rem 2.25rem 0.85rem;
+    padding: 1.25rem 1.15rem 2.75rem 1.15rem;
   }
 
   .login-card {
-    padding: 1.5rem 1.15rem;
+    padding: 1.75rem 1.25rem;
     border-radius: 18px;
   }
 
   .modern-input {
     height: 52px;
-    font-size: max(1rem, 1em);
+    font-size: 0.925rem;
   }
 
   .submit-cta-btn {
     height: 52px;
     font-size: 0.95rem;
-  }
-
-  .modal-box {
-    padding: 1.25rem 1.15rem;
-    max-height: calc(100dvh - 2rem);
-    overflow-y: auto;
   }
 }
 

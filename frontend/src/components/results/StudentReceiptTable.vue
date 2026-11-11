@@ -91,7 +91,7 @@ function formatDate(dateStr?: string) {
     </div>
 
     <!-- Desktop Table -->
-    <div tabindex="0" role="region" aria-label="Student receipt tracking table" class="table-wrapper desktop-only">
+    <div class="table-wrapper desktop-only">
       <table class="receipt-table" aria-label="Student Receipt Tracking">
         <thead>
           <tr>
@@ -288,7 +288,6 @@ function formatDate(dateStr?: string) {
 
 .receipt-table {
   width: 100%;
-  min-width: 560px;
   border-collapse: collapse;
   font-size: 0.8125rem;
   text-align: left;

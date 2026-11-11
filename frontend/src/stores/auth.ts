@@ -152,6 +152,12 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function applyToken(token: string) {
+    accessToken.value = token;
+    localStorage.setItem('sms_access_token', token);
+    return await fetchCurrentUser();
+  }
+
   function updateUserProfile(updated: Partial<User>) {
     if (user.value) {
       user.value = { ...user.value, ...updated };
@@ -177,6 +183,7 @@ export const useAuthStore = defineStore('auth', () => {
     userRolesList,
     login,
     logout,
+    applyToken,
     fetchCurrentUser,
     updateUserProfile,
   };

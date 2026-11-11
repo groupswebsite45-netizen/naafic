@@ -7,6 +7,7 @@ import {
   StudentAttendanceData,
   StudentFeesData,
   StudentExamResultItem,
+  StudentPublishedExamItem,
 } from '../types/studentPortal';
 
 export const studentPortalService = {
@@ -55,9 +56,21 @@ export const studentPortalService = {
     return res.data;
   },
 
-  async getMyExams(academicYear?: string): Promise<StudentExamResultItem[]> {
+  async getPublishedExams(academicYear?: string): Promise<StudentPublishedExamItem[]> {
     const params = academicYear ? { academic_year: academicYear } : {};
-    const res = await apiClient.get<StudentExamResultItem[]>('/student-portal/exams', { params });
+    const res = await apiClient.get<StudentPublishedExamItem[]>('/student-portal/exams', { params });
+    return res.data;
+  },
+
+  async getMyResults(academicYear?: string): Promise<StudentExamResultItem[]> {
+    const params = academicYear ? { academic_year: academicYear } : {};
+    const res = await apiClient.get<StudentExamResultItem[]>('/student-portal/results', { params });
+    return res.data;
+  },
+
+  async getMyExams(academicYear?: string): Promise<StudentPublishedExamItem[]> {
+    const params = academicYear ? { academic_year: academicYear } : {};
+    const res = await apiClient.get<StudentPublishedExamItem[]>('/student-portal/exams', { params });
     return res.data;
   },
 

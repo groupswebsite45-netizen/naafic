@@ -210,7 +210,7 @@ onMounted(() => {
         <div v-if="dashboardData.upcoming_timetables.length === 0" class="empty-inline">
           No class periods scheduled.
         </div>
-        <div v-else class="table-responsive" tabindex="0" role="region" aria-label="Teacher portal table">
+        <div v-else class="table-responsive">
           <table class="portal-table">
             <thead>
               <tr>
@@ -243,7 +243,7 @@ onMounted(() => {
         <div v-if="dashboardData.active_exams.length === 0" class="empty-inline">
           No upcoming exams scheduled for your assigned classes.
         </div>
-        <div v-else class="table-responsive" tabindex="0" role="region" aria-label="Teacher portal table">
+        <div v-else class="table-responsive">
           <table class="portal-table">
             <thead>
               <tr>
@@ -333,10 +333,6 @@ onMounted(() => {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.35rem;
-  min-width: 0;
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 .sub-sep {
@@ -645,14 +641,7 @@ onMounted(() => {
 
 @media (max-width: 640px) {
   .metrics-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-  .metric-card {
-    padding: 0.85rem;
-    gap: 0.5rem;
-    flex-direction: column;
-    align-items: flex-start;
+    grid-template-columns: 1fr;
   }
   .att-item-row, .pending-sub-row {
     flex-direction: column;

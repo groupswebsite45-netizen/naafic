@@ -1,7 +1,12 @@
+import os
+import io
 import re
+import uuid
+from datetime import datetime, timezone
 from typing import Optional, List, Tuple, Dict, Any
+from sqlalchemy import or_, and_
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, UploadFile
 from app.models.student import Student
 from app.models.student_enrollment import StudentEnrollment
 from app.models.user import User
@@ -17,6 +22,78 @@ from app.schemas.student import (
     StudentEnrollmentCreate,
     StudentSummaryMetrics,
 )
+from app.utils.logger import logger
+
+UPLOAD_STUDENT_PHOTOS_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "uploads",
+    "student_photos"
+)
+ALLOWED_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+ALLOWED_PHOTO_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
+MAX_PHOTO_SIZE = 5 * 1024 * 1024  # 5 MB
+
+
+def validate_image_bytes(contents: bytes, filename: str) -> str:
+    """
+    Validates file size, extension, magic bytes, and image structure.
+    Returns normalized mime type or raises HTTPException.
+    """
+    if len(contents) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The uploaded photo file is empty."
+        )
+    if len(contents) > MAX_PHOTO_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Photo size exceeds maximum allowed limit of {MAX_PHOTO_SIZE // (1024 * 1024)}MB."
+        )
+
+    _, ext = os.path.splitext(filename.lower())
+    if ext not in ALLOWED_PHOTO_EXTENSIONS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unsupported file extension '{ext}'. Allowed extensions are: JPG, JPEG, PNG, WEBP."
+        )
+
+    # Magic byte inspection
+    is_jpeg = contents.startswith(b"\xff\xd8\xff")
+    is_png = contents.startswith(b"\x89PNG\r\n\x1a\n")
+    is_webp = contents.startswith(b"RIFF") and len(contents) > 12 and contents[8:12] == b"WEBP"
+
+    if not (is_jpeg or is_png or is_webp):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid image format. The file content does not match a valid JPG, PNG, or WEBP image."
+        )
+
+    # Deep verification with PIL to ensure not executable or corrupted
+    try:
+        from PIL import Image
+        image = Image.open(io.BytesIO(contents))
+        image.verify()
+        format_name = (image.format or "").upper()
+        if format_name not in {"JPEG", "PNG", "WEBP"}:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Unsupported internal image format '{format_name}'."
+            )
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Corrupted or invalid image file. Verification failed."
+        )
+
+    if is_jpeg:
+        return "image/jpeg"
+    elif is_png:
+        return "image/png"
+    else:
+        return "image/webp"
+
 
 
 class StudentService:
@@ -69,6 +146,13 @@ class StudentService:
             "full_name": student.full_name,
             "has_portal_access": student.has_portal_access,
             "portal_username": student.portal_username,
+            "photo_path": student.photo_path,
+            "photo_url": student.photo_url,
+            "photo_filename": student.photo_filename,
+            "photo_mime_type": student.photo_mime_type,
+            "photo_size": student.photo_size,
+            "photo_uploaded_at": student.photo_uploaded_at,
+            "photo_updated_at": student.photo_updated_at,
             "created_at": student.created_at,
             "updated_at": student.updated_at,
             "current_class": student.current_class,
@@ -377,6 +461,244 @@ class StudentService:
         )
         return student.user
 
+    def batch_enable_portals(self, payload: Any, creator_id: Optional[int] = None) -> Dict[str, Any]:
+        """
+        One-click batch enablement of student portal access.
+        Provisions user accounts for students without one using clean username generation and default password.
+        Reactivates inactive accounts.
+        """
+        academic_year = getattr(payload, "academic_year", None)
+        class_id = getattr(payload, "class_id", None)
+        student_ids = getattr(payload, "student_ids", None)
+        default_pwd = getattr(payload, "default_password", None) or "Student@123"
+
+        query = self.db.query(Student).filter(Student.status == "ACTIVE")
+        if student_ids:
+            query = query.filter(Student.id.in_(student_ids))
+        else:
+            if class_id or academic_year:
+                enr_filters = [StudentEnrollment.status == "ACTIVE"]
+                if class_id:
+                    enr_filters.append(StudentEnrollment.class_id == class_id)
+                if academic_year:
+                    cleaned = academic_year.strip()
+                    variants = list({cleaned, cleaned.replace("-", "/"), cleaned.replace("/", "-")})
+                    enr_filters.append(StudentEnrollment.academic_year.in_(variants))
+                query = query.join(StudentEnrollment).filter(and_(*enr_filters))
+
+        students = query.order_by(Student.id.asc()).all()
+
+        student_role = self.role_repo.get_or_create("STUDENT", "Enrolled student account")
+        results_list = []
+        created_count = 0
+        activated_count = 0
+        already_active_count = 0
+
+        for st in students:
+            if st.user_id and st.user:
+                if not st.user.is_active:
+                    st.user.is_active = True
+                    self.user_repo.update(st.user)
+                    activated_count += 1
+                    status_str = "ACTIVATED"
+                else:
+                    already_active_count += 1
+                    status_str = "ALREADY_ACTIVE"
+                # Ensure student role is assigned
+                self.user_repo.add_role_to_user(st.user, student_role, assigned_by_id=creator_id)
+                results_list.append({
+                    "student_id": st.id,
+                    "student_name": st.full_name,
+                    "admission_number": st.admission_number,
+                    "username": st.user.username,
+                    "status": status_str
+                })
+            else:
+                # Need to provision fresh portal account
+                username = self.suggest_portal_username(st.id)
+                email = f"{username}@student.somroyal.edu.so"
+                user = User(
+                    email=email,
+                    username=username,
+                    hashed_password=get_password_hash(default_pwd),
+                    full_name=st.full_name,
+                    phone_number=st.phone,
+                    is_active=True,
+                    is_superuser=False
+                )
+                self.user_repo.create(user)
+                self.user_repo.add_role_to_user(user, student_role, assigned_by_id=creator_id)
+                st.user_id = user.id
+                self.repo.update(st)
+                created_count += 1
+                results_list.append({
+                    "student_id": st.id,
+                    "student_name": st.full_name,
+                    "admission_number": st.admission_number,
+                    "username": username,
+                    "status": "CREATED"
+                })
+
+        self.db.commit()
+
+        self.audit_repo.log_event(
+            action="BATCH_STUDENT_PORTALS_ENABLED",
+            user_id=creator_id,
+            details={
+                "total": len(students),
+                "created": created_count,
+                "activated": activated_count,
+                "already_active": already_active_count
+            }
+        )
+
+        return {
+            "success": True,
+            "message": f"Successfully processed {len(students)} student portals: {created_count} created, {activated_count} activated, {already_active_count} already active.",
+            "total_processed": len(students),
+            "enabled_count": created_count + activated_count,
+            "already_active_count": already_active_count,
+            "default_password": default_pwd,
+            "students": results_list
+        }
+
+    def toggle_portal_quick(self, student_id: int, is_active: Optional[bool] = None, default_password: str = "Student@123", creator_id: Optional[int] = None) -> Dict[str, Any]:
+        """
+        Quick one-click toggle of student portal access.
+        If no portal user account exists and action is enable (or toggle), provisions account with default password.
+        If account exists, sets or inverts is_active.
+        """
+        student = self.get_student(student_id)
+        student_role = self.role_repo.get_or_create("STUDENT", "Enrolled student account")
+
+        if not student.user_id or not student.user:
+            if is_active is False:
+                return {
+                    "student_id": student.id,
+                    "has_portal_access": False,
+                    "portal_username": None,
+                    "portal_is_active": False,
+                    "message": f"Portal access is already disabled for {student.full_name}."
+                }
+            username = self.suggest_portal_username(student.id)
+            email = f"{username}@student.somroyal.edu.so"
+            user = User(
+                email=email,
+                username=username,
+                hashed_password=get_password_hash(default_password),
+                full_name=student.full_name,
+                phone_number=student.phone,
+                is_active=True,
+                is_superuser=False
+            )
+            self.user_repo.create(user)
+            self.user_repo.add_role_to_user(user, student_role, assigned_by_id=creator_id)
+            student.user_id = user.id
+            self.repo.update(student)
+            self.db.commit()
+
+            self.audit_repo.log_event(
+                action="STUDENT_PORTAL_ACCOUNT_CREATED",
+                user_id=creator_id,
+                details={"student_id": student.id, "username": username}
+            )
+
+            return {
+                "student_id": student.id,
+                "has_portal_access": True,
+                "portal_username": username,
+                "portal_is_active": True,
+                "message": f"Portal login enabled for {student.full_name} (Username: {username}, Password: {default_password})."
+            }
+        else:
+            new_status = not student.user.is_active if is_active is None else is_active
+            student.user.is_active = new_status
+            self.user_repo.update(student.user)
+            self.db.commit()
+
+            self.audit_repo.log_event(
+                action="STUDENT_PORTAL_STATUS_CHANGED",
+                user_id=creator_id,
+                details={"student_id": student.id, "username": student.user.username, "is_active": new_status}
+            )
+
+            return {
+                "student_id": student.id,
+                "has_portal_access": new_status,
+                "portal_username": student.user.username,
+                "portal_is_active": new_status,
+                "message": f"Portal access {'enabled' if new_status else 'disabled'} for {student.full_name}."
+            }
+
+    def get_student_portal_token(self, student_id: int, admin_user: User) -> Dict[str, Any]:
+        """
+        Generate authentic student access token allowing admin to seamlessly log into or view any student's portal.
+        Auto-provisions portal account if student does not have one yet.
+        """
+        student = self.get_student(student_id)
+        if not student.user_id or not student.user:
+            self.toggle_portal_quick(student_id, is_active=True, creator_id=admin_user.id)
+            student = self.get_student(student_id)
+
+        user = student.user
+        if not user.is_active:
+            user.is_active = True
+            self.user_repo.update(user)
+            self.db.commit()
+
+        from app.core.tenant_context import get_default_database_name
+        from app.core.security import create_access_token
+        from datetime import timedelta
+
+        default_db = get_default_database_name()
+        db_name = default_db
+        if self.db and hasattr(self.db, "bind") and self.db.bind:
+            db_name = self.db.bind.url.database or default_db
+
+        institution_id = None
+        institution_code = None
+        try:
+            from app.core.tenant_context import get_central_sessionmaker
+            from app.models.institution import Institution
+            with get_central_sessionmaker()() as cs:
+                inst = cs.query(Institution).filter(Institution.database_name == db_name).first()
+                if inst:
+                    institution_id = inst.id
+                    institution_code = inst.code
+        except Exception:
+            pass
+
+        token_claims = {
+            "email": user.email,
+            "username": user.username,
+            "roles": ["STUDENT"],
+            "is_superuser": False,
+            "database_name": db_name,
+            "institution_code": institution_code,
+            "institution_id": institution_id,
+        }
+
+        access_token = create_access_token(
+            subject=user.id,
+            claims=token_claims,
+            expires_delta=timedelta(hours=4)
+        )
+
+        self.audit_repo.log_event(
+            action="ADMIN_IMPERSONATE_STUDENT_PORTAL",
+            user_id=admin_user.id,
+            details={"student_id": student.id, "student_username": user.username}
+        )
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "student_id": student.id,
+            "student_name": student.full_name,
+            "username": user.username,
+            "portal_url": "/student/exams"
+        }
+
     def enroll_student_to_class(self, student_id: int, data: StudentEnrollmentCreate, user_id: Optional[int] = None) -> StudentEnrollment:
         student = self.get_student(student_id)
         c = self.class_repo.get_by_id(data.class_id)
@@ -423,3 +745,112 @@ class StudentService:
             details={"student_id": student_id, "class_id": data.class_id, "academic_year": data.academic_year}
         )
         return enrollment
+
+    async def upload_student_photo(self, student_id: int, file: UploadFile, user_id: Optional[int] = None) -> Student:
+        """
+        Permanently save and associate student profile photograph.
+        Performs magic bytes & PIL structure validation, safe unique filename generation,
+        and safe cleanup of previous photo file if replacing.
+        """
+        student = self.get_student(student_id)
+        os.makedirs(UPLOAD_STUDENT_PHOTOS_DIR, exist_ok=True)
+
+        contents = await file.read()
+        mime_type = validate_image_bytes(contents, file.filename or "photo.jpg")
+
+        ext = ".jpg" if mime_type == "image/jpeg" else (".png" if mime_type == "image/png" else ".webp")
+        safe_filename = f"student_{student.id}_{uuid.uuid4().hex[:12]}{ext}"
+        relative_path = f"student_photos/{safe_filename}"
+        full_path = os.path.join(UPLOAD_STUDENT_PHOTOS_DIR, safe_filename)
+
+        # Safely remove existing photo file to prevent storage leaks
+        if student.photo_path:
+            old_full_path = os.path.join(
+                os.path.dirname(UPLOAD_STUDENT_PHOTOS_DIR),
+                student.photo_path.replace("/", os.sep).replace("\\", os.sep)
+            )
+            if os.path.exists(old_full_path) and os.path.isfile(old_full_path):
+                try:
+                    os.remove(old_full_path)
+                except Exception as ex:
+                    logger.warning(f"Could not remove old student photo: {ex}")
+
+        with open(full_path, "wb") as f:
+            f.write(contents)
+
+        now = datetime.now(timezone.utc)
+        student.photo_path = relative_path
+        student.photo_filename = file.filename or safe_filename
+        student.photo_mime_type = mime_type
+        student.photo_size = len(contents)
+        if not student.photo_uploaded_at:
+            student.photo_uploaded_at = now
+        student.photo_updated_at = now
+
+        updated = self.repo.update(student)
+        self.audit_repo.log_event(
+            action="STUDENT_PHOTO_UPLOADED",
+            user_id=user_id,
+            details={
+                "student_id": student.id,
+                "admission_number": student.admission_number,
+                "photo_filename": student.photo_filename,
+                "photo_size": student.photo_size,
+                "photo_mime_type": student.photo_mime_type
+            }
+        )
+        return updated
+
+    def delete_student_photo(self, student_id: int, user_id: Optional[int] = None) -> Student:
+        """Remove student profile photo file and reset database references."""
+        student = self.get_student(student_id)
+        if not student.photo_path:
+            return student
+
+        old_full_path = os.path.join(
+            os.path.dirname(UPLOAD_STUDENT_PHOTOS_DIR),
+            student.photo_path.replace("/", os.sep).replace("\\", os.sep)
+        )
+        if os.path.exists(old_full_path) and os.path.isfile(old_full_path):
+            try:
+                os.remove(old_full_path)
+            except Exception as ex:
+                logger.warning(f"Could not delete student photo file: {ex}")
+
+        student.photo_path = None
+        student.photo_filename = None
+        student.photo_mime_type = None
+        student.photo_size = None
+        student.photo_updated_at = datetime.now(timezone.utc)
+
+        updated = self.repo.update(student)
+        self.audit_repo.log_event(
+            action="STUDENT_PHOTO_REMOVED",
+            user_id=user_id,
+            details={"student_id": student.id, "admission_number": student.admission_number}
+        )
+        return updated
+
+    def get_student_photo_file(self, student_id: int) -> Dict[str, Any]:
+        """Retrieve stored file details for student photo."""
+        student = self.get_student(student_id)
+        if not student.photo_path:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No photo found for this student."
+            )
+        full_path = os.path.join(
+            os.path.dirname(UPLOAD_STUDENT_PHOTOS_DIR),
+            student.photo_path.replace("/", os.sep).replace("\\", os.sep)
+        )
+        if not os.path.exists(full_path) or not os.path.isfile(full_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Stored student photo file was not found on server."
+            )
+        return {
+            "full_path": full_path,
+            "filename": student.photo_filename or f"student_{student.id}.jpg",
+            "mime_type": student.photo_mime_type or "image/jpeg",
+            "size": student.photo_size or os.path.getsize(full_path),
+        }

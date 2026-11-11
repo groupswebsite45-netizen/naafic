@@ -31,13 +31,13 @@ class ExamService:
     """Service handling Examination scheduling and Results grading."""
 
     VALID_STATUS_TRANSITIONS = {
-        "DRAFT": ["SCHEDULED", "OPEN_FOR_RESULTS", "CANCELLED"],
-        "SCHEDULED": ["OPEN_FOR_RESULTS", "ONGOING", "CLOSED", "CANCELLED", "DRAFT"],
-        "OPEN_FOR_RESULTS": ["CLOSED", "COMPLETED", "SCHEDULED", "CANCELLED"],
-        "ONGOING": ["OPEN_FOR_RESULTS", "COMPLETED", "CLOSED", "CANCELLED"],
-        "COMPLETED": ["PUBLISHED", "OPEN_FOR_RESULTS", "CLOSED"],
-        "CLOSED": ["OPEN_FOR_RESULTS", "PUBLISHED", "COMPLETED"],
-        "PUBLISHED": ["COMPLETED", "CLOSED"],  # Allow unpublishing
+        "DRAFT": ["SCHEDULED", "PUBLISHED", "OPEN_FOR_RESULTS", "CANCELLED"],
+        "SCHEDULED": ["PUBLISHED", "OPEN_FOR_RESULTS", "ONGOING", "CLOSED", "CANCELLED", "DRAFT"],
+        "OPEN_FOR_RESULTS": ["PUBLISHED", "CLOSED", "COMPLETED", "SCHEDULED", "CANCELLED"],
+        "ONGOING": ["PUBLISHED", "OPEN_FOR_RESULTS", "COMPLETED", "CLOSED", "CANCELLED"],
+        "COMPLETED": ["PUBLISHED", "OPEN_FOR_RESULTS", "CLOSED", "SCHEDULED"],
+        "CLOSED": ["PUBLISHED", "OPEN_FOR_RESULTS", "COMPLETED", "SCHEDULED"],
+        "PUBLISHED": ["SCHEDULED", "COMPLETED", "CLOSED", "OPEN_FOR_RESULTS", "CANCELLED"],  # Allow unpublishing
         "CANCELLED": ["DRAFT", "SCHEDULED"],
     }
 
@@ -675,6 +675,13 @@ class ExamService:
         exam = self.get_exam(exam_id)
         st_norm = new_status.upper().strip()
         exam.status = st_norm
+        if st_norm == "PUBLISHED":
+            exam.published_at = datetime.now(timezone.utc)
+            exam.published_by_id = user_id
+        else:
+            exam.published_at = None
+            exam.published_by_id = None
+
         self.db.commit()
         self.db.refresh(exam)
 
@@ -762,26 +769,75 @@ class ExamService:
 
     def publish_results(self, exam_id: int, payload: PublishResultsPayload, user_id: Optional[int] = None) -> Exam:
         e = self.get_exam(exam_id)
-        target_status = "PUBLISHED" if payload.publish else "COMPLETED"
 
-        if payload.publish and e.status not in ("COMPLETED", "PUBLISHED"):
+        # 1. Validate exam exists and is linked to a valid class and subject
+        if not e.class_id or not e.subject_id:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"Cannot publish exam with status '{e.status}'. Exam must be COMPLETED first."
-            )
-        if not payload.publish and e.status != "PUBLISHED":
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Exam is not currently published."
+                detail="Exam must have an assigned class and subject to be published."
             )
 
-        e.status = target_status
+        # 2. Confirm class exists
+        school_class = self.class_repo.get_by_id(e.class_id)
+        if not school_class:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Assigned class ID {e.class_id} not found."
+            )
+
+        from app.models.result_submission import ResultSubmission
+
+        if payload.publish:
+            e.status = "PUBLISHED"
+            e.published_at = datetime.now(timezone.utc)
+            e.published_by_id = user_id
+            action = "EXAM_PUBLISHED"
+
+            # When publishing exam results, release all recorded student marks to portal
+            for res in (e.results or []):
+                if res.status in ("SUBMITTED", "APPROVED", "DRAFT"):
+                    res.status = "RELEASED"
+
+            submissions = self.db.query(ResultSubmission).filter(ResultSubmission.exam_id == e.id).all()
+            for sub in submissions:
+                if sub.status in ("SUBMITTED", "APPROVED", "DRAFT"):
+                    sub.status = "RELEASED"
+                    sub.approved_at = sub.approved_at or datetime.now(timezone.utc)
+                    sub.approved_by_id = sub.approved_by_id or user_id
+        else:
+            if e.status != "PUBLISHED":
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Exam is not currently published."
+                )
+            has_results = len(e.results) > 0 if e.results else False
+            e.status = "COMPLETED" if has_results else "SCHEDULED"
+            e.published_at = None
+            e.published_by_id = None
+            action = "EXAM_UNPUBLISHED"
+
+            # When unpublishing, hide marks from student portal by reverting to APPROVED
+            for res in (e.results or []):
+                if res.status == "RELEASED":
+                    res.status = "APPROVED"
+
+            submissions = self.db.query(ResultSubmission).filter(ResultSubmission.exam_id == e.id).all()
+            for sub in submissions:
+                if sub.status == "RELEASED":
+                    sub.status = "APPROVED"
+
         updated = self.repo.update(e)
-        action = "EXAM_RESULTS_PUBLISHED" if payload.publish else "EXAM_RESULTS_UNPUBLISHED"
         self.audit_repo.log_event(
             action=action,
             user_id=user_id,
-            details={"exam_id": exam_id, "name": e.name}
+            details={
+                "exam_id": exam_id,
+                "name": e.name,
+                "academic_year": e.academic_year,
+                "class_id": e.class_id,
+                "class_name": school_class.name,
+                "subject_id": e.subject_id,
+            }
         )
         return self.repo.get_by_id_enriched(updated.id)
 

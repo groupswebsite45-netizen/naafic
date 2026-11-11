@@ -306,8 +306,8 @@ function handleSubmit() {
   background: #ffffff;
   border-radius: var(--radius-lg, 0.75rem);
   width: 100%;
-  max-width: min(540px, calc(100vw - 1.5rem));
-  max-height: calc(100dvh - 1.5rem);
+  max-width: 540px;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
@@ -613,7 +613,7 @@ function handleSubmit() {
   to { transform: scale(1); opacity: 1; }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 520px) {
   .form-grid {
     grid-template-columns: 1fr;
   }

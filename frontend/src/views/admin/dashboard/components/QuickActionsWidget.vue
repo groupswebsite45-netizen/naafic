@@ -106,8 +106,6 @@ function navigateTo(path: string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
 .header-left {
@@ -233,32 +231,7 @@ function navigateTo(path: string) {
 
 @media (max-width: 768px) {
   .actions-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 480px) {
-  .bottom-card {
-    padding: 1.1rem;
-  }
-
-  .action-tile {
-    padding: 0.9rem 0.5rem;
-    min-height: 44px;
-    min-width: 0;
-  }
-}
-
-@media (max-width: 359px) {
-  .actions-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.6rem;
-  }
-  .action-tile {
-    padding: 0.75rem 0.4rem;
-  }
-  .action-label {
-    font-size: 0.76rem;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>

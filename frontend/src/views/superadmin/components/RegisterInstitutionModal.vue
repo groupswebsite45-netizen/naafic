@@ -363,8 +363,8 @@ async function handleSubmit() {
   background: #ffffff;
   border-radius: 16px;
   width: 100%;
-  max-width: min(780px, calc(100vw - 1.5rem));
-  max-height: calc(100dvh - 1.5rem);
+  max-width: 780px;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
@@ -399,12 +399,6 @@ async function handleSubmit() {
   color: #94a3b8;
   cursor: pointer;
   padding: 0.25rem;
-  min-width: 40px;
-  min-height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
   border-radius: 6px;
   transition: color 0.2s;
 }
@@ -582,23 +576,9 @@ async function handleSubmit() {
 }
 
 @media (max-width: 640px) {
-  .rim-backdrop {
-    padding: 0.75rem;
-  }
-  .rim-header {
-    padding: 1rem;
-  }
   .rim-grid-2,
   .rim-grid-3 {
     grid-template-columns: 1fr;
-  }
-  .rim-footer {
-    flex-wrap: wrap;
-  }
-  .rim-btn-cancel,
-  .rim-btn-submit {
-    flex: 1 1 auto;
-    min-height: 44px;
   }
 }
 </style>

@@ -203,7 +203,7 @@ async function handleSave() {
         </div>
 
         <!-- Availability Table -->
-        <div v-else tabindex="0" role="region" aria-label="Teacher weekly availability matrix" class="availability-table-wrap">
+        <div v-else class="availability-table-wrap">
           <table class="availability-table">
             <thead>
               <tr>
@@ -311,7 +311,7 @@ async function handleSave() {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   width: 100%;
   max-width: 880px;
-  max-height: calc(100dvh - 1.5rem);
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -382,7 +382,6 @@ async function handleSave() {
 .teacher-select-bar {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 0.75rem;
   background: #f8fafc;
   padding: 0.75rem 1rem;
@@ -397,9 +396,7 @@ async function handleSave() {
 }
 
 .teacher-select {
-  flex: 1 1 200px;
-  min-width: 0;
-  width: 100%;
+  flex: 1;
   padding: 0.45rem 0.75rem;
   border: 1px solid #cbd5e1;
   border-radius: 0.375rem;
@@ -445,13 +442,11 @@ async function handleSave() {
 .availability-table-wrap {
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
 }
 
 .availability-table {
   width: 100%;
-  min-width: 560px;
   border-collapse: collapse;
   font-size: 0.8125rem;
 }
@@ -528,7 +523,6 @@ async function handleSave() {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  flex-wrap: wrap;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
   background: #f8fafc;
@@ -590,13 +584,5 @@ async function handleSave() {
 @keyframes modalEnter {
   from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
-}
-
-@media (max-width: 640px) {
-  .modal-header,
-  .modal-body,
-  .modal-footer {
-    padding: 1rem;
-  }
 }
 </style>

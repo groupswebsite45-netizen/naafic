@@ -116,7 +116,7 @@ async function loadDropdowns() {
   }
 }
 
-async function loadStudents() {
+async function loadStudents(retryCount = 0) {
   isLoading.value = true;
   errorMessage.value = '';
   try {
@@ -133,7 +133,7 @@ async function loadStudents() {
 
     if (Array.isArray(res)) {
       students.value = res;
-      totalCount.value = res.length;
+      totalCount.value = (res as any).total ?? (summary.value?.total_students && !hasActiveFiltersOrSearch.value ? summary.value.total_students : res.length);
     } else if (res && Array.isArray(res.items)) {
       students.value = res.items;
       totalCount.value = res.total ?? res.items.length;
@@ -142,10 +142,18 @@ async function loadStudents() {
       totalCount.value = 0;
     }
   } catch (err: any) {
-    errorMessage.value = err.response?.data?.detail || 'Unable to load students from database. Please try again.';
+    if (retryCount < 1) {
+      await new Promise(r => setTimeout(r, 450));
+      return loadStudents(retryCount + 1);
+    }
+    errorMessage.value = err.response?.data?.detail || err.response?.data?.message || 'Unable to load students from database. Please try again.';
   } finally {
     isLoading.value = false;
   }
+}
+
+function handleRetry() {
+  loadStudents(0);
 }
 
 // Watchers
@@ -251,11 +259,26 @@ async function handleSaveStudent(payload: any) {
   isSubmitting.value = true;
   errorMessage.value = '';
   try {
+    const { photoFile, shouldRemovePhoto, ...studentData } = payload;
+    let savedStudent: Student;
+
     if (isEditing.value && activeStudent.value) {
-      await studentService.updateStudent(activeStudent.value.id, payload);
+      savedStudent = await studentService.updateStudent(activeStudent.value.id, studentData);
+      if (shouldRemovePhoto) {
+        await studentService.deletePhoto(savedStudent.id);
+      } else if (photoFile) {
+        await studentService.uploadPhoto(savedStudent.id, photoFile);
+      }
       successMessage.value = `Student ${payload.first_name} ${payload.last_name} updated successfully.`;
     } else {
-      await studentService.createStudent(payload);
+      savedStudent = await studentService.createStudent(studentData);
+      if (photoFile) {
+        try {
+          await studentService.uploadPhoto(savedStudent.id, photoFile);
+        } catch (photoErr: any) {
+          console.warn('Student admitted, but photo upload encountered an issue:', photoErr);
+        }
+      }
       clearFormDraft('sms_draft_student_create');
       successMessage.value = `Student ${payload.first_name} ${payload.last_name} admitted successfully.`;
     }
@@ -322,6 +345,74 @@ async function onConfirmDialogAction() {
   }
 }
 
+// Batch Enable Portals State
+const isBatchEnableModalOpen = ref(false);
+const isBatchEnabling = ref(false);
+const batchPassword = ref('Student@123');
+const batchResult = ref<any>(null);
+
+function openBatchEnableModal() {
+  batchResult.value = null;
+  batchPassword.value = 'Student@123';
+  isBatchEnableModalOpen.value = true;
+}
+
+async function confirmBatchEnable() {
+  isBatchEnabling.value = true;
+  errorMessage.value = '';
+  try {
+    const res = await studentService.batchEnablePortals({
+      academic_year: filters.academic_year || undefined,
+      class_id: filters.class_id || undefined,
+      default_password: batchPassword.value.trim() || 'Student@123',
+    });
+    batchResult.value = res;
+    successMessage.value = res.message;
+    await Promise.all([loadStudents(), loadSummary()]);
+  } catch (err: any) {
+    errorMessage.value = err.response?.data?.detail || 'Failed to batch enable student portals.';
+    isBatchEnableModalOpen.value = false;
+  } finally {
+    isBatchEnabling.value = false;
+  }
+}
+
+async function handleTogglePortalQuick(student: Student) {
+  try {
+    const targetStatus = !student.has_portal_access;
+    const res = await studentService.togglePortalQuick(student.id, targetStatus);
+    student.has_portal_access = res.has_portal_access;
+    if (res.portal_username) {
+      student.portal_username = res.portal_username;
+    }
+    successMessage.value = res.message || `Portal ${targetStatus ? 'enabled' : 'disabled'} for ${student.full_name}.`;
+    setTimeout(() => {
+      if (successMessage.value && student.full_name && successMessage.value.includes(student.full_name)) {
+        successMessage.value = '';
+      }
+    }, 4000);
+  } catch (err: any) {
+    errorMessage.value = err.response?.data?.detail || 'Failed to update student portal access.';
+  }
+}
+
+async function handleLoginAsStudent(student: Student) {
+  try {
+    isLoading.value = true;
+    const res = await studentService.loginAsStudent(student.id);
+    const targetUrl = `/student/exams?impersonate_token=${encodeURIComponent(res.access_token)}`;
+    const win = window.open(targetUrl, '_blank');
+    if (!win) {
+      window.location.href = targetUrl;
+    }
+    successMessage.value = `Logged in as student ${student.full_name} (${res.username}) in a new tab.`;
+  } catch (err: any) {
+    errorMessage.value = err.response?.data?.detail || 'Failed to authenticate as student.';
+  } finally {
+    isLoading.value = false;
+  }
+}
+
 onMounted(() => {
   loadSummary();
   loadDropdowns();
@@ -341,6 +432,18 @@ onMounted(() => {
         <p class="page-subtitle">Manage student profiles, admissions, enrollment and portal access.</p>
       </div>
       <div class="page-header-actions">
+        <button
+          type="button"
+          class="btn-portal-batch-header"
+          title="Enable student portal for all enrolled students with one click"
+          :disabled="isBatchEnabling"
+          @click="openBatchEnableModal"
+        >
+          <svg class="btn-hdr-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span>{{ isBatchEnabling ? 'Enabling Portals...' : '⚡ Enable All Portals' }}</span>
+        </button>
         <button
           type="button"
           class="btn-secondary-header"
@@ -384,7 +487,7 @@ onMounted(() => {
         </svg>
         <span>{{ errorMessage }}</span>
       </div>
-      <button class="btn-retry" @click="loadStudents">Retry</button>
+      <button class="btn-retry" @click="handleRetry">Retry</button>
     </div>
 
     <!-- Summary Overview Cards -->
@@ -441,6 +544,8 @@ onMounted(() => {
             @edit="openEditModal"
             @change-class="openChangeClassModal"
             @manage-portal="openPortalModal"
+            @toggle-portal="handleTogglePortalQuick"
+            @login-portal="handleLoginAsStudent"
             @toggle-status="handleToggleStatus"
           />
         </div>
@@ -452,6 +557,8 @@ onMounted(() => {
             @edit="openEditModal"
             @change-class="openChangeClassModal"
             @manage-portal="openPortalModal"
+            @toggle-portal="handleTogglePortalQuick"
+            @login-portal="handleLoginAsStudent"
             @toggle-status="handleToggleStatus"
           />
         </div>
@@ -552,6 +659,191 @@ onMounted(() => {
       @confirm="onConfirmDialogAction"
       @cancel="isConfirmDialogOpen = false"
     />
+
+    <!-- Batch Enable Portals Modal -->
+    <div
+      v-if="isBatchEnableModalOpen"
+      class="batch-portal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="batch-portal-title"
+      @keydown.esc="isBatchEnableModalOpen = false"
+    >
+      <div class="batch-portal-backdrop" @click="isBatchEnableModalOpen = false" />
+      <div class="batch-portal-modal">
+        <!-- Header -->
+        <div class="batch-modal-header">
+          <div class="batch-header-icon-wrap">
+            <svg class="batch-header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <div class="batch-header-text">
+            <h2 id="batch-portal-title" class="batch-modal-title">One-Click Batch Enable Student Portals</h2>
+            <p class="batch-modal-subtitle">Automatically provision and activate student portal accounts in bulk.</p>
+          </div>
+          <button
+            type="button"
+            class="batch-close-btn"
+            aria-label="Close dialog"
+            @click="isBatchEnableModalOpen = false"
+          >
+            &times;
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="batch-modal-body">
+          <!-- Step 1: Pre-Execution Confirmation -->
+          <div v-if="!batchResult" class="batch-prep-state">
+            <div class="batch-banner-info">
+              <svg class="banner-svg-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <strong class="banner-title">Instant School-Wide Provisioning</strong>
+                <p class="banner-text">
+                  This action will check all enrolled students in <strong>{{ filters.academic_year || 'all years' }}</strong>.
+                  Any student without portal credentials will instantly receive a standardized username and active credentials with the <strong>STUDENT</strong> role.
+                </p>
+              </div>
+            </div>
+
+            <!-- Scope Details Grid -->
+            <div class="scope-grid">
+              <div class="scope-box">
+                <span class="scope-label">TARGET STUDENTS</span>
+                <span class="scope-val">{{ totalCount }} Students</span>
+              </div>
+              <div class="scope-box">
+                <span class="scope-label">ACADEMIC YEAR</span>
+                <span class="scope-val">{{ filters.academic_year || 'All Enrolled' }}</span>
+              </div>
+              <div class="scope-box">
+                <span class="scope-label">CLASS FILTER</span>
+                <span class="scope-val">{{ availableClasses.find(c => c.id === filters.class_id)?.name || 'All Classes' }}</span>
+              </div>
+            </div>
+
+            <!-- Form: Default Password Setting -->
+            <div class="batch-form-group">
+              <label for="batch-default-pwd" class="batch-label">Default Initial Password for New Accounts</label>
+              <input
+                id="batch-default-pwd"
+                v-model="batchPassword"
+                type="text"
+                class="batch-input"
+                placeholder="e.g. Student@123"
+                :disabled="isBatchEnabling"
+              />
+              <span class="batch-help-text">
+                Students can log in with their Admission Number / Username and this password, then change it anytime.
+              </span>
+            </div>
+
+            <div class="batch-note-box">
+              <svg class="note-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <span>Students who already have configured passwords will keep their existing passwords. Inactive portals will be re-activated without credential loss.</span>
+            </div>
+          </div>
+
+          <!-- Step 2: Post-Execution Summary -->
+          <div v-else class="batch-success-state">
+            <div class="batch-banner-success">
+              <svg class="banner-svg-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <strong class="banner-title">Batch Provisioning Completed!</strong>
+                <p class="banner-text">{{ batchResult.message }}</p>
+              </div>
+            </div>
+
+            <!-- Result KPI Grid -->
+            <div class="batch-stats-grid">
+              <div class="batch-stat-card">
+                <span class="stat-number">{{ batchResult.total_students }}</span>
+                <span class="stat-title">Total Processed</span>
+              </div>
+              <div class="batch-stat-card new">
+                <span class="stat-number">{{ batchResult.newly_created }}</span>
+                <span class="stat-title">Newly Created</span>
+              </div>
+              <div class="batch-stat-card active">
+                <span class="stat-number">{{ batchResult.already_active + (batchResult.reactivated || 0) }}</span>
+                <span class="stat-title">Active Portals</span>
+              </div>
+            </div>
+
+            <!-- Scrollable Student Roster -->
+            <div v-if="batchResult.students && batchResult.students.length > 0" class="batch-roster-section">
+              <h4 class="roster-heading">Updated Student Roster ({{ batchResult.students.length }} Students)</h4>
+              <div class="roster-scroll-box">
+                <table class="roster-table">
+                  <thead>
+                    <tr>
+                      <th>Adm #</th>
+                      <th>Student Name</th>
+                      <th>Portal Username</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="st in batchResult.students" :key="st.student_id">
+                      <td class="roster-adm">{{ st.admission_number }}</td>
+                      <td class="roster-name">{{ st.full_name }}</td>
+                      <td class="roster-username">
+                        <code>{{ st.portal_username }}</code>
+                      </td>
+                      <td>
+                        <span class="portal-badge-enabled">● Active</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="batch-modal-footer">
+          <template v-if="!batchResult">
+            <button
+              type="button"
+              class="btn-batch-cancel"
+              :disabled="isBatchEnabling"
+              @click="isBatchEnableModalOpen = false"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn-batch-confirm"
+              :disabled="isBatchEnabling"
+              @click="confirmBatchEnable"
+            >
+              <svg v-if="isBatchEnabling" class="spin-icon" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              <span>{{ isBatchEnabling ? 'Provisioning Portals...' : '⚡ Confirm & Enable All Portals' }}</span>
+            </button>
+          </template>
+          <template v-else>
+            <button
+              type="button"
+              class="btn-batch-confirm"
+              @click="isBatchEnableModalOpen = false"
+            >
+              Done & Return to Students
+            </button>
+          </template>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -869,5 +1161,455 @@ onMounted(() => {
   .btn-page-nav {
     flex: 1;
   }
+}
+
+/* Header Batch Button */
+.btn-portal-batch-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #065f46;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08);
+}
+
+.btn-portal-batch-header:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border-color: #6ee7b7;
+  color: #047857;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(16, 185, 129, 0.15);
+}
+
+.btn-portal-batch-header:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-hdr-icon {
+  width: 18px;
+  height: 18px;
+  color: #059669;
+}
+
+/* Batch Portal Modal */
+.batch-portal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.batch-portal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+.batch-portal-modal {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.batch-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fafaf9;
+}
+
+.batch-header-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.batch-header-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.batch-header-text {
+  flex: 1;
+}
+
+.batch-modal-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.batch-modal-subtitle {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0.2rem 0 0 0;
+}
+
+.batch-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.batch-close-btn:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.batch-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.batch-banner-info,
+.batch-banner-success {
+  display: flex;
+  gap: 0.875rem;
+  padding: 1rem;
+  border-radius: 10px;
+}
+
+.batch-banner-info {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.banner-svg-info {
+  width: 24px;
+  height: 24px;
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.batch-banner-success {
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  color: #065f46;
+}
+
+.banner-svg-success {
+  width: 24px;
+  height: 24px;
+  color: #059669;
+  flex-shrink: 0;
+}
+
+.banner-title {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.banner-text {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.scope-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.scope-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.scope-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.04em;
+}
+
+.scope-val {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.batch-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.batch-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.batch-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: monospace;
+  box-sizing: border-box;
+}
+
+.batch-input:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.batch-help-text {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.batch-note-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 0.875rem;
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #92400e;
+  line-height: 1.4;
+}
+
+.note-svg {
+  width: 16px;
+  height: 16px;
+  color: #d97706;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Success State Stats */
+.batch-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.batch-stat-card {
+  padding: 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.batch-stat-card.new {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.batch-stat-card.active {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.batch-stat-card.new .stat-number { color: #1d4ed8; }
+.batch-stat-card.active .stat-number { color: #047857; }
+
+.stat-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+/* Roster Section */
+.batch-roster-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.roster-heading {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.roster-scroll-box {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.roster-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.roster-table th {
+  background: #f8fafc;
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+}
+
+.roster-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+}
+
+.roster-username code {
+  background: #f1f5f9;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #0f172a;
+}
+
+.portal-badge-enabled {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+/* Modal Footer */
+.batch-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-batch-cancel {
+  padding: 0.625rem 1.125rem;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-batch-cancel:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.btn-batch-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: #059669;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: 0 1px 2px rgba(5, 150, 105, 0.2);
+}
+
+.btn-batch-confirm:hover:not(:disabled) {
+  background: #047857;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.25);
+}
+
+.btn-batch-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin-icon {
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>

@@ -9,6 +9,14 @@ from app.models.student_enrollment import StudentEnrollment
 from app.models.school_class import SchoolClass
 
 
+def _year_variants(academic_year: Optional[str]) -> List[str]:
+    """Return both hyphen and slash normalized variants of an academic year, e.g. 2026/2027 and 2026-2027."""
+    if not academic_year:
+        return []
+    cleaned = academic_year.strip()
+    return list({cleaned, cleaned.replace("-", "/"), cleaned.replace("/", "-")})
+
+
 class FeeRepository:
     """Enterprise repository for managing fee structures, student invoices, receipts, and PostgreSQL financial aggregates."""
 
@@ -428,22 +436,46 @@ class FeeRepository:
         recorded_by_id: Optional[int] = None,
         reference_number: Optional[str] = None,
         notes: Optional[str] = None,
+        fee_month: Optional[str] = None,
     ) -> FeePayment:
         """
         Atomically records a fee payment with invoice row lock (with_for_update),
+        date validation (locked past months; current + future months only),
         balance validation, unique receipt generation, and invoice status transition.
         """
+        # Enforce date restriction: cannot pay for past months
+        today = date.today()
+        first_day_of_current_month = date(today.year, today.month, 1)
+        if payment_date < first_day_of_current_month:
+            raise ValueError(
+                f"Payments cannot be recorded for past months ({payment_date.strftime('%B %Y')}). "
+                f"Payments must be for the current month ({today.strftime('%B %Y')}) or up to future months."
+            )
+
         student_fee = self.get_student_fee_by_id(student_fee_id, lock_for_update=True)
         if not student_fee:
             raise ValueError(f"Student fee invoice ID {student_fee_id} not found.")
 
         current_balance = student_fee.balance_remaining
+        if current_balance <= 0.001:
+            raise ValueError(
+                f"Invoice {student_fee.invoice_number} for {student_fee.student_name} is already fully paid (${float(student_fee.total_paid):.2f} paid). No outstanding balance remains."
+            )
         if float(amount_paid) > current_balance + 0.001:
             raise ValueError(
                 f"Payment amount (${float(amount_paid):.2f}) exceeds remaining balance (${current_balance:.2f})."
             )
 
         receipt_no = self.generate_next_receipt_number(payment_date)
+
+        final_notes = notes.strip() if notes else None
+        if fee_month and fee_month.strip():
+            month_tag = f"Fee Month: {fee_month.strip()}"
+            if final_notes:
+                if month_tag not in final_notes:
+                    final_notes = f"{month_tag} | {final_notes}"
+            else:
+                final_notes = month_tag
 
         payment = FeePayment(
             student_fee_id=student_fee.id,
@@ -454,7 +486,7 @@ class FeeRepository:
             payment_method=payment_method.upper().strip(),
             reference_number=reference_number.strip() if reference_number else None,
             recorded_by_id=recorded_by_id,
-            notes=notes.strip() if notes else None,
+            notes=final_notes,
             status="VERIFIED",
         )
         self.db.add(payment)
@@ -1118,8 +1150,12 @@ class FeeRepository:
         q = self.db.query(SchoolClass).filter(SchoolClass.status == "ACTIVE")
 
         if academic_year and academic_year.strip():
-            ay = academic_year.strip().replace("-", "/")
-            q = q.filter(SchoolClass.academic_year == ay)
+            y_vars = _year_variants(academic_year)
+            enr_class_ids = self.db.query(StudentEnrollment.class_id).filter(
+                StudentEnrollment.academic_year.in_(y_vars),
+                StudentEnrollment.status == "ACTIVE"
+            ).distinct()
+            q = q.filter(or_(SchoolClass.academic_year.in_(y_vars), SchoolClass.id.in_(enr_class_ids)))
 
         if division and division.strip() and division.upper() != "ALL":
             div_clean = division.upper().strip()
@@ -1167,7 +1203,7 @@ class FeeRepository:
                 Student.status == "ACTIVE",
             )
             if academic_year and academic_year.strip():
-                enr_cnt_q = enr_cnt_q.filter(StudentEnrollment.academic_year == academic_year.strip().replace("-", "/"))
+                enr_cnt_q = enr_cnt_q.filter(StudentEnrollment.academic_year.in_(_year_variants(academic_year)))
             c.students_count = enr_cnt_q.count()
 
         if has_students_only:

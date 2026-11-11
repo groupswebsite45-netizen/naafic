@@ -399,6 +399,7 @@ class FeeService:
                 recorded_by_id=recorded_by_user_id,
                 reference_number=data.reference_number,
                 notes=data.notes,
+                fee_month=data.fee_month,
             )
         except ValueError as ve:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(ve))
@@ -433,6 +434,7 @@ class FeeService:
             recorded_by_name=payment.recorded_by_name,
             notes=payment.notes,
             status=payment.status,
+            fee_month=data.fee_month,
             created_at=payment.created_at,
         )
 
@@ -464,6 +466,7 @@ class FeeService:
             recorded_by_name=payment.recorded_by_name,
             notes=payment.notes,
             status=payment.status,
+            fee_month=data.fee_month,
             created_at=payment.created_at,
         )
 
@@ -479,6 +482,15 @@ class FeeService:
 
         fee_name = student_fee.fee_structure.name if student_fee and student_fee.fee_structure else (student_fee.fee_type or "School Fee")
 
+        resolved_fee_month = None
+        if payment.notes and "Fee Month: " in payment.notes:
+            try:
+                resolved_fee_month = payment.notes.split("Fee Month: ")[1].split("|")[0].strip()
+            except Exception:
+                pass
+        if not resolved_fee_month:
+            resolved_fee_month = payment.payment_date.strftime("%B %Y")
+
         return OfficialReceiptData(
             receipt_number=payment.receipt_number,
             invoice_number=payment.invoice_number,
@@ -488,6 +500,7 @@ class FeeService:
             class_name=class_name,
             academic_year=student_fee.academic_year if student_fee else "2026/2027",
             fee_name=fee_name,
+            fee_month=resolved_fee_month,
             amount_paid=float(payment.amount_paid),
             payment_method=payment.payment_method,
             reference_number=payment.reference_number,
@@ -497,6 +510,12 @@ class FeeService:
             remaining_balance=float(student_fee.balance_remaining) if student_fee else 0.0,
             payment_status=payment.status,
             notes=payment.notes,
+            payment_id=payment.id,
+            admission_number=payment.student_admission_number,
+            fee_type=fee_name,
+            net_amount=float(student_fee.net_amount) if student_fee else float(payment.amount_paid),
+            recorded_by=payment.recorded_by_name,
+            guardian_name=student.guardian_name if student else None,
             school_name="Hawlwadaag Primary and Secondary School",
             school_address="Hawlwadaag District, Mogadishu, Somalia",
             school_contact="+252 61 5000000 | finance@hawlwadaagschool.edu.so",

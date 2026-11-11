@@ -347,6 +347,13 @@ export interface Student {
   has_portal_access?: boolean;
   portal_username?: string | null;
   portal_is_active?: boolean;
+  photo_path?: string | null;
+  photo_url?: string | null;
+  photo_filename?: string | null;
+  photo_mime_type?: string | null;
+  photo_size?: number | null;
+  photo_uploaded_at?: string | null;
+  photo_updated_at?: string | null;
   current_class?: SchoolClass | null;
   current_enrollment?: StudentEnrollment | null;
   enrollments?: StudentEnrollment[];

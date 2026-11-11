@@ -520,7 +520,7 @@ function scrollToContact() {
   position: relative;
   background-color: #F5F8FD;
   padding: 80px 0 95px;
-  overflow: clip;
+  overflow: hidden;
   font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #071D49;
 }
@@ -531,7 +531,7 @@ function scrollToContact() {
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  overflow: clip;
+  overflow: hidden;
 }
 
 .bg-glow-top-left {
@@ -608,15 +608,11 @@ function scrollToContact() {
 .hero-left-content {
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  max-width: 100%;
 }
 
 .about-badge-pill {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
   gap: 0.45rem;
   background: #FFF8F2;
   border: 1px solid #FFE3D1;
@@ -628,9 +624,6 @@ function scrollToContact() {
   letter-spacing: 0.06em;
   margin-bottom: 1.25rem;
   width: fit-content;
-  max-width: 100%;
-  white-space: normal;
-  text-align: center;
   box-shadow: 0 2px 6px rgba(255, 105, 0, 0.06);
 }
 
@@ -1231,7 +1224,7 @@ function scrollToContact() {
 
 @media (max-width: 1140px) {
   .about-hero-grid {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: 1fr;
     gap: 3rem;
   }
   .value-pillars-row {
@@ -1296,9 +1289,6 @@ function scrollToContact() {
 }
 
 @media (max-width: 480px) {
-  .about-container {
-    padding: 0 1rem;
-  }
   .industry-cards-grid {
     grid-template-columns: 1fr;
   }

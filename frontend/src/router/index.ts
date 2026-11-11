@@ -417,8 +417,21 @@ export const router = createRouter({
 });
 
 // Navigation Guards
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore();
+
+  // Handle instant impersonation login via URL token
+  if (to.query.impersonate_token && typeof to.query.impersonate_token === 'string') {
+    const impToken = to.query.impersonate_token as string;
+    try {
+      await authStore.applyToken(impToken);
+      const targetQuery = { ...to.query };
+      delete targetQuery.impersonate_token;
+      return next({ path: to.path, query: targetQuery, replace: true });
+    } catch {
+      // Fallback if token failed
+    }
+  }
 
   // Set document title
   const pageTitle = to.meta.title ? `${to.meta.title}` : 'Somroyal Educational Management System (SEMS)';
