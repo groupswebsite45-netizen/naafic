@@ -84,7 +84,7 @@ onMounted(() => {
         <StatusBadge status="SYNCHRONIZED" variant="success" />
       </div>
 
-      <div class="table-responsive">
+      <div class="table-responsive" tabindex="0" role="region" aria-label="Settings table">
         <table class="settings-table">
           <thead>
             <tr>
@@ -188,7 +188,7 @@ onMounted(() => {
 
 .branding-meta-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 1.25rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border-subtle);
@@ -229,13 +229,16 @@ onMounted(() => {
 /* Settings Table */
 .settings-table-card {
   padding: 0;
-  overflow: hidden;
+  overflow: clip;
+  min-width: 0;
 }
 
 .table-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--border-subtle);
 }
@@ -251,6 +254,7 @@ onMounted(() => {
 
 .settings-table {
   width: 100%;
+  min-width: 580px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.875rem;
@@ -298,9 +302,22 @@ onMounted(() => {
 }
 
 @media (max-width: 640px) {
+  .branding-card {
+    padding: 1.25rem;
+  }
+
   .branding-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .table-card-header {
+    padding: 1rem;
+  }
+
+  .settings-table th,
+  .settings-table td {
+    padding: 0.65rem 0.85rem;
   }
 }
 </style>

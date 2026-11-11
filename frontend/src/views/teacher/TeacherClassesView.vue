@@ -722,7 +722,7 @@ onMounted(() => {
               No enrolled students match your search filter.
             </div>
 
-            <div v-else class="table-responsive modal-table-wrap">
+            <div v-else class="table-responsive modal-table-wrap" tabindex="0" role="region" aria-label="Enrolled class students table">
               <table class="portal-table">
                 <thead>
                   <tr>
@@ -770,7 +770,7 @@ onMounted(() => {
             <div v-if="classDetail.timetables.length === 0" class="empty-inline">
               No weekly class timetable slots scheduled yet for your subjects.
             </div>
-            <div v-else class="table-responsive modal-table-wrap">
+            <div v-else class="table-responsive modal-table-wrap" tabindex="0" role="region" aria-label="Class weekly timetable table">
               <table class="portal-table">
                 <thead>
                   <tr>
@@ -803,7 +803,7 @@ onMounted(() => {
             <div v-if="classDetail.exams.length === 0" class="empty-inline">
               No examination records found for your assigned subjects in this class.
             </div>
-            <div v-else class="table-responsive modal-table-wrap">
+            <div v-else class="table-responsive modal-table-wrap" tabindex="0" role="region" aria-label="Class examinations table">
               <table class="portal-table">
                 <thead>
                   <tr>
@@ -983,8 +983,8 @@ onMounted(() => {
 }
 .search-input-wrap {
   position: relative;
-  flex: 1;
-  min-width: 260px;
+  flex: 1 1 220px;
+  min-width: 0;
 }
 .search-icon {
   position: absolute;
@@ -1299,7 +1299,13 @@ onMounted(() => {
   color: var(--text-muted);
   cursor: pointer;
   padding: 0.25rem;
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 6px;
+  flex-shrink: 0;
 }
 .modal-close:hover { color: var(--text-primary); background: #f1f5f9; }
 
@@ -1380,6 +1386,7 @@ onMounted(() => {
 }
 .portal-table {
   width: 100%;
+  min-width: 540px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.85rem;
@@ -1601,10 +1608,33 @@ onMounted(() => {
 
 @media (max-width: 480px) {
   .summary-metrics-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+  .metric-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.75rem;
+    gap: 0.45rem;
+    min-width: 0;
+  }
+  .metric-icon-wrap {
+    width: 36px;
+    height: 36px;
+  }
+  .metric-icon-wrap svg {
+    width: 18px;
+    height: 18px;
+  }
+  .metric-label {
+    font-size: 0.68rem;
+  }
+  .metric-value {
+    font-size: 1.25rem;
   }
   .modal-kpi-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
   }
   .card-footer-actions {
     flex-direction: column;

@@ -25,7 +25,7 @@ function goToProfile(id: number) {
 
 <template>
   <div class="table-card">
-    <div class="table-responsive">
+    <div tabindex="0" role="region" aria-label="Subjects directory table" class="table-responsive">
       <table class="data-table">
         <thead>
           <tr>
@@ -137,6 +137,7 @@ function goToProfile(id: number) {
 
 .data-table {
   width: 100%;
+  min-width: 680px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.875rem;

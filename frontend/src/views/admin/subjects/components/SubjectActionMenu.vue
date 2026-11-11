@@ -171,8 +171,10 @@ function handleDelete() {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  min-width: 36px;
+  min-height: 36px;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: var(--radius-md, 0.5rem);
   background: transparent;
   border: 1px solid transparent;
@@ -197,6 +199,7 @@ function handleDelete() {
   top: calc(100% + 4px);
   right: 0;
   width: 200px;
+  max-width: calc(100vw - 32px);
   background: #ffffff;
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: var(--radius-lg, 0.75rem);
@@ -214,6 +217,7 @@ function handleDelete() {
   align-items: center;
   gap: 0.625rem;
   width: 100%;
+  min-height: 38px;
   padding: 0.5rem 0.625rem;
   font-size: 0.8125rem;
   font-weight: 500;

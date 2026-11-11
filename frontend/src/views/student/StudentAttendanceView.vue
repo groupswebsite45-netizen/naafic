@@ -223,7 +223,7 @@ onMounted(() => {
 
       <div v-else class="history-list">
         <!-- Desktop Table View -->
-        <div class="desktop-table-wrap card">
+        <div class="desktop-table-wrap card" tabindex="0" role="region" aria-label="Attendance records table">
           <table class="att-table">
             <thead>
               <tr>
@@ -487,6 +487,7 @@ onMounted(() => {
 
 .att-table {
   width: 100%;
+  min-width: 560px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.88rem;

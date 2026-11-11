@@ -165,7 +165,7 @@ onMounted(async () => {
       </div>
 
       <!-- Desktop & Tablet Class Table -->
-      <div class="table-container desktop-only">
+      <div class="table-container desktop-only" tabindex="0" role="region" aria-label="Class Result Summaries">
         <table class="classes-table" aria-label="Class Result Summaries">
           <thead>
             <tr>

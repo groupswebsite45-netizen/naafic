@@ -1168,6 +1168,10 @@ function showSuccess(msg: string) {
 }
 
 .card-action-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 0.25rem;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--brand-primary, #1e40af);
@@ -1315,6 +1319,7 @@ function showSuccess(msg: string) {
 
 .data-table {
   width: 100%;
+  min-width: 660px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.8125rem;
@@ -1332,6 +1337,7 @@ function showSuccess(msg: string) {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #64748b;
+  white-space: nowrap;
 }
 
 .data-table td {

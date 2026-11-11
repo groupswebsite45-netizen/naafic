@@ -1362,7 +1362,7 @@ onMounted(async () => {
           <p class="empty-title">No submissions match the selected filter criteria.</p>
         </div>
 
-        <div v-else class="table-responsive">
+        <div v-else class="table-responsive" tabindex="0" role="region" aria-label="Submitted exam result sheets table">
           <table class="data-table">
             <thead>
               <tr>
@@ -1508,7 +1508,7 @@ onMounted(async () => {
           </div>
 
           <!-- Full Student Matrix Table -->
-          <div class="table-responsive matrix-table-wrap">
+          <div class="table-responsive matrix-table-wrap" tabindex="0" role="region" aria-label="Class result matrix table">
             <table class="data-table matrix-table">
               <thead>
                 <tr>
@@ -1669,7 +1669,7 @@ onMounted(async () => {
           <p class="empty-title">No ranked students found.</p>
         </div>
 
-        <div v-else class="table-responsive">
+        <div v-else class="table-responsive" tabindex="0" role="region" aria-label="Student merit rankings table">
           <table class="data-table">
             <thead>
               <tr>
@@ -1763,7 +1763,7 @@ onMounted(async () => {
           <p class="empty-title">No subject performance data available.</p>
         </div>
 
-        <div v-else class="table-responsive">
+        <div v-else class="table-responsive" tabindex="0" role="region" aria-label="Subject performance summary table">
           <table class="data-table">
             <thead>
               <tr>
@@ -1899,7 +1899,7 @@ onMounted(async () => {
           </div>
 
           <!-- Subject Scores Table -->
-          <div class="table-responsive">
+          <div class="table-responsive" tabindex="0" role="region" aria-label="Student subject scores table">
             <table class="data-table">
               <thead>
                 <tr>
@@ -1996,7 +1996,7 @@ onMounted(async () => {
           <p class="empty-title">No absent students recorded for this examination.</p>
         </div>
 
-        <div v-else class="table-responsive">
+        <div v-else class="table-responsive" tabindex="0" role="region" aria-label="Documented absent students table">
           <table class="data-table">
             <thead>
               <tr>
@@ -2079,7 +2079,7 @@ onMounted(async () => {
           </div>
 
           <!-- Student Roster (READ-ONLY) -->
-          <div class="table-responsive">
+          <div class="table-responsive" tabindex="0" role="region" aria-label="Submission student marks inspection table">
             <table class="data-table">
               <thead>
                 <tr>
@@ -2222,7 +2222,7 @@ onMounted(async () => {
   padding: 1.5rem;
   max-width: 1600px;
   margin: 0 auto;
-  min-height: 100vh;
+  min-height: 100dvh;
   box-sizing: border-box;
   font-family: inherit;
   color: #1e293b;
@@ -2236,11 +2236,18 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  flex-wrap: wrap;
   gap: 1rem;
+}
+.header-titles {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 .badge-pill {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.375rem;
   background: #f0fdf4;
   color: #166534;
@@ -2250,6 +2257,8 @@ onMounted(async () => {
   font-size: 0.75rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
+  max-width: 100%;
+  white-space: normal;
 }
 .pill-icon {
   width: 0.875rem;
@@ -2395,6 +2404,13 @@ onMounted(async () => {
 @media (max-width: 768px) {
   .kpi-dashboard-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+}
+@media (max-width: 400px) {
+  .kpi-dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
   }
 }
 .kpi-box {
@@ -2407,6 +2423,7 @@ onMounted(async () => {
   gap: 0.75rem;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  min-width: 0;
 }
 .kpi-box:hover {
   transform: translateY(-2px);
@@ -2428,6 +2445,7 @@ onMounted(async () => {
 .kpi-details {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 .kpi-title {
   font-size: 0.75rem;
@@ -2473,6 +2491,7 @@ onMounted(async () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1rem;
+  min-height: 44px;
   font-size: 0.875rem;
   font-weight: 600;
   color: #64748b;
@@ -2483,6 +2502,7 @@ onMounted(async () => {
   position: relative;
   transition: all 0.15s ease;
   white-space: nowrap;
+  flex: none;
 }
 .tab-link:hover {
   color: #0f172a;
@@ -2544,7 +2564,7 @@ onMounted(async () => {
 /* Classes Progress Grid */
 .classes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
   gap: 1rem;
 }
 .class-card {
@@ -2555,11 +2575,22 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  min-width: 0;
 }
 .class-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.5rem;
+}
+.class-card-header > * {
+  min-width: 0;
+}
+.class-card-header .status-badge {
+  white-space: normal;
+  max-width: 100%;
+  text-align: center;
 }
 .class-card-title {
   font-size: 1rem;
@@ -2677,7 +2708,10 @@ onMounted(async () => {
 .class-picker-group {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  flex: 1 1 220px;
+  min-width: 0;
 }
 .picker-label {
   font-size: 0.875rem;
@@ -2685,19 +2719,26 @@ onMounted(async () => {
   color: #0f172a;
 }
 .picker-select {
-  min-width: 200px;
+  min-width: 0;
+  width: 100%;
+  max-width: 260px;
 }
 .sheet-actions-group {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
 }
 .search-input-wrap {
   position: relative;
   display: flex;
   align-items: center;
+  flex: 1 1 200px;
+  min-width: 0;
 }
 .toolbar-search-input {
+  width: 100%;
+  min-width: 0;
   height: 2.25rem;
   border: 1px solid #cbd5e1;
   border-radius: 0.5rem;
@@ -2729,6 +2770,7 @@ onMounted(async () => {
 }
 .data-table {
   width: 100%;
+  min-width: 720px;
   border-collapse: collapse;
   font-size: 0.8125rem;
   text-align: left;
@@ -2943,6 +2985,8 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
   background: #0f172a;
   color: #ffffff;
   border-radius: 0.75rem;
@@ -2987,7 +3031,7 @@ onMounted(async () => {
 }
 .report-overall-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
   margin: 1.25rem 0;
 }
@@ -3049,7 +3093,7 @@ onMounted(async () => {
   border-radius: 1rem;
   width: 100%;
   max-width: 950px;
-  max-height: 90vh;
+  max-height: calc(100dvh - 1.5rem);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -3094,7 +3138,8 @@ onMounted(async () => {
 }
 .review-stats-bar {
   display: flex;
-  gap: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
@@ -3114,6 +3159,7 @@ onMounted(async () => {
   padding: 1rem 1.5rem;
   border-top: 1px solid #e2e8f0;
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.75rem;
   background: #f8fafc;
@@ -3288,5 +3334,38 @@ onMounted(async () => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .results-management-page {
+    padding: 1rem 0.75rem;
+  }
+  .report-overall-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .content-card {
+    padding: 0.9rem;
+  }
+  .class-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .modal-backdrop,
+  .modal-backdrop-sub {
+    padding: 0.5rem;
+  }
+  .modal-header,
+  .modal-body,
+  .modal-footer,
+  .confirm-dialog {
+    padding: 1rem;
+  }
+  .toast-notification {
+    left: 0.75rem;
+    right: 0.75rem;
+    top: 0.75rem;
+  }
 }
 </style>

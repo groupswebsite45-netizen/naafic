@@ -557,8 +557,8 @@ async function handleSubmit() {
   background: #ffffff;
   border-radius: 16px;
   width: 100%;
-  max-width: 620px;
-  max-height: 90vh;
+  max-width: min(620px, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 1.5rem);
   overflow-y: auto;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   border: 1px solid #e2e8f0;
@@ -654,8 +654,14 @@ async function handleSubmit() {
   color: #94a3b8;
   cursor: pointer;
   padding: 0.25rem;
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 6px;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .close-btn:hover {

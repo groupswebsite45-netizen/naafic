@@ -363,6 +363,7 @@ onMounted(() => {
   gap: 1rem;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
+  min-width: 0;
 }
 
 .full-width {
@@ -400,6 +401,8 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px dashed var(--border-subtle);
   font-size: 0.88rem;
@@ -412,6 +415,10 @@ onMounted(() => {
 .info-val {
   color: var(--text-primary);
   text-align: right;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .font-semibold {
@@ -534,7 +541,8 @@ onMounted(() => {
 
 @media (max-width: 480px) {
   .academic-stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
   }
   .info-row {
     flex-direction: column;

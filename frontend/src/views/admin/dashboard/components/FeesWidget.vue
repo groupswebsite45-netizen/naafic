@@ -132,7 +132,8 @@ const hoveredMonth = ref<string | null>('Jan');
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
 }
 
 .header-left {
@@ -161,9 +162,14 @@ const hoveredMonth = ref<string | null>('Jan');
   height: 20px;
 }
 
+.header-left {
+  min-width: 0;
+}
+
 .header-text-group {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .card-title {
@@ -193,6 +199,7 @@ const hoveredMonth = ref<string | null>('Jan');
   border: 1px solid #E2E8F0;
   border-radius: 8px;
   padding: 0.3rem 1.6rem 0.3rem 0.65rem;
+  min-height: 32px;
   font-size: 0.76rem;
   font-weight: 600;
   color: #334155;
@@ -234,6 +241,7 @@ const hoveredMonth = ref<string | null>('Jan');
   align-items: flex-end;
   justify-content: space-between;
   flex: 1;
+  min-width: 0;
   gap: 0.35rem;
 }
 
@@ -243,6 +251,7 @@ const hoveredMonth = ref<string | null>('Jan');
   flex-direction: column;
   align-items: center;
   flex: 1;
+  min-width: 0;
   height: 100%;
   cursor: pointer;
 }
@@ -288,10 +297,34 @@ const hoveredMonth = ref<string | null>('Jan');
   color: #64748B;
   font-weight: 500;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .active-month {
   color: #0F172A;
   font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .barchart-container {
+    gap: 0.35rem;
+  }
+
+  .y-axis {
+    min-width: 26px;
+    font-size: 0.62rem;
+  }
+
+  .bars-wrapper {
+    gap: 0.2rem;
+  }
+
+  .month-label {
+    font-size: 0.6rem;
+  }
+
+  .period-select {
+    min-height: 44px;
+  }
 }
 </style>

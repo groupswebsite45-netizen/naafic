@@ -273,8 +273,9 @@ onMounted(() => {
 
 <style scoped>
 .admin-sidebar {
-  width: var(--sidebar-width, 250px);
-  height: 100vh;
+  width: var(--sidebar-width, 270px);
+  max-width: min(var(--sidebar-width, 270px), 85dvw);
+  height: 100dvh;
   background-color: #0A192F;
   color: #f8fafc;
   display: flex;
@@ -364,6 +365,8 @@ onMounted(() => {
 .sidebar-scrollable {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 1rem 0.85rem;
   display: flex;
   flex-direction: column;
@@ -535,7 +538,17 @@ onMounted(() => {
     transform: translateX(0);
   }
   .close-sidebar-btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .close-sidebar-btn .icon {
+    width: 20px;
+    height: 20px;
   }
   .sidebar-backdrop {
     position: fixed;

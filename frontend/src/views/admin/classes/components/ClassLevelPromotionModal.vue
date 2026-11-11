@@ -251,7 +251,7 @@ async function handleConfirmPromotion() {
           </div>
         </div>
 
-        <div class="preview-table-container">
+        <div class="preview-table-container" tabindex="0" role="region" aria-label="Promotion preview students table">
           <table class="preview-table">
             <thead>
               <tr>
@@ -650,6 +650,7 @@ async function handleConfirmPromotion() {
 
 .preview-table {
   width: 100%;
+  min-width: 560px;
   border-collapse: collapse;
   font-size: 0.8125rem;
 }

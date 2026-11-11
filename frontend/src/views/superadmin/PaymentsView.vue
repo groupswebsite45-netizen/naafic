@@ -89,7 +89,7 @@ onMounted(() => {
 
     <!-- Payments Table Card -->
     <div class="sap-card">
-      <div class="sap-table-wrap">
+      <div class="sap-table-wrap sap-desktop-table" tabindex="0" role="region" aria-label="Payments table">
         <table class="sap-table">
           <thead>
             <tr>
@@ -111,13 +111,13 @@ onMounted(() => {
               <td>
                 <div class="font-bold text-slate-900">{{ pay.institution_name }}</div>
               </td>
-              <td>
+              <td class="whitespace-nowrap">
                 <span class="font-extrabold text-emerald-600">${{ pay.amount.toFixed(2) }}</span>
               </td>
               <td>
                 <span class="sap-method-badge">{{ pay.payment_method }}</span>
               </td>
-              <td class="text-slate-600">{{ formatDate(pay.payment_date) }}</td>
+              <td class="text-slate-600 whitespace-nowrap">{{ formatDate(pay.payment_date) }}</td>
               <td>
                 <span
                   class="sap-status-pill"
@@ -136,6 +136,43 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Mobile Payments Cards (<= 768px) -->
+      <div class="sap-mobile-cards">
+        <div v-if="!payments.length && !isLoading" class="sap-mobile-empty">
+          No financial transactions found.
+        </div>
+        <article v-for="pay in payments" :key="'m-pay-' + pay.id" class="sap-mobile-card">
+          <div class="sap-mobile-head">
+            <div>
+              <div class="sap-mobile-ref">{{ pay.reference }}</div>
+              <div class="sap-mobile-inv">{{ pay.invoice_number || 'INV-Auto' }}</div>
+            </div>
+            <span
+              class="sap-status-pill"
+              :class="pay.status.toLowerCase() === 'completed' ? 'status-completed' : 'status-pending'"
+            >
+              {{ pay.status }}
+            </span>
+          </div>
+          <div class="sap-mobile-inst">{{ pay.institution_name }}</div>
+          <div class="sap-mobile-kv-grid">
+            <div class="sap-mobile-kv">
+              <span class="sap-kv-label">Amount</span>
+              <span class="sap-kv-val sap-kv-money">${{ pay.amount.toFixed(2) }}</span>
+            </div>
+            <div class="sap-mobile-kv">
+              <span class="sap-kv-label">Method</span>
+              <span class="sap-method-badge">{{ pay.payment_method }}</span>
+            </div>
+            <div class="sap-mobile-kv">
+              <span class="sap-kv-label">Date</span>
+              <span class="sap-kv-val">{{ formatDate(pay.payment_date) }}</span>
+            </div>
+          </div>
+          <div v-if="pay.notes" class="sap-mobile-notes">{{ pay.notes }}</div>
+        </article>
       </div>
     </div>
 
@@ -241,7 +278,8 @@ onMounted(() => {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  overflow: hidden;
+  overflow: clip;
+  min-width: 0;
 }
 
 .sap-table-wrap {
@@ -250,6 +288,7 @@ onMounted(() => {
 
 .sap-table {
   width: 100%;
+  min-width: 780px;
   border-collapse: collapse;
   text-align: left;
 }
@@ -262,6 +301,97 @@ onMounted(() => {
   color: #64748b;
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.sap-mobile-cards {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.875rem;
+}
+
+.sap-mobile-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.sap-mobile-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.sap-mobile-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.sap-mobile-ref {
+  font-family: monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.sap-mobile-inv {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.sap-mobile-inst {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #061737;
+}
+
+.sap-mobile-kv-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem 0.75rem;
+  padding-top: 0.45rem;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.sap-mobile-kv {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
+
+.sap-kv-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.sap-kv-val {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.sap-kv-money {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #059669;
+}
+
+.sap-mobile-notes {
+  font-size: 0.78rem;
+  color: #475569;
+  padding-top: 0.25rem;
 }
 
 .sap-table td {
@@ -340,6 +470,12 @@ onMounted(() => {
   font-size: 1.2rem;
   color: #94a3b8;
   cursor: pointer;
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
 }
 
 .sap-modal-body {
@@ -351,7 +487,7 @@ onMounted(() => {
 
 .sap-modal-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -359,6 +495,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  min-width: 0;
 }
 
 .sap-modal-label {
@@ -368,6 +505,9 @@ onMounted(() => {
 }
 
 .sap-modal-input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 0.55rem 0.8rem;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
@@ -382,6 +522,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 0.75rem;
 }
 
@@ -404,5 +545,45 @@ onMounted(() => {
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .sap-desktop-table {
+    display: none;
+  }
+
+  .sap-mobile-cards {
+    display: flex;
+  }
+}
+
+@media (max-width: 640px) {
+  .sap-title {
+    font-size: 1.4rem;
+  }
+
+  .sap-btn-record {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sap-modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .sap-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sap-modal-header,
+  .sap-modal-body,
+  .sap-modal-footer {
+    padding: 1rem;
+  }
+
+  .sap-table th,
+  .sap-table td {
+    padding: 0.75rem 0.85rem;
+  }
 }
 </style>

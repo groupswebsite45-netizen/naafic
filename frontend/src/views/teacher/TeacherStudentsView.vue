@@ -164,7 +164,7 @@ onMounted(() => {
 
       <!-- Desktop Table -->
       <div v-else class="desktop-view">
-        <div class="table-responsive">
+        <div tabindex="0" role="region" aria-label="Assigned students roster table" class="table-responsive">
           <table class="portal-table">
             <thead>
               <tr>
@@ -269,7 +269,7 @@ onMounted(() => {
             <div v-if="selectedStudentHistory.absent_history.length === 0" class="empty-inline">
               Perfect attendance record! No absences recorded in this class stream.
             </div>
-            <div v-else class="table-responsive modal-table-wrap">
+            <div v-else tabindex="0" role="region" aria-label="Student absence history table" class="table-responsive modal-table-wrap">
               <table class="portal-table">
                 <thead>
                   <tr>
@@ -337,8 +337,8 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 1rem;
 }
-.flex-2 { flex: 2; min-width: 240px; }
-.flex-1 { flex: 1; min-width: 180px; }
+.flex-2 { flex: 2 1 220px; min-width: 0; }
+.flex-1 { flex: 1 1 170px; min-width: 0; }
 .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
 .form-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted, #64748b); }
 .form-input, .form-select {
@@ -410,9 +410,9 @@ onMounted(() => {
   box-sizing: border-box;
 }
 .modal-card.large {
-  width: calc(100% - 24px);
+  width: calc(100% - 16px);
   max-width: 650px;
-  max-height: 90vh;
+  max-height: calc(100dvh - 1.5rem);
   background: #ffffff;
   padding: 1.25rem;
   display: flex;
@@ -436,8 +436,8 @@ onMounted(() => {
   line-height: 1;
   cursor: pointer;
   color: var(--text-muted, #64748b);
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -498,6 +498,7 @@ onMounted(() => {
 
 @media (max-width: 480px) {
   .flex-2, .flex-1 { min-width: 100%; }
+  .modal-card.large { padding: 1rem; width: calc(100% - 12px); }
   .modal-stats-grid { grid-template-columns: 1fr 1fr; }
 }
 </style>

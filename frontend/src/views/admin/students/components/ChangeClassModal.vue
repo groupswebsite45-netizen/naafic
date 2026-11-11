@@ -376,7 +376,13 @@ async function handleConfirmClassChange() {
   cursor: pointer;
   line-height: 1;
   padding: 0.25rem;
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .modal-close:hover {

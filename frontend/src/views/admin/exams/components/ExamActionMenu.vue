@@ -99,8 +99,10 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  min-width: 36px;
+  min-height: 36px;
+  width: 36px;
+  height: 36px;
   border-radius: 6px;
   border: 1px solid transparent;
   background: transparent;
@@ -125,6 +127,7 @@ onUnmounted(() => {
   right: 0;
   z-index: 50;
   min-width: 180px;
+  max-width: calc(100vw - 32px);
   margin-top: 4px;
   padding: 0.35rem 0;
   background-color: #ffffff;
@@ -138,6 +141,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.625rem;
   width: 100%;
+  min-height: 38px;
   padding: 0.5rem 0.875rem;
   font-size: 0.8125rem;
   font-weight: 500;

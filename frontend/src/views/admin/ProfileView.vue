@@ -352,7 +352,8 @@ async function handleChangePassword() {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
-  word-break: break-all;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 /* Forms Column */
@@ -360,10 +361,12 @@ async function handleChangePassword() {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  min-width: 0;
 }
 
 .form-panel {
   padding: 1.75rem;
+  min-width: 0;
 }
 
 .panel-title {
@@ -407,6 +410,20 @@ async function handleChangePassword() {
 @media (max-width: 960px) {
   .profile-layout-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .form-panel {
+    padding: 1.15rem;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .form-actions > * {
+    width: 100%;
   }
 }
 </style>

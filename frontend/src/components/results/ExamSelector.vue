@@ -50,7 +50,9 @@ function onSelect(event: Event) {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  min-width: 220px;
+  min-width: 0;
+  width: 100%;
+  flex: 1 1 200px;
 }
 
 .selector-label {

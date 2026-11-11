@@ -677,7 +677,7 @@ function selectPlan(planName: string) {
   position: relative;
   padding: 75px 0 110px;
   background: linear-gradient(180deg, #FFFFFF 0%, #F5F8FD 35%, #EDF4FE 100%);
-  overflow: hidden;
+  overflow: clip;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 

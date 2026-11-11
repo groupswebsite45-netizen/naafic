@@ -230,7 +230,7 @@ onMounted(() => {
         </div>
 
         <!-- Desktop Report Table -->
-        <div class="desktop-table-wrap">
+        <div class="desktop-table-wrap" tabindex="0" role="region" aria-label="Exam report table">
           <table class="report-table">
             <thead>
               <tr>
@@ -535,6 +535,7 @@ onMounted(() => {
 
 .report-table {
   width: 100%;
+  min-width: 580px;
   border-collapse: collapse;
   font-size: 0.88rem;
   text-align: left;

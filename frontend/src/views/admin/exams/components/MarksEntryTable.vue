@@ -129,7 +129,7 @@ function handleSaveAll() {
     </div>
 
     <!-- Data Table -->
-    <div class="table-responsive">
+    <div tabindex="0" role="region" aria-label="Marks entry table" class="table-responsive">
       <table class="marks-entry-table">
         <thead>
           <tr>

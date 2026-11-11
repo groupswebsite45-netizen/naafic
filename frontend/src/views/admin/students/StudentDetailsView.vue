@@ -469,7 +469,7 @@ onMounted(() => {
             <p>No enrollment history found for this student.</p>
           </div>
 
-          <div v-else class="subtable-wrapper">
+          <div v-else class="subtable-wrapper" tabindex="0" role="region" aria-label="Enrollment history table">
             <table class="enterprise-subtable">
               <thead>
                 <tr>
@@ -505,7 +505,7 @@ onMounted(() => {
             <p>No fee records assigned to this student yet.</p>
           </div>
 
-          <div v-else class="subtable-wrapper">
+          <div v-else class="subtable-wrapper" tabindex="0" role="region" aria-label="Student fee invoices table">
             <table class="enterprise-subtable">
               <thead>
                 <tr>
@@ -545,7 +545,7 @@ onMounted(() => {
             <p>No exam results recorded for this student.</p>
           </div>
 
-          <div v-else class="subtable-wrapper">
+          <div v-else class="subtable-wrapper" tabindex="0" role="region" aria-label="Student exam report card table">
             <table class="enterprise-subtable">
               <thead>
                 <tr>
@@ -1389,7 +1389,8 @@ onMounted(() => {
 /* Ultra-compact screen (<360px) */
 @media (max-width: 359px) {
   .hero-stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
   }
 }
 </style>

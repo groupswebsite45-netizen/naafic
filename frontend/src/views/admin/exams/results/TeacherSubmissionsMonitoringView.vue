@@ -999,6 +999,7 @@ watch(selectedTeacherId, () => {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 1rem;
 }
 
@@ -1676,7 +1677,10 @@ watch(selectedTeacherId, () => {
     grid-template-columns: 1fr;
   }
   .accountability-metrics {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
+  }
+  .accountability-email {
+    overflow-wrap: anywhere;
   }
 }
 </style>

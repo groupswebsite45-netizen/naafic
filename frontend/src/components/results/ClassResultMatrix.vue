@@ -16,7 +16,7 @@ const emit = defineEmits<{
 <template>
   <div class="matrix-container">
     <!-- Desktop & Tablet Matrix Table -->
-    <div class="table-wrapper desktop-only">
+    <div tabindex="0" role="region" aria-label="Class subject results matrix" class="table-wrapper desktop-only">
       <table class="matrix-table" aria-label="Class Subject Results Matrix">
         <thead>
           <tr>

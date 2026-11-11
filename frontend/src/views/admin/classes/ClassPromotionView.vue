@@ -765,7 +765,7 @@ onMounted(() => {
         </div>
 
         <!-- Mappings Table -->
-        <div class="table-container-wrap">
+        <div class="table-container-wrap" tabindex="0" role="region" aria-label="Class progression mappings table">
           <table class="progression-table">
             <thead>
               <tr>
@@ -959,7 +959,7 @@ onMounted(() => {
         </div>
 
         <!-- Review & Verification Table (Requirement 8) -->
-        <div class="table-container-wrap">
+        <div class="table-container-wrap" tabindex="0" role="region" aria-label="Bulk promotion verification table">
           <table class="verification-table">
             <thead>
               <tr>
@@ -1305,7 +1305,7 @@ onMounted(() => {
             </div>
           </div>
 
-          <div class="table-container-wrap">
+          <div class="table-container-wrap" tabindex="0" role="region" aria-label="Class promotion preview table">
             <table class="verification-table">
               <thead>
                 <tr>
@@ -1400,7 +1400,7 @@ onMounted(() => {
         </div>
 
         <!-- Search Results Table -->
-        <div class="table-container-wrap mt-4">
+        <div class="table-container-wrap mt-4" tabindex="0" role="region" aria-label="Individual student promotion search table">
           <table class="students-search-table">
             <thead>
               <tr>
@@ -1611,7 +1611,7 @@ onMounted(() => {
         </div>
 
         <!-- History Table -->
-        <div class="table-container-wrap">
+        <div class="table-container-wrap" tabindex="0" role="region" aria-label="Promotion batch history audit table">
           <table class="history-audit-table">
             <thead>
               <tr>
@@ -1696,7 +1696,7 @@ onMounted(() => {
             <div v-if="isLoadingBatchDetails" class="modal-loading-box">
               Loading student promotion records...
             </div>
-            <div v-else class="table-container-wrap">
+            <div v-else class="table-container-wrap" tabindex="0" role="region" aria-label="Batch student promotion records table">
               <table class="batch-records-table">
                 <thead>
                   <tr>
@@ -1793,7 +1793,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1rem 1.25rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
@@ -1801,6 +1802,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 1rem;
+  min-width: 0;
+  flex: 1 1 240px;
 }
 
 .brand-crest-badge {
@@ -1899,7 +1902,9 @@ onMounted(() => {
 .level-segment-wrap {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.65rem;
+  width: 100%;
 }
 
 .level-segment-btn {
@@ -1913,6 +1918,8 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.16s ease;
   text-align: left;
+  flex: 1 1 190px;
+  min-width: 0;
 }
 
 .level-segment-btn:hover {
@@ -2020,10 +2027,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.65rem 0.5rem;
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.25rem;
   box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
 
@@ -2034,6 +2043,7 @@ onMounted(() => {
   font-size: 0.8125rem;
   font-weight: 600;
   color: #94a3b8;
+  min-width: 0;
 }
 
 .step-num-circle {
@@ -2193,13 +2203,17 @@ onMounted(() => {
   background: #f8fafc;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
-  min-width: 280px;
+  flex: 1 1 220px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .search-box-pill svg {
   width: 16px;
   height: 16px;
   color: #94a3b8;
+  flex-shrink: 0;
 }
 
 .search-inner-input {
@@ -2208,12 +2222,15 @@ onMounted(() => {
   outline: none;
   font-size: 0.8125rem;
   width: 100%;
+  height: 100%;
+  min-width: 0;
   color: #0f172a;
 }
 
 .toolbar-right {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
 }
 
@@ -2262,6 +2279,7 @@ onMounted(() => {
 .history-audit-table,
 .batch-records-table {
   width: 100%;
+  min-width: 760px;
   border-collapse: collapse;
   font-size: 0.8125rem;
 }
@@ -2341,7 +2359,8 @@ tr:hover td {
 }
 
 .select-container {
-  min-width: 220px;
+  min-width: 170px;
+  max-width: 100%;
 }
 
 .destination-select, .policy-select, .select-field {
@@ -2901,8 +2920,9 @@ tr:hover td {
 }
 
 .search-input-wrap {
-  flex: 2;
-  min-width: 260px;
+  flex: 2 1 220px;
+  min-width: 0;
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -2911,14 +2931,16 @@ tr:hover td {
   background: #f8fafc;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
+  box-sizing: border-box;
 }
 
-.search-input-wrap svg { width: 16px; height: 16px; color: #94a3b8; }
-.search-text-field { border: none; background: none; outline: none; width: 100%; font-size: 0.875rem; color: #0f172a; }
+.search-input-wrap svg { width: 16px; height: 16px; color: #94a3b8; flex-shrink: 0; }
+.search-text-field { border: none; background: none; outline: none; width: 100%; min-width: 0; font-size: 0.875rem; color: #0f172a; }
 
 .class-filter-wrap {
-  flex: 1;
-  min-width: 200px;
+  flex: 1 1 180px;
+  min-width: 0;
+  width: 100%;
 }
 
 .btn-select-student {
@@ -3055,7 +3077,7 @@ tr:hover td {
   background: #ffffff;
   border-radius: 14px;
   width: 100%;
-  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 24px);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -3063,9 +3085,9 @@ tr:hover td {
   box-sizing: border-box;
 }
 
-.modal-dialog-standard { max-width: 560px; }
-.modal-dialog-large { max-width: 900px; }
-.modal-dialog-danger { max-width: 500px; }
+.modal-dialog-standard { max-width: min(560px, 100%); }
+.modal-dialog-large { max-width: min(900px, 100%); }
+.modal-dialog-danger { max-width: min(500px, 100%); }
 
 .modal-header-standard, .modal-header-danger {
   padding: 1rem 1.25rem;
@@ -3087,7 +3109,21 @@ tr:hover td {
 
 .modal-title { font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0; }
 .modal-sub { font-size: 0.75rem; color: #64748b; margin: 0.15rem 0 0; }
-.modal-close { background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer; }
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #94a3b8;
+  cursor: pointer;
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
 
 .modal-body-standard {
   padding: 1.25rem;
@@ -3179,6 +3215,40 @@ tr:hover td {
   }
   .form-box.full-span {
     grid-column: span 1;
+  }
+  .stepper-bar {
+    display: none;
+  }
+  .wizard-stepper-box {
+    justify-content: flex-start;
+    gap: 0.65rem 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .module-header-card {
+    padding: 1rem;
+  }
+  .header-right-actions,
+  .btn-outline-action {
+    width: 100%;
+    justify-content: center;
+  }
+  .modal-backdrop {
+    padding: 0.5rem;
+  }
+  .modal-footer-standard {
+    flex-wrap: wrap;
+  }
+  .d-row {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .confirm-action-buttons {
+    flex-wrap: wrap;
+  }
+  .receipt-numbers-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>

@@ -196,7 +196,8 @@ function handleConfirm() {
   border-radius: 12px;
   width: 100%;
   max-width: 540px;
-  overflow: hidden;
+  max-height: calc(100dvh - 1.5rem);
+  overflow-y: auto;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
@@ -410,6 +411,7 @@ function handleConfirm() {
   background-color: #0f172a;
   border-top: 1px solid #334155;
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.75rem;
 }
@@ -464,5 +466,20 @@ function handleConfirm() {
   font-size: 0.8125rem;
   font-weight: 700;
   cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .modal-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .btn-cancel,
+  .btn-release,
+  .btn-partial,
+  .btn-disabled {
+    width: 100%;
+    min-height: 44px;
+  }
 }
 </style>

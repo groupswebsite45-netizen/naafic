@@ -442,10 +442,10 @@ function emitScroll(target: string) {
 <style scoped>
 .hero-section {
   position: relative;
-  padding-top: 130px;
+  padding-top: 110px;
   padding-bottom: 40px;
   background: radial-gradient(circle at 50% 0%, #F7F9FC 0%, #FFFFFF 100%);
-  overflow: hidden;
+  overflow: clip;
 }
 
 /* Ambient Glow Accents */
@@ -711,12 +711,14 @@ function emitScroll(target: string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1rem;
+  gap: 0.5rem;
+  padding: 0 0.75rem;
 }
 
 .mockup-dots {
   display: flex;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .dot {
@@ -734,11 +736,13 @@ function emitScroll(target: string) {
   gap: 6px;
   background: #ffffff;
   border: 1px solid #EAF0F8;
-  padding: 2px 14px;
+  padding: 2px 10px;
   border-radius: 20px;
   font-size: 0.72rem;
   color: #586983;
-  width: 260px;
+  flex: 1;
+  min-width: 0;
+  max-width: 260px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -751,6 +755,7 @@ function emitScroll(target: string) {
   background: #FFF7ED;
   padding: 2px 8px;
   border-radius: 10px;
+  flex-shrink: 0;
 }
 
 /* Mockup Body Layout */
@@ -1454,12 +1459,31 @@ function emitScroll(target: string) {
 }
 
 @media (max-width: 640px) {
+  .hero-section {
+    padding-top: 96px;
+  }
+
   .hero-title {
-    font-size: 2.15rem;
+    font-size: clamp(1.75rem, 6.5vw, 2.25rem);
+  }
+
+  .hero-cta-group {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .btn-hero-primary,
+  .btn-hero-secondary {
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+    min-height: 44px;
   }
 
   .hero-benefits-grid {
     grid-template-columns: 1fr;
+    text-align: left;
   }
 
   .feature-highlights-container {
@@ -1467,8 +1491,13 @@ function emitScroll(target: string) {
   }
 
   .stats-container {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    padding: 1.5rem 1rem;
+  }
+
+  .stat-num {
+    font-size: clamp(1.5rem, 6vw, 2.1rem);
   }
 
   .smartphone-mockup {
@@ -1477,6 +1506,8 @@ function emitScroll(target: string) {
 
   .mini-app-layout {
     grid-template-columns: 1fr;
+    height: auto;
+    min-height: 280px;
   }
 
   .mini-sidebar {
@@ -1484,11 +1515,17 @@ function emitScroll(target: string) {
   }
 
   .mini-kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .mini-split-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 390px) {
+  .mockup-search-bar {
+    display: none;
   }
 }
 </style>

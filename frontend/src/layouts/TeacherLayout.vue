@@ -203,15 +203,17 @@ async function handleLogout() {
 <style scoped>
 .portal-layout {
   display: flex;
-  min-height: 100vh;
+  min-height: 100dvh;
   background-color: var(--bg-app);
   width: 100%;
+  max-width: 100%;
   overflow-x: clip;
 }
 
 .portal-sidebar {
   width: 260px;
-  height: 100vh;
+  max-width: min(260px, 85dvw);
+  height: 100dvh;
   background-color: #0f172a;
   color: #f8fafc;
   display: flex;
@@ -592,6 +594,12 @@ async function handleLogout() {
   }
   .portal-content {
     padding: 0.75rem;
+  }
+}
+
+@media (max-width: 359px) {
+  .portal-content {
+    padding: 0.5rem;
   }
 }
 </style>

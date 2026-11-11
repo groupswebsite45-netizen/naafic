@@ -15,6 +15,7 @@ const emit = defineEmits<{
 const router = useRouter();
 const authStore = useAuthStore();
 const isProfileDropdownOpen = ref(false);
+const isMobileSearchOpen = ref(false);
 const searchQuery = ref('');
 
 const adminDisplayName = computed(() => {
@@ -28,6 +29,10 @@ const adminRoleName = computed(() => {
 
 function toggleProfileDropdown() {
   isProfileDropdownOpen.value = !isProfileDropdownOpen.value;
+}
+
+function toggleMobileSearch() {
+  isMobileSearchOpen.value = !isMobileSearchOpen.value;
 }
 
 function closeDropdown(e: MouseEvent) {
@@ -53,24 +58,161 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header class="admin-header">
-    <div class="header-left">
-      <!-- Hamburger Toggle Button -->
-      <button
-        type="button"
-        class="menu-toggle-btn"
-        aria-label="Toggle navigation menu"
-        @click="emit('toggle-sidebar')"
-      >
-        <svg class="hamburger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <line x1="3" y1="6" x2="21" y2="6" stroke-linecap="round" />
-          <line x1="3" y1="12" x2="21" y2="12" stroke-linecap="round" />
-          <line x1="3" y1="18" x2="21" y2="18" stroke-linecap="round" />
-        </svg>
-      </button>
+  <header class="admin-header-shell">
+    <div class="admin-header">
+      <div class="header-left">
+        <!-- Hamburger Toggle Button (tablet & mobile) -->
+        <button
+          type="button"
+          class="menu-toggle-btn"
+          aria-label="Toggle navigation menu"
+          @click="emit('toggle-sidebar')"
+        >
+          <svg class="hamburger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="3" y1="6" x2="21" y2="6" stroke-linecap="round" />
+            <line x1="3" y1="12" x2="21" y2="12" stroke-linecap="round" />
+            <line x1="3" y1="18" x2="21" y2="18" stroke-linecap="round" />
+          </svg>
+        </button>
 
-      <!-- Expandable Search Bar with Ctrl + K badge -->
-      <div class="search-container">
+        <!-- Mobile Page Title (shown when search bar is collapsed on <= 640px) -->
+        <span class="mobile-header-title" :title="pageTitle || 'Dashboard'">{{ pageTitle || 'Dashboard' }}</span>
+
+        <!-- Expandable Search Bar with Ctrl + K badge -->
+        <div class="search-container">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-linecap="round" />
+          </svg>
+          <input
+            v-model="searchQuery"
+            type="text"
+            class="search-input"
+            placeholder="Search students, teachers, classes, subjects, exams..."
+            aria-label="Search across system"
+          />
+          <div class="shortcut-badge">
+            <span>Ctrl + K</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Mobile Search Toggle Button -->
+        <button
+          type="button"
+          class="header-icon-btn mobile-search-btn"
+          :aria-expanded="isMobileSearchOpen"
+          aria-label="Toggle search"
+          @click="toggleMobileSearch"
+        >
+          <svg class="header-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-linecap="round" />
+          </svg>
+        </button>
+
+        <!-- Language Selector Dropdown Pill -->
+        <div class="language-pill" title="Current Language: English">
+          <span class="flag-icon">🇺🇸</span>
+          <span class="lang-text">EN</span>
+          <svg class="dropdown-chevron" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </div>
+
+        <!-- Notification Bell with Red Badge "3" -->
+        <button type="button" class="header-icon-btn" aria-label="Notifications" title="3 New Notifications" @click="router.push('/admin/notifications')">
+          <svg class="header-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          <span class="notification-badge">3</span>
+        </button>
+
+        <!-- Messages Envelope with Red Badge "5" -->
+        <button type="button" class="header-icon-btn header-messages-btn" aria-label="Messages" title="5 Unread Messages">
+          <svg class="header-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          <span class="notification-badge">5</span>
+        </button>
+
+        <!-- Admin Profile Avatar & Metadata -->
+        <div class="profile-menu-container">
+          <button
+            type="button"
+            class="profile-trigger-btn"
+            :aria-expanded="isProfileDropdownOpen"
+            aria-haspopup="true"
+            @click="toggleProfileDropdown"
+          >
+            <div class="avatar-circle">
+              {{ adminDisplayName.charAt(0).toUpperCase() }}
+            </div>
+            <div class="profile-info-text">
+              <span class="profile-name">{{ adminDisplayName }}</span>
+              <span class="profile-role">{{ adminRoleName }}</span>
+            </div>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <transition name="dropdown-fade">
+            <div v-if="isProfileDropdownOpen" class="profile-dropdown" role="menu">
+              <div class="dropdown-header">
+                <p class="user-fullname">{{ adminDisplayName }}</p>
+                <p class="user-email">{{ authStore.user?.email || 'admin@hawlwadaagschool.edu.so' }}</p>
+                <span class="user-role-badge">Super Admin</span>
+              </div>
+
+              <div class="dropdown-divider" />
+
+              <router-link
+                to="/admin/profile"
+                class="dropdown-item"
+                role="menuitem"
+                @click="isProfileDropdownOpen = false"
+              >
+                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                My Profile
+              </router-link>
+
+              <router-link
+                to="/admin/settings"
+                class="dropdown-item"
+                role="menuitem"
+                @click="isProfileDropdownOpen = false"
+              >
+                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                System Settings
+              </router-link>
+
+              <div class="dropdown-divider" />
+
+              <button
+                type="button"
+                class="dropdown-item logout-item"
+                role="menuitem"
+                @click="handleLogout"
+              >
+                <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sign Out
+              </button>
+            </div>
+          </transition>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expandable Mobile Search Bar -->
+    <div v-if="isMobileSearchOpen" class="mobile-search-bar">
+      <div class="search-container mobile-search-input-wrap">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-linecap="round" />
@@ -79,149 +221,59 @@ onUnmounted(() => {
           v-model="searchQuery"
           type="text"
           class="search-input"
-          placeholder="Search students, teachers, classes, subjects, exams..."
-          aria-label="Search across system"
+          placeholder="Search students, teachers, classes..."
+          aria-label="Mobile search across system"
         />
-        <div class="shortcut-badge">
-          <span>Ctrl + K</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="header-right">
-      <!-- Language Selector Dropdown Pill -->
-      <div class="language-pill" title="Current Language: English">
-        <span class="flag-icon">🇺🇸</span>
-        <span class="lang-text">EN</span>
-        <svg class="dropdown-chevron" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-        </svg>
-      </div>
-
-      <!-- Notification Bell with Red Badge "3" -->
-      <button type="button" class="header-icon-btn" aria-label="Notifications" title="3 New Notifications" @click="router.push('/admin/notifications')">
-        <svg class="header-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-        </svg>
-        <span class="notification-badge">3</span>
-      </button>
-
-      <!-- Messages Envelope with Red Badge "5" -->
-      <button type="button" class="header-icon-btn" aria-label="Messages" title="5 Unread Messages">
-        <svg class="header-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
-        <span class="notification-badge">5</span>
-      </button>
-
-      <!-- Admin Profile Avatar & Metadata -->
-      <div class="profile-menu-container">
-        <button
-          type="button"
-          class="profile-trigger-btn"
-          :aria-expanded="isProfileDropdownOpen"
-          aria-haspopup="true"
-          @click="toggleProfileDropdown"
-        >
-          <div class="avatar-circle">
-            {{ adminDisplayName.charAt(0).toUpperCase() }}
-          </div>
-          <div class="profile-info-text">
-            <span class="profile-name">{{ adminDisplayName }}</span>
-            <span class="profile-role">{{ adminRoleName }}</span>
-          </div>
-        </button>
-
-        <!-- Dropdown Menu -->
-        <transition name="dropdown-fade">
-          <div v-if="isProfileDropdownOpen" class="profile-dropdown" role="menu">
-            <div class="dropdown-header">
-              <p class="user-fullname">{{ adminDisplayName }}</p>
-              <p class="user-email">{{ authStore.user?.email || 'admin@hawlwadaagschool.edu.so' }}</p>
-              <span class="user-role-badge">Super Admin</span>
-            </div>
-            
-            <div class="dropdown-divider" />
-
-            <router-link
-              to="/admin/profile"
-              class="dropdown-item"
-              role="menuitem"
-              @click="isProfileDropdownOpen = false"
-            >
-              <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              My Profile
-            </router-link>
-
-            <router-link
-              to="/admin/settings"
-              class="dropdown-item"
-              role="menuitem"
-              @click="isProfileDropdownOpen = false"
-            >
-              <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              System Settings
-            </router-link>
-
-            <div class="dropdown-divider" />
-
-            <button
-              type="button"
-              class="dropdown-item logout-item"
-              role="menuitem"
-              @click="handleLogout"
-            >
-              <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Sign Out
-            </button>
-          </div>
-        </transition>
+        <button type="button" class="mobile-search-close" aria-label="Close search" @click="isMobileSearchOpen = false">&times;</button>
       </div>
     </div>
   </header>
 </template>
 
 <style scoped>
-.admin-header {
-  height: var(--header-height, 70px);
-  background-color: #FFFFFF;
-  border-bottom: 1px solid #E2E8F0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 1.75rem;
+.admin-header-shell {
   position: sticky;
   top: 0;
   z-index: 30;
   width: 100%;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.admin-header {
+  height: var(--header-height, 70px);
+  background-color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.75rem;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  flex: 1;
+  gap: 1rem;
+  flex: 1 1 0%;
+  min-width: 0;
   max-width: 600px;
 }
 
 .menu-toggle-btn {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
   color: #334155;
   border-radius: 10px;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
   transition: background-color 0.15s ease;
   flex-shrink: 0;
@@ -229,6 +281,45 @@ onUnmounted(() => {
 
 .menu-toggle-btn:hover {
   background-color: #F1F5F9;
+}
+
+.mobile-header-title {
+  display: none;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+
+.mobile-search-btn {
+  display: none;
+}
+
+.mobile-search-bar {
+  padding: 0.55rem 0.75rem 0.75rem;
+  border-top: 1px solid #F1F5F9;
+  background-color: #FFFFFF;
+}
+
+.mobile-search-input-wrap {
+  max-width: 100% !important;
+  display: flex !important;
+}
+
+.mobile-search-close {
+  font-size: 1.35rem;
+  line-height: 1;
+  color: #64748B;
+  padding: 0.2rem 0.4rem;
+  min-width: 32px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .hamburger-icon {
@@ -270,6 +361,8 @@ onUnmounted(() => {
   font-size: 0.86rem;
   color: #1E293B;
   width: 100%;
+  height: 100%;
+  min-height: 28px;
 }
 
 .search-input::placeholder {
@@ -523,5 +616,122 @@ onUnmounted(() => {
 .dropdown-fade-leave-to {
   opacity: 0;
   transform: translateY(-6px);
+}
+
+/* Tablet Breakpoint */
+@media (max-width: 1024px) {
+  .admin-header {
+    padding: 0 1rem;
+    height: 64px;
+    gap: 0.75rem;
+  }
+
+  .menu-toggle-btn {
+    display: flex;
+  }
+
+  .shortcut-badge {
+    display: none;
+  }
+
+  .search-container {
+    max-width: 360px;
+    padding: 0.45rem 0.75rem;
+  }
+
+  .header-right {
+    gap: 0.65rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-info-text {
+    display: none;
+  }
+
+  .language-pill {
+    padding: 0.35rem 0.55rem;
+  }
+
+  .lang-text,
+  .dropdown-chevron {
+    display: none;
+  }
+}
+
+/* Mobile Breakpoint (320px - 640px) */
+@media (max-width: 640px) {
+  .admin-header {
+    padding: 0 0.75rem;
+    height: 60px;
+    gap: 0.4rem;
+  }
+
+  .header-left {
+    gap: 0.45rem;
+  }
+
+  .header-left .search-container {
+    display: none;
+  }
+
+  .mobile-header-title {
+    display: block;
+  }
+
+  .mobile-search-btn {
+    display: flex;
+  }
+
+  .header-right {
+    gap: 0.4rem;
+  }
+
+  .header-icon-btn,
+  .avatar-circle {
+    width: 38px;
+    height: 38px;
+  }
+
+  .language-pill {
+    display: none;
+  }
+
+  .profile-dropdown {
+    width: min(240px, calc(100dvw - 1.5rem));
+  }
+}
+
+/* Small Mobile (320px - 374px) */
+@media (max-width: 374px) {
+  .admin-header {
+    padding: 0 0.5rem;
+    gap: 0.3rem;
+  }
+
+  .header-left {
+    gap: 0.25rem;
+  }
+
+  .header-right {
+    gap: 0.25rem;
+  }
+
+  .menu-toggle-btn {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+  }
+
+  .header-icon-btn,
+  .avatar-circle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mobile-header-title {
+    font-size: 0.85rem;
+  }
 }
 </style>

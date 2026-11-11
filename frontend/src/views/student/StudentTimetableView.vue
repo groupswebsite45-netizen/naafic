@@ -459,7 +459,7 @@ onMounted(() => {
 /* Desktop Weekly Grid */
 .desktop-weekly-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.75rem;
 }
 
@@ -471,6 +471,7 @@ onMounted(() => {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   min-height: 380px;
+  min-width: 0;
 }
 
 .day-col-header {
@@ -551,7 +552,8 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 85px;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .slot-room {
@@ -622,6 +624,15 @@ onMounted(() => {
 }
 
 /* Responsive threshold for Mobile Timetable */
+@media (max-width: 1260px) {
+  .desktop-weekly-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(155px, 100%), 1fr));
+  }
+  .desktop-day-column {
+    min-height: 240px;
+  }
+}
+
 @media (max-width: 900px) {
   .desktop-weekly-grid {
     display: none;

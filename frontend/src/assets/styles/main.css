@@ -16,13 +16,22 @@ html, body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  overflow-x: clip;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 #app {
-  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
+}
+
+img, video, picture, canvas {
+  max-inline-size: 100%;
+  block-size: auto;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -30,6 +39,14 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.25;
+}
+
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 a {
@@ -52,6 +69,8 @@ button {
 input, select, textarea {
   font-family: inherit;
   font-size: 0.95rem;
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* Base Utility Classes */
@@ -125,6 +144,8 @@ input, select, textarea {
   padding: 1.5rem;
   box-shadow: var(--shadow-xs);
   transition: box-shadow var(--transition-fast);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .card:hover {
@@ -244,4 +265,87 @@ input, select, textarea {
 .ml-1\.5 { margin-left: 0.375rem !important; }
 .ml-2 { margin-left: 0.5rem !important; }
 .ml-3 { margin-left: 0.75rem !important; }
+
+/* ============================================================================
+   Global Mobile-First & Cross-Device Responsive Safeguards
+   ============================================================================ */
+.table-wrapper,
+.table-responsive,
+.table-responsive-box,
+.table-container,
+.table-container-wrap,
+.subtable-wrapper,
+.preview-table-wrapper,
+.preview-table-container,
+.desktop-table-wrap,
+.desktop-table-container,
+.sad-table-wrapper,
+.sai-table-wrap,
+.sas-table-wrap,
+.sap-table-wrap,
+.sau-table-wrap,
+.availability-table-wrap,
+.marks-table-wrapper {
+  max-inline-size: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+/* Prevent aggressive letter-by-letter wrapping in tables and short badges/values */
+table, thead, tbody, tfoot, tr, th, td {
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+th {
+  white-space: nowrap;
+}
+
+:where(.badge, .status-badge, .code-pill, .sai-code-badge, .sai-status-badge, .sas-pill, .sap-status-pill, .sap-method-badge, .sau-badge-role, .sau-status-active, .grade-pill, .released-tag, .status-chip) {
+  white-space: nowrap;
+}
+
+/* Ensure grids & flex layouts inside pages never force horizontal scroll */
+main, section, article, .card {
+  min-width: 0;
+}
+
+/* Focus-visible ring for keyboard accessibility */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Prevent iOS zoom & guarantee touch-friendly controls on mobile & coarse pointers */
+@media (max-width: 767px) {
+  .card {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  .btn {
+    min-block-size: 42px;
+    padding: 0.6rem 1rem;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: max(1rem, 1em);
+  }
+}
+
+@media (pointer: coarse) {
+  :where(button.btn, nav a, .nav-item, .sa-nav-item) {
+    min-block-size: 44px;
+  }
+}
+
+@media (max-width: 374px) {
+  .card {
+    padding: 0.875rem;
+  }
+}
+
 

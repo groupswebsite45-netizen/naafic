@@ -1168,67 +1168,110 @@ onMounted(async () => {
           <p>Enrolled active students will automatically appear here once registered.</p>
         </div>
 
-        <div v-else class="table-responsive">
-          <table class="finance-table">
-            <thead>
-              <tr>
-                <th>Admission #</th>
-                <th>Student Name</th>
-                <th>Current Class</th>
-                <th>Division</th>
-                <th>Invoices</th>
-                <th class="text-right">Total Billed</th>
-                <th class="text-right">Paid</th>
-                <th class="text-right">Balance Due</th>
-                <th>Financial Status</th>
-                <th class="text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="st in eligibleStudentsData.items" :key="st.student_id">
-                <td class="font-mono font-bold">{{ st.admission_number }}</td>
-                <td>
-                  <a href="javascript:void(0)" class="student-link" @click="openStudentFinance(st.student_id)">
-                    <strong>{{ st.full_name }}</strong>
-                  </a>
-                  <span v-if="st.guardian_name" class="subtext">Guardian: {{ st.guardian_name }}</span>
-                </td>
-                <td><span class="class-pill">{{ st.class_name }}</span></td>
-                <td><span class="badge-tag">{{ st.education_level }}</span></td>
-                <td>
-                  <span v-if="st.invoices_count > 0" class="badge-tag">{{ st.invoices_count }} invoice(s)</span>
-                  <span v-else class="badge-tag" style="background:#f1f5f9;color:#64748b;">Not Invoiced</span>
-                </td>
-                <td class="text-right font-bold">${{ Number(st.total_billed).toFixed(2) }}</td>
-                <td class="text-right text-success font-bold">${{ Number(st.total_paid).toFixed(2) }}</td>
-                <td class="text-right text-danger font-bold">${{ Number(st.outstanding_balance).toFixed(2) }}</td>
-                <td>
-                  <StatusBadge
-                    :status="st.financial_status"
-                    :variant="st.financial_status === 'PAID' ? 'success' : st.financial_status === 'PARTIAL' ? 'warning' : st.financial_status === 'OVERDUE' ? 'danger' : st.financial_status === 'UNPAID' ? 'info' : 'neutral'"
-                  />
-                </td>
-                <td class="text-center">
-                  <div class="row-actions">
-                    <button
-                      class="btn-row-action btn-pay"
-                      title="Assign Fee to Student"
-                      @click="openAssignModal(undefined, st.student_id)"
-                    >
-                      <i class="pi pi-plus"></i> Assign Fee
-                    </button>
-                    <button
-                      class="btn-row-action btn-view"
-                      title="View Student Ledger"
-                      @click="openStudentFinance(st.student_id)"
-                    >
-                      <i class="pi pi-eye"></i> View
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-else>
+          <div class="table-responsive desktop-finance-table" tabindex="0" role="region" aria-label="Eligible students finance table">
+            <table class="finance-table">
+              <thead>
+                <tr>
+                  <th>Admission #</th>
+                  <th>Student Name</th>
+                  <th>Current Class</th>
+                  <th>Division</th>
+                  <th>Invoices</th>
+                  <th class="text-right">Total Billed</th>
+                  <th class="text-right">Paid</th>
+                  <th class="text-right">Balance Due</th>
+                  <th>Financial Status</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="st in eligibleStudentsData.items" :key="st.student_id">
+                  <td class="font-mono font-bold nowrap-cell">{{ st.admission_number }}</td>
+                  <td>
+                    <a href="javascript:void(0)" class="student-link" @click="openStudentFinance(st.student_id)">
+                      <strong>{{ st.full_name }}</strong>
+                    </a>
+                    <span v-if="st.guardian_name" class="subtext">Guardian: {{ st.guardian_name }}</span>
+                  </td>
+                  <td><span class="class-pill">{{ st.class_name }}</span></td>
+                  <td><span class="badge-tag">{{ st.education_level }}</span></td>
+                  <td>
+                    <span v-if="st.invoices_count > 0" class="badge-tag">{{ st.invoices_count }} invoice(s)</span>
+                    <span v-else class="badge-tag" style="background:#f1f5f9;color:#64748b;">Not Invoiced</span>
+                  </td>
+                  <td class="text-right font-bold nowrap-cell">${{ Number(st.total_billed).toFixed(2) }}</td>
+                  <td class="text-right text-success font-bold nowrap-cell">${{ Number(st.total_paid).toFixed(2) }}</td>
+                  <td class="text-right text-danger font-bold nowrap-cell">${{ Number(st.outstanding_balance).toFixed(2) }}</td>
+                  <td>
+                    <StatusBadge
+                      :status="st.financial_status"
+                      :variant="st.financial_status === 'PAID' ? 'success' : st.financial_status === 'PARTIAL' ? 'warning' : st.financial_status === 'OVERDUE' ? 'danger' : st.financial_status === 'UNPAID' ? 'info' : 'neutral'"
+                    />
+                  </td>
+                  <td class="text-center">
+                    <div class="row-actions">
+                      <button
+                        class="btn-row-action btn-pay"
+                        title="Assign Fee to Student"
+                        @click="openAssignModal(undefined, st.student_id)"
+                      >
+                        <i class="pi pi-plus"></i> Assign Fee
+                      </button>
+                      <button
+                        class="btn-row-action btn-view"
+                        title="View Student Ledger"
+                        @click="openStudentFinance(st.student_id)"
+                      >
+                        <i class="pi pi-eye"></i> View
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mobile-finance-cards">
+            <article v-for="st in eligibleStudentsData.items" :key="'m-el-' + st.student_id" class="mobile-finance-card">
+              <div class="mfc-head">
+                <div>
+                  <div class="mfc-title" @click="openStudentFinance(st.student_id)">{{ st.full_name }}</div>
+                  <div class="mfc-sub font-mono">{{ st.admission_number }} &bull; {{ st.class_name }}</div>
+                </div>
+                <StatusBadge
+                  :status="st.financial_status"
+                  :variant="st.financial_status === 'PAID' ? 'success' : st.financial_status === 'PARTIAL' ? 'warning' : st.financial_status === 'OVERDUE' ? 'danger' : st.financial_status === 'UNPAID' ? 'info' : 'neutral'"
+                />
+              </div>
+              <div class="mfc-kv-grid">
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Billed</span>
+                  <span class="mfc-val">${{ Number(st.total_billed).toFixed(2) }}</span>
+                </div>
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Paid</span>
+                  <span class="mfc-val text-success">${{ Number(st.total_paid).toFixed(2) }}</span>
+                </div>
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Balance</span>
+                  <span class="mfc-val text-danger">${{ Number(st.outstanding_balance).toFixed(2) }}</span>
+                </div>
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Invoices</span>
+                  <span class="mfc-val">{{ st.invoices_count > 0 ? `${st.invoices_count} invoice(s)` : 'Not Invoiced' }}</span>
+                </div>
+              </div>
+              <div class="mfc-actions">
+                <button class="btn-row-action btn-pay mfc-btn" @click="openAssignModal(undefined, st.student_id)">
+                  <i class="pi pi-plus"></i> Assign Fee
+                </button>
+                <button class="btn-row-action btn-view mfc-btn" @click="openStudentFinance(st.student_id)">
+                  <i class="pi pi-eye"></i> View Ledger
+                </button>
+              </div>
+            </article>
+          </div>
         </div>
       </div>
 
@@ -1248,67 +1291,110 @@ onMounted(async () => {
           <button class="btn btn-primary" @click="openAssignModal()">+ Assign First Fee</button>
         </div>
 
-        <div v-else class="table-responsive">
-          <table class="finance-table">
-            <thead>
-              <tr>
-                <th>Invoice #</th>
-                <th>Student</th>
-                <th>Class</th>
-                <th>Academic Year</th>
-                <th>Fee Type</th>
-                <th class="text-right">Amount</th>
-                <th class="text-right">Paid</th>
-                <th class="text-right">Balance</th>
-                <th>Due Date</th>
-                <th>Status</th>
-                <th class="text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="inv in invoices" :key="inv.id">
-                <td class="font-mono font-bold">{{ inv.invoice_number }}</td>
-                <td>
-                  <a href="javascript:void(0)" class="student-link" @click="openStudentFinance(inv.student_id)">
-                    <strong>{{ inv.student_name }}</strong>
-                  </a>
-                  <span class="subtext">Adm: {{ inv.student_admission_number }}</span>
-                </td>
-                <td>{{ inv.class_name || '—' }}</td>
-                <td>{{ inv.academic_year }}</td>
-                <td>{{ inv.fee_type || 'Tuition' }}</td>
-                <td class="text-right font-bold">${{ Number(inv.net_amount).toFixed(2) }}</td>
-                <td class="text-right text-success font-bold">${{ Number(inv.total_paid).toFixed(2) }}</td>
-                <td class="text-right text-danger font-bold">${{ Number(inv.balance_remaining).toFixed(2) }}</td>
-                <td>{{ inv.due_date }}</td>
-                <td>
-                  <StatusBadge
-                    :status="inv.status"
-                    :variant="inv.status === 'PAID' ? 'success' : inv.status === 'PARTIALLY_PAID' ? 'warning' : inv.status === 'OVERDUE' ? 'danger' : 'info'"
-                  />
-                </td>
-                <td class="text-center">
-                  <div class="row-actions">
-                    <button
-                      v-if="inv.balance_remaining > 0"
-                      class="btn-row-action btn-pay"
-                      title="Record Payment"
-                      @click="openPaymentModal(inv)"
-                    >
-                      <i class="pi pi-wallet"></i> Pay
-                    </button>
-                    <button
-                      class="btn-row-action btn-view"
-                      title="View Student Ledger"
-                      @click="openStudentFinance(inv.student_id)"
-                    >
-                      <i class="pi pi-eye"></i> View
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-else>
+          <div class="table-responsive desktop-finance-table" tabindex="0" role="region" aria-label="Fee invoices table">
+            <table class="finance-table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Student</th>
+                  <th>Class</th>
+                  <th>Academic Year</th>
+                  <th>Fee Type</th>
+                  <th class="text-right">Amount</th>
+                  <th class="text-right">Paid</th>
+                  <th class="text-right">Balance</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="inv in invoices" :key="inv.id">
+                  <td class="font-mono font-bold nowrap-cell">{{ inv.invoice_number }}</td>
+                  <td>
+                    <a href="javascript:void(0)" class="student-link" @click="openStudentFinance(inv.student_id)">
+                      <strong>{{ inv.student_name }}</strong>
+                    </a>
+                    <span class="subtext">Adm: {{ inv.student_admission_number }}</span>
+                  </td>
+                  <td>{{ inv.class_name || '—' }}</td>
+                  <td class="nowrap-cell">{{ inv.academic_year }}</td>
+                  <td>{{ inv.fee_type || 'Tuition' }}</td>
+                  <td class="text-right font-bold nowrap-cell">${{ Number(inv.net_amount).toFixed(2) }}</td>
+                  <td class="text-right text-success font-bold nowrap-cell">${{ Number(inv.total_paid).toFixed(2) }}</td>
+                  <td class="text-right text-danger font-bold nowrap-cell">${{ Number(inv.balance_remaining).toFixed(2) }}</td>
+                  <td class="nowrap-cell">{{ inv.due_date }}</td>
+                  <td>
+                    <StatusBadge
+                      :status="inv.status"
+                      :variant="inv.status === 'PAID' ? 'success' : inv.status === 'PARTIALLY_PAID' ? 'warning' : inv.status === 'OVERDUE' ? 'danger' : 'info'"
+                    />
+                  </td>
+                  <td class="text-center">
+                    <div class="row-actions">
+                      <button
+                        v-if="inv.balance_remaining > 0"
+                        class="btn-row-action btn-pay"
+                        title="Record Payment"
+                        @click="openPaymentModal(inv)"
+                      >
+                        <i class="pi pi-wallet"></i> Pay
+                      </button>
+                      <button
+                        class="btn-row-action btn-view"
+                        title="View Student Ledger"
+                        @click="openStudentFinance(inv.student_id)"
+                      >
+                        <i class="pi pi-eye"></i> View
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mobile-finance-cards">
+            <article v-for="inv in invoices" :key="'m-inv-' + inv.id" class="mobile-finance-card">
+              <div class="mfc-head">
+                <div>
+                  <div class="mfc-title" @click="openStudentFinance(inv.student_id)">{{ inv.student_name }}</div>
+                  <div class="mfc-sub font-mono">{{ inv.invoice_number }} &bull; {{ inv.class_name || '—' }}</div>
+                </div>
+                <StatusBadge
+                  :status="inv.status"
+                  :variant="inv.status === 'PAID' ? 'success' : inv.status === 'PARTIALLY_PAID' ? 'warning' : inv.status === 'OVERDUE' ? 'danger' : 'info'"
+                />
+              </div>
+              <div class="mfc-kv-grid">
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Fee Type</span>
+                  <span class="mfc-val">{{ inv.fee_type || 'Tuition' }}</span>
+                </div>
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Due Date</span>
+                  <span class="mfc-val">{{ inv.due_date }}</span>
+                </div>
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Amount / Paid</span>
+                  <span class="mfc-val">${{ Number(inv.net_amount).toFixed(2) }} / <span class="text-success">${{ Number(inv.total_paid).toFixed(2) }}</span></span>
+                </div>
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Balance</span>
+                  <span class="mfc-val text-danger">${{ Number(inv.balance_remaining).toFixed(2) }}</span>
+                </div>
+              </div>
+              <div class="mfc-actions">
+                <button v-if="inv.balance_remaining > 0" class="btn-row-action btn-pay mfc-btn" @click="openPaymentModal(inv)">
+                  <i class="pi pi-wallet"></i> Pay Now
+                </button>
+                <button class="btn-row-action btn-view mfc-btn" @click="openStudentFinance(inv.student_id)">
+                  <i class="pi pi-eye"></i> View Ledger
+                </button>
+              </div>
+            </article>
+          </div>
 
           <!-- Pagination -->
           <div class="pagination-bar">
@@ -1421,53 +1507,86 @@ onMounted(async () => {
           <p>All students under selected filters are fully paid.</p>
         </div>
 
-        <div v-else class="table-responsive">
-          <table class="finance-table">
-            <thead>
-              <tr>
-                <th>Admission #</th>
-                <th>Student Name</th>
-                <th>Class</th>
-                <th>Level</th>
-                <th>Fee Structure</th>
-                <th class="text-right">Total Billed</th>
-                <th class="text-right">Paid</th>
-                <th class="text-right">Balance Due</th>
-                <th>Due Date</th>
-                <th>Status</th>
-                <th class="text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="st in outstandingData.items" :key="st.student_id + '-' + (st.invoice_number || 'x')">
-                <td class="font-mono font-bold">{{ st.admission_number }}</td>
-                <td>
-                  <strong>{{ st.student_name }}</strong>
-                </td>
-                <td><span class="class-pill">{{ st.class_name }}</span></td>
-                <td><span class="badge-tag">{{ st.education_level }}</span></td>
-                <td>{{ st.fee_type || 'Standard Tuition' }}</td>
-                <td class="text-right font-bold">${{ Number(st.amount_due).toFixed(2) }}</td>
-                <td class="text-right text-success font-bold">${{ Number(st.paid_amount).toFixed(2) }}</td>
-                <td class="text-right text-danger font-bold">${{ Number(st.balance).toFixed(2) }}</td>
-                <td :class="{ 'text-danger font-bold': st.status === 'OVERDUE' }">{{ st.due_date || '—' }}</td>
-                <td>
-                  <StatusBadge
-                    :status="st.status"
-                    :variant="st.status === 'PAID' ? 'success' : st.status === 'PARTIAL' ? 'warning' : 'danger'"
-                  />
-                </td>
-                <td class="text-center">
-                  <button
-                    class="btn btn-sm btn-outline ml-1"
-                    @click="openStudentFinance(st.student_id)"
-                  >
-                    Profile
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-else>
+          <div class="table-responsive desktop-finance-table" tabindex="0" role="region" aria-label="Outstanding fee balances table">
+            <table class="finance-table">
+              <thead>
+                <tr>
+                  <th>Admission #</th>
+                  <th>Student Name</th>
+                  <th>Class</th>
+                  <th>Level</th>
+                  <th>Fee Structure</th>
+                  <th class="text-right">Total Billed</th>
+                  <th class="text-right">Paid</th>
+                  <th class="text-right">Balance Due</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="st in outstandingData.items" :key="st.student_id + '-' + (st.invoice_number || 'x')">
+                  <td class="font-mono font-bold nowrap-cell">{{ st.admission_number }}</td>
+                  <td><strong>{{ st.student_name }}</strong></td>
+                  <td><span class="class-pill">{{ st.class_name }}</span></td>
+                  <td><span class="badge-tag">{{ st.education_level }}</span></td>
+                  <td>{{ st.fee_type || 'Standard Tuition' }}</td>
+                  <td class="text-right font-bold nowrap-cell">${{ Number(st.amount_due).toFixed(2) }}</td>
+                  <td class="text-right text-success font-bold nowrap-cell">${{ Number(st.paid_amount).toFixed(2) }}</td>
+                  <td class="text-right text-danger font-bold nowrap-cell">${{ Number(st.balance).toFixed(2) }}</td>
+                  <td class="nowrap-cell" :class="{ 'text-danger font-bold': st.status === 'OVERDUE' }">{{ st.due_date || '—' }}</td>
+                  <td>
+                    <StatusBadge
+                      :status="st.status"
+                      :variant="st.status === 'PAID' ? 'success' : st.status === 'PARTIAL' ? 'warning' : 'danger'"
+                    />
+                  </td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline ml-1" @click="openStudentFinance(st.student_id)">Profile</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mobile-finance-cards">
+            <article v-for="st in outstandingData.items" :key="'m-out-' + st.student_id + '-' + (st.invoice_number || 'x')" class="mobile-finance-card">
+              <div class="mfc-head">
+                <div>
+                  <div class="mfc-title" @click="openStudentFinance(st.student_id)">{{ st.student_name }}</div>
+                  <div class="mfc-sub font-mono">{{ st.admission_number }} &bull; {{ st.class_name }}</div>
+                </div>
+                <StatusBadge
+                  :status="st.status"
+                  :variant="st.status === 'PAID' ? 'success' : st.status === 'PARTIAL' ? 'warning' : 'danger'"
+                />
+              </div>
+              <div class="mfc-kv-grid">
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Billed / Paid</span>
+                  <span class="mfc-val">${{ Number(st.amount_due).toFixed(2) }} / <span class="text-success">${{ Number(st.paid_amount).toFixed(2) }}</span></span>
+                </div>
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Balance Due</span>
+                  <span class="mfc-val text-danger">${{ Number(st.balance).toFixed(2) }}</span>
+                </div>
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Fee Structure</span>
+                  <span class="mfc-val">{{ st.fee_type || 'Standard Tuition' }}</span>
+                </div>
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Due Date</span>
+                  <span class="mfc-val">{{ st.due_date || '—' }}</span>
+                </div>
+              </div>
+              <div class="mfc-actions">
+                <button class="btn-row-action btn-view mfc-btn" @click="openStudentFinance(st.student_id)">
+                  <i class="pi pi-user"></i> View Student Profile
+                </button>
+              </div>
+            </article>
+          </div>
         </div>
       </div>
 
@@ -1574,48 +1693,83 @@ onMounted(async () => {
           <p>Payments recorded against invoices will appear here with unique serial receipts.</p>
         </div>
 
-        <div v-else class="table-responsive">
-          <table class="finance-table">
-            <thead>
-              <tr>
-                <th>Receipt #</th>
-                <th>Student</th>
-                <th>Invoice #</th>
-                <th class="text-right">Amount Paid</th>
-                <th>Method</th>
-                <th>Reference #</th>
-                <th>Payment Date</th>
-                <th>Received By</th>
-                <th>Status</th>
-                <th class="text-center">Receipt</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="pay in payments" :key="pay.id">
-                <td class="font-mono font-bold">{{ pay.receipt_number }}</td>
-                <td>
-                  <strong>{{ pay.student_name }}</strong>
-                  <span class="subtext">Adm: {{ pay.student_admission_number }}</span>
-                </td>
-                <td class="font-mono">{{ pay.invoice_number }}</td>
-                <td class="text-right font-bold text-success">${{ Number(pay.amount_paid).toFixed(2) }}</td>
-                <td>
-                  <span class="payment-method-pill">{{ pay.payment_method }}</span>
-                </td>
-                <td class="font-mono">{{ pay.reference_number || '—' }}</td>
-                <td>{{ pay.payment_date }}</td>
-                <td>{{ pay.recorded_by_name || 'Administrator' }}</td>
-                <td>
-                  <StatusBadge :status="pay.status" :variant="pay.status === 'VERIFIED' ? 'success' : 'danger'" />
-                </td>
-                <td class="text-center">
-                  <button class="btn btn-sm btn-outline" @click="viewReceipt(pay.id)">
-                    <i class="pi pi-print"></i> View Receipt
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-else>
+          <div class="table-responsive desktop-finance-table" tabindex="0" role="region" aria-label="Payment receipts table">
+            <table class="finance-table">
+              <thead>
+                <tr>
+                  <th>Receipt #</th>
+                  <th>Student</th>
+                  <th>Invoice #</th>
+                  <th class="text-right">Amount Paid</th>
+                  <th>Method</th>
+                  <th>Reference #</th>
+                  <th>Payment Date</th>
+                  <th>Received By</th>
+                  <th>Status</th>
+                  <th class="text-center">Receipt</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="pay in payments" :key="pay.id">
+                  <td class="font-mono font-bold nowrap-cell">{{ pay.receipt_number }}</td>
+                  <td>
+                    <strong>{{ pay.student_name }}</strong>
+                    <span class="subtext">Adm: {{ pay.student_admission_number }}</span>
+                  </td>
+                  <td class="font-mono nowrap-cell">{{ pay.invoice_number }}</td>
+                  <td class="text-right font-bold text-success nowrap-cell">${{ Number(pay.amount_paid).toFixed(2) }}</td>
+                  <td><span class="payment-method-pill">{{ pay.payment_method }}</span></td>
+                  <td class="font-mono nowrap-cell">{{ pay.reference_number || '—' }}</td>
+                  <td class="nowrap-cell">{{ pay.payment_date }}</td>
+                  <td>{{ pay.recorded_by_name || 'Administrator' }}</td>
+                  <td>
+                    <StatusBadge :status="pay.status" :variant="pay.status === 'VERIFIED' ? 'success' : 'danger'" />
+                  </td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline" @click="viewReceipt(pay.id)">
+                      <i class="pi pi-print"></i> View Receipt
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mobile-finance-cards">
+            <article v-for="pay in payments" :key="'m-fpay-' + pay.id" class="mobile-finance-card">
+              <div class="mfc-head">
+                <div>
+                  <div class="mfc-title">{{ pay.student_name }}</div>
+                  <div class="mfc-sub font-mono">{{ pay.receipt_number }} &bull; {{ pay.invoice_number }}</div>
+                </div>
+                <StatusBadge :status="pay.status" :variant="pay.status === 'VERIFIED' ? 'success' : 'danger'" />
+              </div>
+              <div class="mfc-kv-grid">
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Amount Paid</span>
+                  <span class="mfc-val text-success">${{ Number(pay.amount_paid).toFixed(2) }}</span>
+                </div>
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Method</span>
+                  <span class="mfc-val">{{ pay.payment_method }}</span>
+                </div>
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Payment Date</span>
+                  <span class="mfc-val">{{ pay.payment_date }}</span>
+                </div>
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Received By</span>
+                  <span class="mfc-val">{{ pay.recorded_by_name || 'Administrator' }}</span>
+                </div>
+              </div>
+              <div class="mfc-actions">
+                <button class="btn-row-action btn-view mfc-btn" @click="viewReceipt(pay.id)">
+                  <i class="pi pi-print"></i> View Receipt
+                </button>
+              </div>
+            </article>
+          </div>
         </div>
       </div>
 
@@ -1677,7 +1831,7 @@ onMounted(async () => {
             <p>Enroll students into this class under Admin Students for academic year {{ selectedClassFinancial.academic_year }}.</p>
           </div>
 
-          <div v-else class="table-responsive mt-3">
+          <div v-else class="table-responsive mt-3" tabindex="0" role="region" aria-label="Class financial statement table">
             <table class="finance-table">
               <thead>
                 <tr>
@@ -1791,43 +1945,72 @@ onMounted(async () => {
           <p>All student fee accounts are currently up to date.</p>
         </div>
 
-        <div v-else class="table-responsive">
-          <table class="finance-table">
-            <thead>
-              <tr>
-                <th>Invoice #</th>
-                <th>Student</th>
-                <th>Class</th>
-                <th>Fee Type</th>
-                <th class="text-right">Total Due</th>
-                <th class="text-right">Balance Past Due</th>
-                <th>Due Date</th>
-                <th class="text-center">Guardian Alert</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="inv in overdueInvoices" :key="inv.id">
-                <td class="font-mono font-bold">{{ inv.invoice_number }}</td>
-                <td>
-                  <strong>{{ inv.student_name }}</strong>
-                  <span class="subtext">Adm: {{ inv.student_admission_number }}</span>
-                </td>
-                <td>{{ inv.class_name || '—' }}</td>
-                <td>{{ inv.fee_type || 'Tuition' }}</td>
-                <td class="text-right">${{ Number(inv.net_amount).toFixed(2) }}</td>
-                <td class="text-right text-danger font-bold">${{ Number(inv.balance_remaining).toFixed(2) }}</td>
-                <td class="text-danger font-bold">{{ inv.due_date }}</td>
-                <td class="text-center">
-                  <button
-                    class="btn btn-sm btn-warning"
-                    @click="openSmsModal('SINGLE_STUDENT', undefined, inv.student_id)"
-                  >
-                    <i class="pi pi-envelope"></i> Send SMS
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-else>
+          <div class="table-responsive desktop-finance-table" tabindex="0" role="region" aria-label="Overdue fee invoices table">
+            <table class="finance-table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Student</th>
+                  <th>Class</th>
+                  <th>Fee Type</th>
+                  <th class="text-right">Total Due</th>
+                  <th class="text-right">Balance Past Due</th>
+                  <th>Due Date</th>
+                  <th class="text-center">Guardian Alert</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="inv in overdueInvoices" :key="inv.id">
+                  <td class="font-mono font-bold nowrap-cell">{{ inv.invoice_number }}</td>
+                  <td>
+                    <strong>{{ inv.student_name }}</strong>
+                    <span class="subtext">Adm: {{ inv.student_admission_number }}</span>
+                  </td>
+                  <td>{{ inv.class_name || '—' }}</td>
+                  <td>{{ inv.fee_type || 'Tuition' }}</td>
+                  <td class="text-right nowrap-cell">${{ Number(inv.net_amount).toFixed(2) }}</td>
+                  <td class="text-right text-danger font-bold nowrap-cell">${{ Number(inv.balance_remaining).toFixed(2) }}</td>
+                  <td class="text-danger font-bold nowrap-cell">{{ inv.due_date }}</td>
+                  <td class="text-center">
+                    <button
+                      class="btn btn-sm btn-warning"
+                      @click="openSmsModal('SINGLE_STUDENT', undefined, inv.student_id)"
+                    >
+                      <i class="pi pi-envelope"></i> Send SMS
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mobile-finance-cards">
+            <article v-for="inv in overdueInvoices" :key="'m-ovd-' + inv.id" class="mobile-finance-card">
+              <div class="mfc-head">
+                <div>
+                  <div class="mfc-title">{{ inv.student_name }}</div>
+                  <div class="mfc-sub font-mono">{{ inv.invoice_number }} &bull; {{ inv.class_name || '—' }}</div>
+                </div>
+                <span class="mfc-due-pill">Due {{ inv.due_date }}</span>
+              </div>
+              <div class="mfc-kv-grid">
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Fee Type</span>
+                  <span class="mfc-val">{{ inv.fee_type || 'Tuition' }}</span>
+                </div>
+                <div class="mfc-kv">
+                  <span class="mfc-lbl">Balance Past Due</span>
+                  <span class="mfc-val text-danger">${{ Number(inv.balance_remaining).toFixed(2) }}</span>
+                </div>
+              </div>
+              <div class="mfc-actions">
+                <button class="btn btn-sm btn-warning mfc-btn" @click="openSmsModal('SINGLE_STUDENT', undefined, inv.student_id)">
+                  <i class="pi pi-envelope"></i> Send Guardian SMS
+                </button>
+              </div>
+            </article>
+          </div>
         </div>
       </div>
 
@@ -2548,6 +2731,8 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
   margin-bottom: 0.85rem;
 }
 .recon-title {
@@ -2556,6 +2741,7 @@ onMounted(async () => {
   gap: 0.5rem;
   font-size: 0.95rem;
   color: #1e293b;
+  min-width: 0;
 }
 .recon-badge {
   font-size: 0.75rem;
@@ -2563,6 +2749,7 @@ onMounted(async () => {
   padding: 0.25rem 0.65rem;
   border-radius: 9999px;
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 .badge-success {
   background: #dcfce7;
@@ -2602,6 +2789,7 @@ onMounted(async () => {
   font-size: 1.1rem;
   font-weight: 700;
   color: #0f172a;
+  white-space: nowrap;
 }
 .r-op {
   font-size: 1.25rem;
@@ -2768,8 +2956,8 @@ onMounted(async () => {
 }
 
 .search-input-group {
-  flex-grow: 1;
-  min-width: 220px;
+  flex: 1 1 200px;
+  min-width: 0;
 }
 
 .form-select, .form-input {
@@ -2803,6 +2991,7 @@ onMounted(async () => {
    ========================================================================= */
 .table-responsive {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   background: #ffffff;
   border-radius: 0.65rem;
   border: 1px solid #e2e8f0;
@@ -2810,6 +2999,7 @@ onMounted(async () => {
 
 .finance-table {
   width: 100%;
+  min-width: 820px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.85rem;
@@ -2821,6 +3011,7 @@ onMounted(async () => {
   font-weight: 700;
   color: #475569;
   border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
 }
 
 .finance-table td {
@@ -2850,6 +3041,9 @@ onMounted(async () => {
 }
 
 .student-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
   color: #2563eb;
   text-decoration: none;
 }
@@ -3037,7 +3231,7 @@ onMounted(async () => {
    ========================================================================= */
 .reports-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
   gap: 1.5rem;
 }
 .report-card {
@@ -3045,13 +3239,109 @@ onMounted(async () => {
   border-radius: 0.75rem;
   border: 1px solid #e2e8f0;
   padding: 1.25rem;
+  min-width: 0;
 }
 .report-card h4 {
   margin: 0 0 1rem 0;
   color: #0f172a;
 }
+.nowrap-cell {
+  white-space: nowrap;
+}
+
+.mobile-finance-cards {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mobile-finance-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.mfc-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mfc-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.mfc-sub {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.1rem;
+}
+
+.mfc-due-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #dc2626;
+  background: #fef2f2;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.mfc-kv-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem 0.75rem;
+  padding: 0.55rem 0;
+  border-top: 1px dashed #e2e8f0;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.mfc-kv {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.mfc-lbl {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.mfc-val {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.mfc-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mfc-btn {
+  flex: 1 1 120px;
+  min-height: 40px;
+  justify-content: center;
+}
+
 .report-table {
   width: 100%;
+  min-width: 420px;
   font-size: 0.85rem;
   border-collapse: collapse;
 }
@@ -3080,7 +3370,7 @@ onMounted(async () => {
   border-radius: 0.75rem;
   width: 100%;
   max-width: 580px;
-  max-height: 90vh;
+  max-height: calc(100dvh - 1.5rem);
   overflow-y: auto;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -3098,7 +3388,21 @@ onMounted(async () => {
   align-items: center;
 }
 .modal-header h3 { margin: 0; font-size: 1.15rem; color: #0f172a; }
-.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; }
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #64748b;
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
 
 .modal-body {
   padding: 1.25rem;
@@ -3543,7 +3847,35 @@ onMounted(async () => {
   .header-main { flex-direction: column; }
   .quick-actions { width: 100%; }
   .quick-actions .btn { flex: 1 1 calc(50% - 0.5rem); }
-  .kpi-grid { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+  .kpi-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.85rem;
+    gap: 0.55rem;
+  }
+  .kpi-icon-wrap {
+    width: 38px;
+    height: 38px;
+    font-size: 1.15rem;
+  }
+  .kpi-value {
+    font-size: clamp(1.1rem, 4vw, 1.4rem);
+    white-space: nowrap;
+  }
+  .recon-equation {
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 0.5rem 0.75rem;
+  }
+  .recon-col {
+    flex: 1 1 110px;
+  }
+  .r-op {
+    display: none;
+  }
+  .desktop-finance-table { display: none; }
+  .mobile-finance-cards { display: flex; }
   .form-row { grid-template-columns: 1fr; }
   .receipt-details-grid { grid-template-columns: 1fr; }
   .level-hierarchy-bar { flex-direction: column; align-items: stretch; }
@@ -3552,13 +3884,20 @@ onMounted(async () => {
   .level-btn { flex: 1; justify-content: center; font-size: 0.78rem; padding: 0.5rem 0.5rem; }
   .tabs-nav-bar { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
   .tab-nav-btn { flex-shrink: 0; font-size: 0.8rem; padding: 0.6rem 0.85rem; }
-  .outstanding-kpi-bar { grid-template-columns: repeat(2, 1fr); }
+  .outstanding-kpi-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
   .table-responsive { overflow-x: auto; }
+}
+
+@media (max-width: 640px) {
+  .kpi-grid > .kpi-card:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 430px) {
   .quick-actions .btn { flex: 1 1 100%; }
-  .outstanding-kpi-bar { grid-template-columns: 1fr; }
+  .outstanding-kpi-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; padding: 0.85rem; }
+  .mini-kpi-val { font-size: 1.2rem; }
   .level-btn { font-size: 0.75rem; }
 }
 

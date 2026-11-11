@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { inquiryService } from '../services/inquiryService';
@@ -11,11 +11,23 @@ const authStore = useAuthStore();
 // Navigation states
 const isCollapsed = ref(false);
 const isMobileOpen = ref(false);
+const isMobileSearchOpen = ref(false);
 const isUserMenuOpen = ref(false);
 const isLangMenuOpen = ref(false);
 const currentLang = ref<'en' | 'so'>('en');
 const searchQuery = ref('');
 const unreadInquiries = ref(0);
+
+watch(isMobileOpen, (open) => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+});
+
+watch(() => route.fullPath, () => {
+  isMobileOpen.value = false;
+  isMobileSearchOpen.value = false;
+});
 
 async function fetchInquiryBadge() {
   try {
@@ -438,6 +450,22 @@ onUnmounted(() => {
             </router-link>
           </div>
 
+          <!-- Mobile Search Toggle Button (shown <= 540px) -->
+          <div class="sa-icon-btn-wrap sa-mobile-search-toggle-wrap">
+            <button
+              type="button"
+              class="sa-header-icon-btn"
+              aria-label="Toggle search"
+              :aria-expanded="isMobileSearchOpen"
+              @click="isMobileSearchOpen = !isMobileSearchOpen"
+            >
+              <svg class="sa-header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </button>
+          </div>
+
           <!-- Super Admin Profile Dropdown -->
           <div class="sa-user-menu-wrapper" @click.stop>
             <button class="sa-user-btn" @click="toggleUserMenu" :aria-expanded="isUserMenuOpen">
@@ -490,6 +518,23 @@ onUnmounted(() => {
         </div>
       </header>
 
+      <!-- Expandable Mobile Search Bar -->
+      <div v-if="isMobileSearchOpen" class="sa-mobile-search-bar">
+        <div class="sa-search-box sa-mobile-search-box">
+          <svg class="sa-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            v-model="searchQuery"
+            @keydown="handleSearch"
+            class="sa-search-input"
+            placeholder="Search institutions, payments..."
+          />
+        </div>
+      </div>
+
       <!-- Main Body -->
       <main class="sa-content-view">
         <router-view />
@@ -500,12 +545,15 @@ onUnmounted(() => {
 
 <style scoped>
 .super-admin-layout {
-  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   background-color: #f7f9fc;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
   color: #1e293b;
   position: relative;
+  overflow-x: clip;
 }
 
 /* Sidebar */
@@ -543,7 +591,9 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.75rem;
   text-decoration: none;
+  flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .sa-emblem-wrap {
@@ -570,6 +620,8 @@ onUnmounted(() => {
   flex-direction: column;
   line-height: 1.15;
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .sa-brand-name {
@@ -577,6 +629,8 @@ onUnmounted(() => {
   font-weight: 900;
   color: #ffffff;
   letter-spacing: 0.04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sa-brand-tagline {
@@ -585,6 +639,8 @@ onUnmounted(() => {
   color: #94a3b8;
   letter-spacing: 0.06em;
   margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sa-close-mobile-btn {
@@ -594,6 +650,7 @@ onUnmounted(() => {
   color: #94a3b8;
   cursor: pointer;
   padding: 0.25rem;
+  flex-shrink: 0;
 }
 
 /* Nav */
@@ -852,6 +909,8 @@ onUnmounted(() => {
   font-size: 0.875rem;
   color: #1e293b;
   width: 100%;
+  height: 100%;
+  min-height: 28px;
   padding: 0;
 }
 
@@ -1221,11 +1280,27 @@ onUnmounted(() => {
   transform: translateY(-8px);
 }
 
+.sa-mobile-search-toggle-wrap {
+  display: none;
+}
+
+.sa-mobile-search-bar {
+  padding: 0.65rem 0.75rem;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.sa-mobile-search-box {
+  display: flex !important;
+  width: 100%;
+  max-width: 100%;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .sa-sidebar {
     transform: translateX(-100%);
-    width: 250px !important;
+    width: min(250px, 85dvw) !important;
   }
 
   .sa-sidebar.mobile-open {
@@ -1233,11 +1308,16 @@ onUnmounted(() => {
   }
 
   .sa-close-mobile-btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .sa-main-wrapper {
     margin-left: 0 !important;
+    width: 100%;
   }
 
   .sidebar-backdrop {
@@ -1247,27 +1327,90 @@ onUnmounted(() => {
     backdrop-filter: blur(2px);
     z-index: 45;
   }
+
+  .sa-search-shortcut {
+    display: none;
+  }
 }
 
 @media (max-width: 640px) {
   .sa-topbar {
-    padding: 0 1rem;
+    padding: 0 0.75rem;
+    height: 62px;
+    gap: 0.5rem;
+  }
+
+  .sa-topbar-left {
+    gap: 0.5rem;
+  }
+
+  .sa-topbar-right {
+    gap: 0.45rem;
   }
 
   .sa-content-view {
-    padding: 1.25rem 1rem;
+    padding: 1rem 0.75rem;
   }
 
-  .sa-user-info {
+  .sa-user-info,
+  .sa-user-chevron {
     display: none;
+  }
+
+  .sa-user-btn {
+    padding: 0;
+  }
+
+  .sa-lang-label,
+  .sa-dropdown-chevron {
+    display: none;
+  }
+
+  .sa-lang-dropdown-btn {
+    padding: 0.35rem 0.5rem;
   }
 
   .sa-search-box {
-    max-width: 170px;
+    max-width: none;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 540px) {
+  .sa-topbar-left .sa-search-box {
+    display: none;
   }
 
-  .sa-search-shortcut {
-    display: none;
+  .sa-mobile-search-toggle-wrap {
+    display: block;
+  }
+}
+
+@media (max-width: 374px) {
+  .sa-topbar {
+    padding: 0 0.5rem;
+    gap: 0.35rem;
+  }
+
+  .sa-topbar-right {
+    gap: 0.3rem;
+  }
+
+  .sa-header-icon-btn,
+  .sa-user-avatar {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+  }
+
+  .sa-lang-dropdown-btn {
+    height: 34px;
+    padding: 0.25rem 0.4rem;
+  }
+
+  .sa-content-view {
+    padding: 0.875rem 0.5rem;
   }
 }
 </style>

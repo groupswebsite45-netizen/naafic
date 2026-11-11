@@ -755,7 +755,7 @@ onMounted(() => {
 
           <div v-else class="roster-data-wrap">
             <!-- 1. Desktop Table View (>= 769px) -->
-            <div class="desktop-table-container">
+            <div class="desktop-table-container" tabindex="0" role="region" aria-label="Student marks roster table">
               <table class="roster-table">
                 <thead>
                   <tr>
@@ -1237,6 +1237,9 @@ onMounted(() => {
   gap: 0.75rem;
   border-bottom: 2px solid #e2e8f0;
   padding-bottom: 0.25rem;
+  overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .workflow-tab-btn {
@@ -1244,6 +1247,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.65rem 1.15rem;
+  min-height: 44px;
   font-size: 0.9rem;
   font-weight: 700;
   color: #64748b;
@@ -1253,6 +1257,8 @@ onMounted(() => {
   cursor: pointer;
   position: relative;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  flex: none;
 }
 
 .workflow-tab-btn:hover {
@@ -1311,7 +1317,7 @@ onMounted(() => {
 /* Streams Grid */
 .streams-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 1.25rem;
   width: 100%;
 }
@@ -1324,6 +1330,7 @@ onMounted(() => {
   border-top: 4px solid #0284c7;
   transition: transform 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
+  min-width: 0;
 }
 .stream-card:hover {
   transform: translateY(-2px);
@@ -1805,6 +1812,11 @@ onMounted(() => {
   font-size: 1.1rem;
   cursor: pointer;
   line-height: 1;
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .upload-paper-btn {
   display: inline-flex;
@@ -1990,7 +2002,8 @@ onMounted(() => {
   font-size: 0.85rem;
   font-weight: 700;
   color: #15803d;
-  word-break: break-all;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .m-paper-actions {
@@ -2002,6 +2015,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
   padding: 0.5rem 0.75rem;
   background: var(--bg-surface-secondary, #f8fafc);
   border: 1px dashed var(--border-medium, #cbd5e1);

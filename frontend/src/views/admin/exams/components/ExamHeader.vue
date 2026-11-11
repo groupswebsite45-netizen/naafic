@@ -106,15 +106,18 @@ function navigateToResults() {
 .exam-header-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
   flex-shrink: 0;
 }
 
+.results-btn,
 .schedule-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  min-height: 40px;
   padding: 0.55rem 1.15rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -128,12 +131,14 @@ function navigateToResults() {
   white-space: nowrap;
 }
 
+.results-btn:hover,
 .schedule-btn:hover {
   background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
   box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
   transform: translateY(-1px);
 }
 
+.results-btn:active,
 .schedule-btn:active {
   transform: translateY(0);
 }
@@ -155,8 +160,10 @@ function navigateToResults() {
     width: 100%;
   }
 
+  .results-btn,
   .schedule-btn {
     width: 100%;
+    min-height: 44px;
   }
 
   .exam-title {

@@ -268,7 +268,14 @@ defineProps<{
 
 @media (max-width: 480px) {
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+  .stat-card {
+    padding: 0.75rem;
+    gap: 0.5rem;
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import AdminSidebar from '../components/admin/AdminSidebar.vue';
 import AdminHeader from '../components/admin/AdminHeader.vue';
@@ -18,6 +18,22 @@ function toggleSidebar() {
 function closeSidebar() {
   isSidebarOpen.value = false;
 }
+
+watch(isSidebarOpen, (open) => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+});
+
+watch(() => route.fullPath, () => {
+  isSidebarOpen.value = false;
+});
+
+onUnmounted(() => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = '';
+  }
+});
 </script>
 
 <template>
@@ -49,12 +65,13 @@ function closeSidebar() {
 
 <style scoped>
 .admin-layout {
-  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   max-width: 100%;
   display: flex;
   background-color: var(--bg-app);
   box-sizing: border-box;
+  overflow-x: clip;
 }
 
 .admin-main-wrapper {
@@ -62,7 +79,7 @@ function closeSidebar() {
   display: flex;
   flex-direction: column;
   margin-left: var(--sidebar-width);
-  min-height: 100vh;
+  min-height: 100dvh;
   min-width: 0;
   transition: margin-left var(--transition-normal);
   width: calc(100% - var(--sidebar-width));

@@ -540,6 +540,12 @@ async function handleChangeUsername() {
   cursor: pointer;
   line-height: 1;
   padding: 0.125rem;
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
   flex-shrink: 0;
 }
 .modal-close:hover {

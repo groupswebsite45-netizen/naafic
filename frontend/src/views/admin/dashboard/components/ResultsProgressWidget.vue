@@ -155,13 +155,15 @@ const selectedPeriod = ref('This Year');
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .header-icon-box {
@@ -187,6 +189,7 @@ const selectedPeriod = ref('This Year');
 .header-text-group {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .card-title {
@@ -216,6 +219,7 @@ const selectedPeriod = ref('This Year');
   border: 1px solid #E2E8F0;
   border-radius: 8px;
   padding: 0.3rem 1.6rem 0.3rem 0.65rem;
+  min-height: 32px;
   font-size: 0.76rem;
   font-weight: 600;
   color: #334155;
@@ -237,7 +241,8 @@ const selectedPeriod = ref('This Year');
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1rem 1.25rem;
   padding: 0.5rem 0;
 }
 
@@ -283,7 +288,23 @@ const selectedPeriod = ref('This Year');
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
-  flex: 1;
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+@media (max-width: 420px) {
+  .chart-content {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .legend-list {
+    width: 100%;
+  }
+
+  .period-select {
+    min-height: 44px;
+  }
 }
 
 .legend-row {

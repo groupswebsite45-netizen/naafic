@@ -73,7 +73,7 @@ function printReportCard() {
       </div>
 
       <!-- Subjects Table -->
-      <div class="table-container">
+      <div class="table-container" tabindex="0" role="region" aria-label="Subject grades report table">
         <table class="report-table">
           <thead>
             <tr>
@@ -319,6 +319,7 @@ function printReportCard() {
 
 .report-table {
   width: 100%;
+  min-width: 580px;
   border-collapse: collapse;
 }
 

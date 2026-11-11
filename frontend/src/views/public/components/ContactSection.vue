@@ -682,7 +682,7 @@ function resetForm() {
   position: relative;
   padding: 80px 0 120px;
   background: linear-gradient(180deg, #FFFFFF 0%, #F5F8FD 35%, #EDF4FE 100%);
-  overflow: hidden;
+  overflow: clip;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
@@ -1005,6 +1005,9 @@ function resetForm() {
 }
 
 .info-link-orange {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
   color: #FF6500;
   font-weight: 700;
   text-decoration: none;
@@ -1017,6 +1020,9 @@ function resetForm() {
 }
 
 .info-tel {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
   text-decoration: none;
   transition: color 0.2s ease;
 }

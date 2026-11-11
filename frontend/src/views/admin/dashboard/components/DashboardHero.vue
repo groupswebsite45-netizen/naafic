@@ -316,6 +316,7 @@ const formattedDate = computed(() => {
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
+  min-height: 28px;
   padding-right: 1.25rem;
 }
 
@@ -384,9 +385,27 @@ const formattedDate = computed(() => {
   .hero-right-col {
     align-self: center;
     margin-top: 0.5rem;
+    max-width: 100%;
   }
   .school-3d-image {
-    width: 210px;
+    width: min(210px, 100%);
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-content-wrap {
+    padding: 1.15rem 1rem;
+    gap: 1rem;
+  }
+
+  .year-select-pill {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .year-dropdown {
+    font-size: max(1rem, 0.85rem);
   }
 }
 </style>

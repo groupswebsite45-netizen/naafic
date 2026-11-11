@@ -291,7 +291,7 @@ onMounted(() => {
 
     <!-- Institutions Table Card -->
     <div class="sai-card">
-      <div class="sai-table-wrap">
+      <div class="sai-table-wrap sai-desktop-table" tabindex="0" role="region" aria-label="Institutions table">
         <table class="sai-table">
           <thead>
             <tr>
@@ -341,7 +341,7 @@ onMounted(() => {
               </td>
               <td>
                 <span class="sai-sub-badge">{{ inst.subscription_plan }}</span>
-                <div class="text-xs text-slate-400 mt-1">Exp: {{ formatDate(inst.subscription_expiry_date) }}</div>
+                <div class="text-xs text-slate-400 mt-1 whitespace-nowrap">Exp: {{ formatDate(inst.subscription_expiry_date) }}</div>
               </td>
               <td>
                 <span
@@ -411,6 +411,92 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Mobile Institutions Cards (<= 768px) -->
+      <div class="sai-mobile-cards">
+        <div v-if="!institutions.length && !isLoading" class="sai-mobile-empty">
+          No educational institutions match your search criteria.
+        </div>
+        <article v-for="inst in institutions" :key="'m-inst-' + inst.id" class="sai-mobile-card">
+          <div class="sai-mobile-head">
+            <div class="sai-inst-info">
+              <div class="sai-inst-avatar">
+                <img v-if="inst.logo_url" :src="inst.logo_url" alt="" class="w-full h-full object-cover rounded-full" />
+                <span v-else>{{ inst.name.charAt(0).toUpperCase() }}</span>
+              </div>
+              <div class="sai-mobile-title-wrap">
+                <div class="sai-inst-name">{{ inst.name }}</div>
+                <div class="sai-mobile-code-row">
+                  <span class="sai-code-badge">{{ inst.code }}</span>
+                  <span class="sai-mobile-id">#{{ inst.id }}</span>
+                </div>
+              </div>
+            </div>
+            <span
+              class="sai-status-badge"
+              :class="inst.status === 'ACTIVE' ? 'status-active' : inst.status === 'PENDING' ? 'status-pending' : 'status-suspended'"
+            >
+              {{ inst.status }}
+            </span>
+          </div>
+
+          <div class="sai-mobile-kv-grid">
+            <div class="sai-mobile-kv">
+              <span class="sai-kv-label">Type</span>
+              <span class="sai-type-badge" :class="inst.type.toLowerCase().includes('school') ? 'badge-school' : 'badge-academy'">
+                {{ inst.type }}
+              </span>
+            </div>
+            <div class="sai-mobile-kv">
+              <span class="sai-kv-label">Location</span>
+              <span class="sai-kv-val">{{ inst.city || inst.region || 'Mogadishu' }}</span>
+            </div>
+            <div class="sai-mobile-kv">
+              <span class="sai-kv-label">Contact</span>
+              <span class="sai-kv-val">{{ inst.contact_person || 'N/A' }}</span>
+            </div>
+            <div class="sai-mobile-kv">
+              <span class="sai-kv-label">Plan & Expiry</span>
+              <span class="sai-kv-val">{{ inst.subscription_plan }} ({{ formatDate(inst.subscription_expiry_date) }})</span>
+            </div>
+          </div>
+
+          <div class="sai-mobile-actions">
+            <button class="sai-btn-open sai-mobile-open-btn" @click="openSms(inst)">
+              <span>Open SMS</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </button>
+            <button class="sai-btn-action sai-mobile-icon-btn" @click="openEditModal(inst)" aria-label="Edit institution" title="Edit institution">
+              <svg class="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+            <button
+              class="sai-btn-action sai-mobile-icon-btn"
+              :class="inst.status === 'ACTIVE' ? 'text-red-500 hover:bg-red-50' : 'text-emerald-500 hover:bg-emerald-50'"
+              @click="handleToggleStatus(inst)"
+              :aria-label="inst.status === 'ACTIVE' ? 'Suspend Institution' : 'Activate Institution'"
+              :title="inst.status === 'ACTIVE' ? 'Suspend Institution' : 'Activate Institution'"
+            >
+              <svg v-if="inst.status === 'ACTIVE'" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+              </svg>
+              <svg v-else class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </button>
+            <button class="sai-btn-action sai-btn-delete sai-mobile-icon-btn" @click="openDeleteModal(inst)" aria-label="Delete institution" title="Delete institution">
+              <svg class="sai-btn-trash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+        </article>
       </div>
     </div>
 
@@ -894,6 +980,8 @@ onMounted(() => {
   font-size: 0.875rem;
   color: #0f172a;
   width: 100%;
+  height: 100%;
+  min-width: 0;
   padding: 0;
 }
 
@@ -961,7 +1049,8 @@ onMounted(() => {
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
+  overflow: clip;
+  min-width: 0;
 }
 
 .sai-table-wrap {
@@ -970,6 +1059,7 @@ onMounted(() => {
 
 .sai-table {
   width: 100%;
+  min-width: 920px;
   border-collapse: collapse;
   text-align: left;
 }
@@ -982,6 +1072,102 @@ onMounted(() => {
   color: #64748b;
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.sai-mobile-cards {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.875rem;
+}
+
+.sai-mobile-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.sai-mobile-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sai-mobile-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sai-mobile-title-wrap {
+  min-width: 0;
+}
+
+.sai-mobile-code-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.2rem;
+}
+
+.sai-mobile-id {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.sai-mobile-kv-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.sai-mobile-kv {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.sai-kv-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.sai-kv-val {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.sai-mobile-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.35rem;
+}
+
+.sai-mobile-open-btn {
+  flex: 1;
+  justify-content: center;
+  min-height: 40px;
+}
+
+.sai-mobile-icon-btn {
+  min-width: 40px;
+  min-height: 40px;
 }
 
 .sai-table td {
@@ -1186,8 +1372,16 @@ onMounted(() => {
   background: transparent;
   border: none;
   font-size: 1.2rem;
+  line-height: 1;
   color: #94a3b8;
   cursor: pointer;
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  flex-shrink: 0;
 }
 
 .sai-modal-body {
@@ -1199,7 +1393,7 @@ onMounted(() => {
 
 .sai-modal-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -1207,6 +1401,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  min-width: 0;
 }
 
 .sai-modal-label {
@@ -1216,6 +1411,9 @@ onMounted(() => {
 }
 
 .sai-modal-input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 0.55rem 0.8rem;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
@@ -1224,6 +1422,9 @@ onMounted(() => {
 }
 
 .sai-modal-select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 0.55rem 0.8rem;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
@@ -1242,7 +1443,7 @@ onMounted(() => {
 /* Edit Modal Specialized Styles */
 .sai-edit-modal {
   max-width: 660px;
-  max-height: 92vh;
+  max-height: calc(100dvh - 1.5rem);
   display: flex;
   flex-direction: column;
 }
@@ -1819,5 +2020,59 @@ onMounted(() => {
   height: 15px;
   stroke: #ffffff;
   flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .sai-desktop-table {
+    display: none;
+  }
+
+  .sai-mobile-cards {
+    display: flex;
+  }
+}
+
+@media (max-width: 640px) {
+  .sai-title {
+    font-size: 1.4rem;
+  }
+
+  .sai-btn-add {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sai-selects-group {
+    width: 100%;
+  }
+
+  .sai-select {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
+
+  .sai-modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .sai-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sai-modal-header,
+  .sai-modal-body,
+  .sai-edit-body,
+  .sai-modal-footer,
+  .sai-delete-header {
+    padding: 1rem;
+  }
+
+  .sai-modal-footer {
+    flex-wrap: wrap;
+  }
+
+  .sai-actions-group {
+    justify-content: flex-start;
+  }
 }
 </style>

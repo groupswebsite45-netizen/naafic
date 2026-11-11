@@ -487,7 +487,7 @@ onMounted(() => {
 
         <!-- Desktop Roster Table -->
         <div class="desktop-roster card">
-          <div class="table-responsive">
+          <div class="table-responsive" tabindex="0" role="region" aria-label="Attendance marking roster table">
             <table class="roster-table">
               <thead>
                 <tr>
@@ -669,7 +669,7 @@ onMounted(() => {
 
         <!-- Desktop Summary Table -->
         <div class="card summary-table-card desktop-view">
-          <div class="table-responsive">
+          <div class="table-responsive" tabindex="0" role="region" aria-label="Student attendance summary table">
             <table class="roster-table">
               <thead>
                 <tr>
@@ -826,7 +826,7 @@ onMounted(() => {
           <div v-if="selectedStudentDetail.absent_history.length === 0" class="empty-inline">
             No absences recorded. Student has a 100% attendance track record in this stream.
           </div>
-          <div v-else class="table-responsive">
+          <div v-else class="table-responsive" tabindex="0" role="region" aria-label="Student absence history table">
             <table class="roster-table">
               <thead>
                 <tr>
@@ -1109,7 +1109,7 @@ onMounted(() => {
 /* History Grid */
 .history-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
   gap: 1.25rem;
   width: 100%;
 }

@@ -19,11 +19,11 @@ import AppButton from '../components/common/AppButton.vue';
 
 <style scoped>
 .not-found-page {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: clamp(1rem, 4vw, 2rem);
   background-color: var(--bg-app);
 }
 
@@ -31,7 +31,7 @@ import AppButton from '../components/common/AppButton.vue';
   max-width: 480px;
   width: 100%;
   text-align: center;
-  padding: 3rem 2rem;
+  padding: clamp(1.75rem, 5vw, 3rem) clamp(1.25rem, 4vw, 2rem);
   display: flex;
   flex-direction: column;
   align-items: center;

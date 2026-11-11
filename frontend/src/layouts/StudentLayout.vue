@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { SCHOOL_BRANDING } from '../constants/branding';
@@ -14,7 +14,24 @@ const studentDisplayName = computed(() => {
   return authStore.user?.full_name || authStore.user?.username || 'Student';
 });
 
+watch(isSidebarOpen, (open) => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+});
+
+watch(() => route.fullPath, () => {
+  isSidebarOpen.value = false;
+});
+
+onUnmounted(() => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = '';
+  }
+});
+
 async function handleLogout() {
+  isSidebarOpen.value = false;
   await authStore.logout();
   router.push('/login');
 }
@@ -173,13 +190,17 @@ function closeMobileSidebar() {
 <style scoped>
 .portal-layout {
   display: flex;
-  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
   background-color: var(--bg-app);
 }
 
 .portal-sidebar {
   width: 260px;
-  height: 100vh;
+  max-width: min(260px, 85dvw);
+  height: 100dvh;
   background-color: #0f172a;
   color: #f8fafc;
   display: flex;
@@ -344,18 +365,20 @@ function closeMobileSidebar() {
   margin-left: 260px;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 100dvh;
+  min-width: 0;
   width: calc(100% - 260px);
 }
 
 .portal-header {
-  height: 70px;
+  height: 68px;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 1.5rem;
+  gap: 0.75rem;
   position: sticky;
   top: 0;
   z-index: 30;
@@ -365,6 +388,8 @@ function closeMobileSidebar() {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .menu-btn {
@@ -374,7 +399,12 @@ function closeMobileSidebar() {
   cursor: pointer;
   color: var(--text-primary);
   padding: 0.35rem;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
   border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .menu-btn:hover {
@@ -382,9 +412,17 @@ function closeMobileSidebar() {
 }
 
 .header-title {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--brand-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.header-user {
+  flex-shrink: 0;
 }
 
 .badge {
@@ -394,6 +432,7 @@ function closeMobileSidebar() {
   font-weight: 600;
   padding: 0.3rem 0.65rem;
   border-radius: 12px;
+  white-space: nowrap;
 }
 
 .portal-content {
@@ -401,6 +440,7 @@ function closeMobileSidebar() {
   padding: 1.5rem;
   max-width: 1400px;
   width: 100%;
+  min-width: 0;
   margin: 0 auto;
   box-sizing: border-box;
 }
@@ -408,7 +448,8 @@ function closeMobileSidebar() {
 .sidebar-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(2px);
   z-index: 35;
 }
 
@@ -420,14 +461,46 @@ function closeMobileSidebar() {
     transform: translateX(0);
   }
   .close-btn, .menu-btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
   }
   .portal-main {
     margin-left: 0;
     width: 100%;
   }
+  .portal-header {
+    padding: 0 1rem;
+    height: 62px;
+  }
   .portal-content {
     padding: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .portal-header {
+    padding: 0 0.75rem;
+  }
+  .header-title {
+    font-size: 0.95rem;
+  }
+  .portal-content {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 479px) {
+  .header-user {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .portal-content {
+    padding: 0.5rem;
   }
 }
 </style>

@@ -132,8 +132,8 @@ const activeChips = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   margin-left: 0.15rem;
   border-radius: 50%;
   border: none;
@@ -151,13 +151,16 @@ const activeChips = computed(() => {
 }
 
 .clear-all-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
   font-size: 0.75rem;
   font-weight: 600;
   color: #4f46e5;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.2rem 0.4rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 4px;
 }
 

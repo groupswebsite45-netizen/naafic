@@ -87,13 +87,15 @@ withDefaults(defineProps<Props>(), {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
 }
 
 .widget-title-group {
   display: flex;
   align-items: center;
   gap: 0.85rem;
+  min-width: 0;
 }
 
 .widget-icon-box {
@@ -132,6 +134,9 @@ withDefaults(defineProps<Props>(), {
 }
 
 .widget-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
   font-size: 0.825rem;
   font-weight: 600;
   color: #0284c7;
@@ -148,7 +153,7 @@ withDefaults(defineProps<Props>(), {
 /* Attendance Stats Grid */
 .attendance-stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
 }
 
@@ -238,5 +243,24 @@ withDefaults(defineProps<Props>(), {
   color: #64748b;
   margin: 0;
   line-height: 1.35;
+}
+
+@media (max-width: 420px) {
+  .attendance-stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .stat-pill {
+    padding: 0.65rem 0.5rem;
+  }
+
+  .pill-count {
+    font-size: 1.15rem;
+  }
+
+  .empty-attendance-box {
+    flex-wrap: wrap;
+  }
 }
 </style>
