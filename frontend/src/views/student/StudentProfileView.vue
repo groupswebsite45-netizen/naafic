@@ -36,7 +36,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="portal-page">
+  <div class="portal-page student-profile-view">
     <!-- Header -->
     <div class="page-header">
       <div>
@@ -53,10 +53,10 @@ onMounted(() => {
         </svg>
       </div>
       <div class="banner-text">
-        <strong class="banner-title">PROFILE INFORMATION &bull; READ-ONLY</strong>
+        <strong class="banner-title">OFFICIAL PROFILE RECORD &bull; READ-ONLY ACCESS</strong>
         <p class="banner-desc">
-          To maintain academic record integrity, personal and academic details cannot be edited directly by students.
-          For corrections or updates to your records, please contact the Education Management System Administration Office.
+          To maintain institutional record integrity, student personal and academic details cannot be edited directly in the portal.
+          For official amendments, please visit the School Registrar or Administration Office.
         </p>
       </div>
     </div>
@@ -69,83 +69,109 @@ onMounted(() => {
 
     <!-- Error State -->
     <div v-else-if="errorMessage" class="card error-card">
-      <p class="error-title">Unable to Load Profile</p>
-      <p class="error-desc">{{ errorMessage }}</p>
-      <button class="retry-btn" @click="loadProfile">Try Again</button>
+      <div class="error-icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10" stroke-width="2" />
+          <line x1="12" y1="8" x2="12" y2="12" stroke-width="2" stroke-linecap="round" />
+          <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </div>
+      <div class="error-content">
+        <p class="error-title">Unable to Load Profile</p>
+        <p class="error-desc">{{ errorMessage }}</p>
+      </div>
+      <button type="button" class="retry-btn" @click="loadProfile">Try Again</button>
     </div>
 
     <!-- Profile Content -->
-    <div v-else-if="profile" class="profile-grid">
+    <div v-else-if="profile" class="profile-content-stack">
       <!-- Profile Hero Card -->
-      <div class="card hero-card">
-        <div class="avatar-wrap">
-          <img
-            v-if="profile.photo_path"
-            :src="studentService.getPhotoUrl(profile.id, profile.photo_path) || ''"
-            :alt="profile.full_name"
-            class="avatar-photo-img"
-            @error="profile.photo_path = null"
-          />
-          <div v-else class="avatar-initials">
-            {{ profile.first_name?.[0] }}{{ profile.last_name?.[0] }}
+      <section class="card profile-hero-card" aria-label="Student Identity Card">
+        <div class="hero-bg-accent" aria-hidden="true" />
+        
+        <div class="hero-body-content">
+          <div class="avatar-wrap">
+            <img
+              v-if="profile.photo_path"
+              :src="studentService.getPhotoUrl(profile.id, profile.photo_path) || ''"
+              :alt="profile.full_name"
+              class="avatar-photo-img"
+              @error="profile.photo_path = null"
+            />
+            <div v-else class="avatar-initials">
+              {{ profile.first_name?.[0] }}{{ profile.last_name?.[0] }}
+            </div>
+            <div class="online-indicator-pip" title="Active Account" />
           </div>
-        </div>
-        <div class="hero-info">
-          <div class="hero-header-row">
-            <h2 class="student-name">{{ profile.full_name }}</h2>
-            <span class="status-badge" :class="profile.status.toLowerCase()">
-              {{ profile.status }}
-            </span>
-          </div>
-          <div class="hero-meta-row">
-            <span class="meta-item">
-              Admission No: <strong>{{ profile.admission_number }}</strong>
-            </span>
-            <span class="meta-sep">&bull;</span>
-            <span class="meta-item">
-              Class: <strong>{{ profile.current_class_name || 'Unassigned' }}</strong>
-            </span>
-            <span class="meta-sep">&bull;</span>
-            <span class="meta-item">
-              Academic Year: <strong>{{ profile.academic_year || 'Current' }}</strong>
-            </span>
-          </div>
-        </div>
-      </div>
 
-      <!-- Detail Cards 2-Column Grid -->
+          <div class="hero-info">
+            <div class="hero-header-row">
+              <h2 class="student-name">{{ profile.full_name }}</h2>
+              <span class="status-badge" :class="profile.status.toLowerCase()">
+                <span class="status-dot" />
+                {{ profile.status }}
+              </span>
+            </div>
+
+            <div class="hero-meta-row">
+              <div class="meta-pill">
+                <span class="lbl">Admission:</span>
+                <strong>{{ profile.admission_number }}</strong>
+              </div>
+              <span class="meta-dot">&bull;</span>
+              <div class="meta-pill">
+                <span class="lbl">Class:</span>
+                <strong>{{ profile.current_class_name || 'Unassigned' }}</strong>
+              </div>
+              <span class="meta-dot">&bull;</span>
+              <div class="meta-pill">
+                <span class="lbl">Academic Year:</span>
+                <strong>{{ profile.academic_year || 'Current' }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Detail Cards Grid -->
       <div class="details-two-column">
         <!-- 1. Personal Information Card -->
-        <div class="card info-card">
+        <section class="card info-card">
           <div class="card-header">
-            <svg class="section-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            <h3 class="section-title">Personal Information</h3>
+            <div class="card-icon-wrap bg-blue-tint">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="section-title">Personal Information</h3>
+              <p class="section-sub">Primary student identification records</p>
+            </div>
           </div>
+
           <div class="info-list">
             <div class="info-row">
               <span class="info-label">Full Name</span>
-              <span class="info-val font-semibold">{{ profile.full_name }}</span>
+              <span class="info-val font-semibold text-slate-900">{{ profile.full_name }}</span>
             </div>
             <div class="info-row">
               <span class="info-label">Admission Number</span>
-              <span class="info-val font-mono">{{ profile.admission_number }}</span>
+              <span class="info-val font-mono font-bold text-emerald-700">{{ profile.admission_number }}</span>
             </div>
             <div class="info-row">
               <span class="info-label">Gender</span>
-              <span class="info-val">{{ profile.gender }}</span>
+              <span class="info-val">{{ profile.gender || 'Not specified' }}</span>
             </div>
             <div class="info-row">
               <span class="info-label">Date of Birth</span>
               <span class="info-val">{{ formatDate(profile.date_of_birth) }}</span>
             </div>
             <div class="info-row">
-              <span class="info-label">Phone</span>
+              <span class="info-label">Contact Phone</span>
               <span class="info-val">{{ profile.phone || 'Not registered' }}</span>
             </div>
             <div class="info-row">
-              <span class="info-label">Email</span>
+              <span class="info-label">Email Address</span>
               <span class="info-val">{{ profile.email || 'Not registered' }}</span>
             </div>
             <div class="info-row">
@@ -153,20 +179,26 @@ onMounted(() => {
               <span class="info-val">{{ profile.address || 'Mogadishu, Somalia' }}</span>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- 2. Guardian Details Card -->
-        <div class="card info-card">
+        <!-- 2. Guardian & Emergency Contacts Card -->
+        <section class="card info-card">
           <div class="card-header">
-            <svg class="section-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <h3 class="section-title">Guardian & Emergency Contacts</h3>
+            <div class="card-icon-wrap bg-emerald-tint">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="section-title">Guardian & Emergency Contacts</h3>
+              <p class="section-sub">Parent / guardian communication channels</p>
+            </div>
           </div>
+
           <div class="info-list">
             <div class="info-row">
               <span class="info-label">Guardian Name</span>
-              <span class="info-val font-semibold">{{ profile.guardian_name || '—' }}</span>
+              <span class="info-val font-semibold text-slate-900">{{ profile.guardian_name || '—' }}</span>
             </div>
             <div class="info-row">
               <span class="info-label">Relationship</span>
@@ -174,46 +206,55 @@ onMounted(() => {
             </div>
             <div class="info-row">
               <span class="info-label">Guardian Phone</span>
-              <span class="info-val font-mono">{{ profile.guardian_phone || '—' }}</span>
+              <span class="info-val font-mono font-bold text-slate-800">{{ profile.guardian_phone || '—' }}</span>
             </div>
             <div class="info-row">
               <span class="info-label">Guardian Email</span>
               <span class="info-val">{{ profile.guardian_email || '—' }}</span>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- 3. Academic Enrollment Details Card -->
-        <div class="card info-card full-width">
+        <section class="card info-card full-width">
           <div class="card-header">
-            <svg class="section-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-            <h3 class="section-title">Enrollment & Institutional Status</h3>
+            <div class="card-icon-wrap bg-purple-tint">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="section-title">Enrollment & Institutional Status</h3>
+              <p class="section-sub">Current registration and class placement details</p>
+            </div>
           </div>
+
           <div class="academic-stats-grid">
             <div class="stat-box">
               <span class="stat-lbl">CURRENT GRADE</span>
               <span class="stat-val">{{ profile.current_class_name || 'Unassigned' }}</span>
               <span class="stat-sub">Code: {{ profile.current_class_code || 'N/A' }}</span>
             </div>
+
             <div class="stat-box">
               <span class="stat-lbl">ACADEMIC YEAR</span>
-              <span class="stat-val">{{ profile.academic_year || '2025-2026' }}</span>
-              <span class="stat-sub">Standard Curriculum</span>
+              <span class="stat-val">{{ profile.academic_year || '2026/2027' }}</span>
+              <span class="stat-sub">Active Term Session</span>
             </div>
+
+            <div class="stat-box">
+              <span class="stat-lbl">ENROLLMENT STATUS</span>
+              <span class="stat-val text-emerald-600">{{ profile.status }}</span>
+              <span class="stat-sub">Official Student Portal</span>
+            </div>
+
             <div class="stat-box">
               <span class="stat-lbl">ADMISSION DATE</span>
               <span class="stat-val">{{ formatDate(profile.admission_date) }}</span>
-              <span class="stat-sub">Official Registration</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-lbl">PORTAL ACCESS</span>
-              <span class="stat-val text-emerald">{{ profile.portal_account_status }}</span>
-              <span class="stat-sub">Authenticated Session</span>
+              <span class="stat-sub">First Matriculation</span>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   </div>
@@ -224,38 +265,52 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
+}
+
+.page-header {
+  margin-bottom: 0.25rem;
 }
 
 .page-title {
-  font-size: 1.6rem;
+  font-size: 1.45rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: #0F172A;
   margin: 0;
 }
 
 .page-subtitle {
-  font-size: 0.88rem;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: #64748B;
+  margin: 0.25rem 0 0 0;
 }
 
-/* Mandatory Read-Only Notification */
+/* Card Style */
+.card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Read-only Notice Banner */
 .readonly-banner {
-  background: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
-  border: 1px solid rgba(2, 132, 199, 0.25);
-  border-left: 4px solid #0284c7;
-  border-radius: 8px;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-left: 4px solid #F59E0B;
+  border-radius: 12px;
   padding: 1rem 1.25rem;
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .banner-icon-wrap {
-  width: 36px;
-  height: 36px;
-  background-color: rgba(2, 132, 199, 0.15);
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
+  background: #FEF3C7;
+  color: #D97706;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -263,238 +318,46 @@ onMounted(() => {
 }
 
 .banner-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #0284c7;
+  width: 18px;
+  height: 18px;
+}
+
+.banner-text {
+  flex: 1;
 }
 
 .banner-title {
-  font-size: 0.82rem;
-  letter-spacing: 0.05em;
-  color: #0284c7;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #92400E;
+  letter-spacing: 0.04em;
   display: block;
 }
 
 .banner-desc {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  margin: 0.2rem 0 0 0;
-  line-height: 1.45;
+  font-size: 0.78rem;
+  color: #B45309;
+  margin: 0.25rem 0 0 0;
+  line-height: 1.4;
 }
 
-/* Hero Card */
-.hero-card {
-  padding: 1.5rem;
+/* Loading & Error States */
+.loading-card {
   display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-}
-
-.avatar-wrap {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #047857 0%, #10b981 100%);
-  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-weight: 800;
-  font-size: 1.6rem;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-  overflow: hidden;
-}
-
-.avatar-photo-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.hero-info {
-  flex: 1;
-}
-
-.hero-header-row {
-  display: flex;
-  align-items: center;
   gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.student-name {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.status-badge {
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 0.2rem 0.6rem;
-  border-radius: 12px;
-  text-transform: uppercase;
-}
-
-.status-badge.active {
-  background-color: rgba(16, 185, 129, 0.15);
-  color: #10b981;
-}
-
-.hero-meta-row {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin-top: 0.35rem;
-  flex-wrap: wrap;
-}
-
-.meta-item strong {
-  color: var(--text-primary);
-}
-
-.meta-sep {
-  color: var(--border-subtle);
-}
-
-/* Two Column Details */
-.details-two-column {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem;
-  margin-top: 1.25rem;
-}
-
-.info-card {
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-}
-
-.full-width {
-  grid-column: span 2;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 0.65rem;
-}
-
-.section-icon {
-  width: 1.2rem;
-  height: 1.2rem;
-  color: #10b981;
-}
-
-.section-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.info-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px dashed var(--border-subtle);
+  padding: 3.5rem 1.5rem;
+  color: #64748B;
   font-size: 0.88rem;
-}
-
-.info-label {
-  color: var(--text-muted);
-}
-
-.info-val {
-  color: var(--text-primary);
-  text-align: right;
-}
-
-.font-semibold {
-  font-weight: 600;
-}
-
-.font-mono {
-  font-family: monospace;
-  background-color: var(--bg-surface-secondary);
-  padding: 0.1rem 0.4rem;
-  border-radius: 4px;
-}
-
-/* Academic stats */
-.academic-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-}
-
-.stat-box {
-  background-color: var(--bg-surface-secondary);
-  padding: 1rem;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  border-left: 3px solid #10b981;
-}
-
-.stat-lbl {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
-
-.stat-val {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--text-primary);
-}
-
-.stat-sub {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-.text-emerald {
-  color: #10b981;
-}
-
-/* Common states */
-.loading-card, .error-card {
-  padding: 3rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
 }
 
 .spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid var(--border-subtle);
-  border-top-color: #10b981;
+  border: 3px solid #E2E8F0;
+  border-top-color: #10B981;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -503,54 +366,346 @@ onMounted(() => {
   to { transform: rotate(360deg); }
 }
 
+.error-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background-color: #FEF2F2;
+  border-color: #FECACA;
+  color: #991B1B;
+}
+
+.error-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #FEE2E2;
+  color: #DC2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.error-icon-box svg {
+  width: 22px;
+  height: 22px;
+}
+
+.error-content {
+  flex: 1;
+}
+
 .error-title {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  color: #dc2626;
   margin: 0;
 }
 
 .error-desc {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin: 0;
+  font-size: 0.82rem;
+  margin: 0.2rem 0 0 0;
+  color: #B91C1C;
 }
 
 .retry-btn {
-  background-color: #0f172a;
-  color: #fff;
-  border: 1px solid #334155;
-  padding: 0.4rem 1rem;
-  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  background-color: #DC2626;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
 }
 
-@media (max-width: 820px) {
+/* Profile Content Stack */
+.profile-content-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Profile Hero Card */
+.profile-hero-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.75rem;
+  background: #FFFFFF;
+}
+
+.hero-bg-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #0A192F 0%, #10B981 50%, #F59E0B 100%);
+}
+
+.hero-body-content {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.avatar-wrap {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  flex-shrink: 0;
+}
+
+.avatar-photo-img {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.avatar-initials {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0A192F 0%, #1E3A8A 100%);
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 4px 12px rgba(10, 25, 47, 0.2);
+}
+
+.online-indicator-pip {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: #10B981;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.hero-info {
+  flex: 1;
+  min-width: 250px;
+}
+
+.hero-header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.student-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-badge.active {
+  background-color: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.status-badge.inactive {
+  background-color: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.hero-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.84rem;
+  color: #64748B;
+  flex-wrap: wrap;
+}
+
+.meta-pill {
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.meta-pill strong {
+  color: #0F172A;
+}
+
+.meta-dot {
+  color: #CBD5E1;
+}
+
+/* Two Column Details Grid */
+.details-two-column {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-card {
+  padding: 1.5rem;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.card-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.card-icon-wrap svg {
+  width: 19px;
+  height: 19px;
+}
+
+.bg-blue-tint { background: #EFF6FF; color: #2563EB; }
+.bg-emerald-tint { background: #ECFDF5; color: #059669; }
+.bg-purple-tint { background: #FAF5FF; color: #7C3AED; }
+
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+}
+
+.section-sub {
+  font-size: 0.75rem;
+  color: #64748B;
+  margin: 0.15rem 0 0 0;
+}
+
+.info-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid #F8FAFC;
+  font-size: 0.84rem;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: #64748B;
+  font-weight: 500;
+}
+
+.info-val {
+  color: #1E293B;
+  text-align: right;
+}
+
+/* Academic Stats Grid */
+.academic-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.stat-box {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-lbl {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #64748B;
+}
+
+.stat-val {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0.25rem 0;
+}
+
+.stat-sub {
+  font-size: 0.72rem;
+  color: #94A3B8;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 900px) {
   .details-two-column {
     grid-template-columns: 1fr;
-  }
-  .full-width {
-    grid-column: span 1;
   }
   .academic-stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .hero-card {
+}
+
+@media (max-width: 640px) {
+  .hero-body-content {
     flex-direction: column;
     text-align: center;
+    gap: 1rem;
   }
   .hero-header-row {
     justify-content: center;
   }
   .hero-meta-row {
     justify-content: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .academic-stats-grid {
-    grid-template-columns: 1fr;
   }
   .info-row {
     flex-direction: column;
@@ -559,6 +714,9 @@ onMounted(() => {
   }
   .info-val {
     text-align: left;
+  }
+  .academic-stats-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

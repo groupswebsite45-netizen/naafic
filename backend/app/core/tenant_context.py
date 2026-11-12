@@ -111,7 +111,7 @@ def get_tenant_engine(database_name: str) -> Engine:
     """Returns or creates a cached SQLAlchemy Engine for the specified tenant database."""
     clean_db = (database_name or "").strip().lower()
     default_db = get_default_database_name().lower()
-    if not clean_db or clean_db in ["sms", default_db]:
+    if not clean_db or clean_db in ["sms", "hawlwadaag_school_db", default_db]:
         return get_central_engine()
 
     if clean_db not in _tenant_engines:
@@ -148,34 +148,20 @@ def get_tenant_sessionmaker(database_name: str) -> sessionmaker:
 
 def extract_tenant_context_from_request(request: Request) -> Dict[str, Optional[str]]:
     """
-    Extracts institution identifiers from:
-    1. HTTP Headers: X-Institution-Code, X-Institution-Id
-    2. URL Query Params: institution_code, institution_id, institution
-    3. JWT Authorization Bearer token payload (if present)
+    Extracts institution identifiers with strict isolation:
+    1. JWT Authorization Bearer token payload is the authoritative source for authenticated requests.
+       Tenant users CANNOT override their tenant context via request headers or query params.
+    2. Super Admins may target a specific tenant database via X-Institution-Id / X-Institution-Code.
+    3. Unauthenticated requests (e.g. public settings, tenant login branding) read headers / query params.
     """
     context: Dict[str, Optional[str]] = {
         "code": None,
         "id": None,
         "db_name": None,
+        "is_super_admin": False,
     }
 
-    # 1. Headers
-    if "x-institution-code" in request.headers:
-        context["code"] = request.headers.get("x-institution-code", "").strip() or None
-    if "x-institution-id" in request.headers:
-        context["id"] = request.headers.get("x-institution-id", "").strip() or None
-
-    # 2. Query Parameters
-    if not context["code"]:
-        context["code"] = (
-            request.query_params.get("institution_code")
-            or request.query_params.get("institution")
-            or None
-        )
-    if not context["id"]:
-        context["id"] = request.query_params.get("institution_id") or None
-
-    # 3. JWT Token Payload (Authorization header or ?token= query parameter)
+    # 1. Inspect JWT Token first if present
     token = None
     auth_header = request.headers.get("authorization", "")
     if auth_header.startswith("Bearer "):
@@ -186,14 +172,35 @@ def extract_tenant_context_from_request(request: Request) -> Dict[str, Optional[
     if token:
         try:
             payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
-            if not context["code"] and payload.get("institution_code"):
-                context["code"] = str(payload.get("institution_code"))
-            if not context["id"] and payload.get("institution_id"):
-                context["id"] = str(payload.get("institution_id"))
-            if payload.get("database_name"):
-                context["db_name"] = str(payload.get("database_name"))
+            is_super = bool(payload.get("is_superuser")) or any(
+                str(r).upper() in ["SUPER_ADMIN", "SUPERADMIN"] for r in (payload.get("roles") or [])
+            )
+            context["is_super_admin"] = is_super
+
+            if not is_super:
+                # For tenant users, token claims are IMMUTABLE & AUTHORITATIVE
+                if payload.get("database_name"):
+                    context["db_name"] = str(payload.get("database_name"))
+                if payload.get("institution_code"):
+                    context["code"] = str(payload.get("institution_code"))
+                if payload.get("institution_id"):
+                    context["id"] = str(payload.get("institution_id"))
+                return context
         except JWTError:
             pass
+
+    # 2. For Super Admin or unauthenticated requests, inspect request headers and query parameters
+    header_code = request.headers.get("x-institution-code", "").strip() or None
+    header_id = request.headers.get("x-institution-id", "").strip() or None
+    query_code = (
+        request.query_params.get("institution_code")
+        or request.query_params.get("institution")
+        or None
+    )
+    query_id = request.query_params.get("institution_id") or None
+
+    context["code"] = header_code or query_code
+    context["id"] = header_id or query_id
 
     return context
 
@@ -204,7 +211,7 @@ def get_default_database_name() -> str:
         db_part = url.rsplit("/", 1)[-1].split("?")[0]
         if db_part:
             return db_part
-    return "hawlwadaag_school_db"
+    return "sms"
 
 
 def resolve_tenant_database_name(request: Request) -> str:

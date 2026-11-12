@@ -1136,6 +1136,7 @@ onMounted(() => {
     width: 100%;
   }
 
+  .btn-portal-batch-header,
   .btn-secondary-header,
   .btn-primary-header {
     width: 100%;

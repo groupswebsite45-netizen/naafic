@@ -2466,7 +2466,11 @@ onMounted(async () => {
   border-bottom: 2px solid #e2e8f0;
   margin-bottom: 1.5rem;
   overflow-x: auto;
+  max-width: 100%;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: 0.25rem;
+  box-sizing: border-box;
 }
 .tab-link {
   display: inline-flex;
@@ -2991,6 +2995,12 @@ onMounted(async () => {
   gap: 1rem;
   margin: 1.25rem 0;
 }
+@media (max-width: 640px) {
+  .report-overall-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+}
 .overall-stat-card {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -3288,5 +3298,91 @@ onMounted(async () => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* ========================================================================= */
+/* RESPONSIVE ENHANCEMENTS FOR ADMIN RESULTS                                 */
+/* ========================================================================= */
+@media (max-width: 768px) {
+  .results-management-page {
+    padding: 0.5rem 0;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .results-tab-bar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    padding-bottom: 0.25rem;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .tab-link {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .table-toolbar,
+  .sheet-toolbar-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .class-picker-group,
+  .sheet-actions-group {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .picker-select {
+    width: 100%;
+  }
+
+  .search-input-wrap {
+    width: 100%;
+  }
+
+  .toolbar-search-input {
+    width: 100%;
+  }
+
+  .classes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .class-card {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .kpi-dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .btn-primary-orange {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style>

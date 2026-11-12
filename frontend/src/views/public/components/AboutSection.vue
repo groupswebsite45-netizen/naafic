@@ -539,9 +539,11 @@ function scrollToContact() {
   top: -80px;
   left: 10%;
   width: 700px;
+  max-width: 100vw;
   height: 450px;
   background: radial-gradient(circle, rgba(234, 241, 255, 0.9) 0%, rgba(245, 248, 253, 0) 70%);
   border-radius: 50%;
+  pointer-events: none;
 }
 
 .bg-glow-center-right {
@@ -549,9 +551,11 @@ function scrollToContact() {
   top: 100px;
   right: -60px;
   width: 550px;
+  max-width: 100vw;
   height: 550px;
   background: radial-gradient(circle, rgba(255, 105, 0, 0.04) 0%, rgba(255, 245, 235, 0) 70%);
   border-radius: 50%;
+  pointer-events: none;
 }
 
 .bg-curved-arc-svg {
@@ -1256,7 +1260,10 @@ function scrollToContact() {
 
 @media (max-width: 768px) {
   .about-section {
-    padding: 60px 0 75px;
+    padding: 55px 0 70px;
+  }
+  .about-container {
+    padding: 0 clamp(0.85rem, 3vw, 1.25rem);
   }
   .value-pillars-row {
     grid-template-columns: 1fr;
@@ -1264,33 +1271,81 @@ function scrollToContact() {
   }
   .industry-cards-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
   .company-stats-strip {
-    grid-template-columns: 1fr;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.25rem;
+    padding: 1.5rem 1rem;
+  }
+  .stat-value {
+    font-size: 1.6rem;
+  }
+  .stat-label {
+    font-size: 0.82rem;
   }
   .floating-bubble-top {
-    left: 0;
+    left: 8px;
+    top: 8px;
+    padding: 0.4rem 0.65rem;
+    transform: scale(0.9);
   }
   .floating-custom-card {
-    left: 0;
+    left: 8px;
+    bottom: 8px;
+    padding: 0.5rem 0.75rem;
+    transform: scale(0.9);
   }
   .floating-industries-stack {
     display: none;
   }
   .cta-buttons-group {
     flex-direction: column;
+    gap: 0.65rem;
   }
   .btn-cta-primary,
   .btn-cta-secondary {
     width: 100%;
     justify-content: center;
+    min-height: 46px;
   }
 }
 
 @media (max-width: 480px) {
+  .about-badge-pill {
+    font-size: 0.72rem;
+    padding: 0.35rem 0.85rem;
+  }
+  .about-main-title {
+    font-size: clamp(1.65rem, 5.5vw, 2.05rem);
+    line-height: 1.22;
+  }
+  .about-lead-paragraph {
+    font-size: 0.925rem;
+    line-height: 1.55;
+  }
   .industry-cards-grid {
     grid-template-columns: 1fr;
+  }
+  .pillar-card {
+    padding: 1.35rem 1.15rem;
+  }
+  .industry-card {
+    padding: 1.25rem 1rem;
+  }
+  .cta-banner-card {
+    padding: 2.25rem 1.25rem;
+  }
+  .cta-headline {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .company-stats-strip {
+    grid-template-columns: 1fr;
+    text-align: center;
   }
 }
 </style>

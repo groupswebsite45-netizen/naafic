@@ -14,6 +14,13 @@ class InstitutionLoginInfo(BaseModel):
     id: int
     code: str
     name: str
+    type: Optional[str] = "School"
+    logo_url: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    city: Optional[str] = None
+    address: Optional[str] = None
+    database_name: Optional[str] = None
 
 
 class TokenResponse(BaseModel):
@@ -37,3 +44,4 @@ class PasswordChangeRequest(BaseModel):
 class CurrentUserResponse(BaseModel):
     user: UserResponse
     permissions: List[str] = []
+    institution: Optional[InstitutionLoginInfo] = None

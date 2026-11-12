@@ -2,6 +2,8 @@
 import { onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useNotificationStore } from '../../stores/notification';
+import { useSchoolBrandingStore } from '../../stores/schoolBranding';
+import { useI18n } from '../../i18n';
 
 interface Props {
   isOpen: boolean;
@@ -15,9 +17,12 @@ const emit = defineEmits<{
 const router = useRouter();
 const route = useRoute();
 const notificationStore = useNotificationStore();
+const brandingStore = useSchoolBrandingStore();
+const { t } = useI18n();
 
 onMounted(() => {
   notificationStore.fetchStats();
+  brandingStore.applyBrandingToDocument();
 });
 </script>
 
@@ -37,23 +42,22 @@ onMounted(() => {
       :class="{ 'sidebar-open': isOpen }"
       aria-label="Admin Navigation Sidebar"
     >
-      <!-- SOMROYAL Header Branding -->
+      <!-- School Header Branding (Multi-Tenant Dynamic) -->
       <div class="sidebar-header">
         <div class="brand-logo-wrap">
-          <!-- Crown Icon + Stylized S Logo -->
-          <svg class="somroyal-crown-icon" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 13L4 4L8.5 8.5L12 2L15.5 8.5L20 4L22 13H2Z" fill="#F59E0B" stroke="#D97706" stroke-width="1.2" stroke-linejoin="round"/>
-            <circle cx="4" cy="4" r="1.2" fill="#FDE68A" />
-            <circle cx="12" cy="2" r="1.2" fill="#FDE68A" />
-            <circle cx="20" cy="4" r="1.2" fill="#FDE68A" />
-          </svg>
-          <div class="somroyal-s-wrap">
-            <span class="somroyal-s-letter">S</span>
+          <img
+            v-if="brandingStore.schoolLogo"
+            :src="brandingStore.schoolLogo"
+            :alt="brandingStore.schoolName"
+            class="school-header-img"
+          />
+          <div v-else class="school-initials-badge">
+            <span class="school-initials-text">{{ brandingStore.schoolInitials }}</span>
           </div>
         </div>
         <div class="brand-details">
-          <h2 class="brand-title">SOMROYAL</h2>
-          <span class="brand-subtitle">EDUCATIONAL MANAGEMENT SYSTEM</span>
+          <h2 class="brand-title" :title="brandingStore.schoolName">{{ brandingStore.schoolName }}</h2>
+          <span class="brand-subtitle">{{ brandingStore.schoolCode }} &bull; {{ brandingStore.schoolType }}</span>
         </div>
 
         <!-- Mobile Close Button -->
@@ -82,7 +86,7 @@ onMounted(() => {
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            <span class="nav-label">Dashboard</span>
+            <span class="nav-label">{{ t('nav.dashboard') }}</span>
           </router-link>
 
           <!-- 2. Students -->
@@ -95,7 +99,7 @@ onMounted(() => {
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
-            <span class="nav-label">Students</span>
+            <span class="nav-label">{{ t('nav.students') }}</span>
           </router-link>
 
           <!-- 3. Teachers -->
@@ -108,7 +112,7 @@ onMounted(() => {
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
-            <span class="nav-label">Teachers</span>
+            <span class="nav-label">{{ t('nav.teachers') }}</span>
           </router-link>
 
           <!-- 4. Classes -->
@@ -121,7 +125,7 @@ onMounted(() => {
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
-            <span class="nav-label">Classes</span>
+            <span class="nav-label">{{ t('nav.classes') }}</span>
           </router-link>
 
           <!-- 5. Class Promotion -->
@@ -134,7 +138,7 @@ onMounted(() => {
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z" />
             </svg>
-            <span class="nav-label">Class Promotion</span>
+            <span class="nav-label">{{ t('nav.classPromotion') }}</span>
           </router-link>
 
           <!-- 6. Subjects -->
@@ -147,7 +151,7 @@ onMounted(() => {
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
-            <span class="nav-label">Subjects</span>
+            <span class="nav-label">{{ t('nav.subjects') }}</span>
           </router-link>
 
           <!-- 7. Timetable -->
@@ -160,7 +164,7 @@ onMounted(() => {
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <span class="nav-label">Timetable</span>
+            <span class="nav-label">{{ t('nav.timetable') }}</span>
           </router-link>
 
           <!-- 8. Exams -->
@@ -173,7 +177,7 @@ onMounted(() => {
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
-            <span class="nav-label">Exams</span>
+            <span class="nav-label">{{ t('nav.exams') }}</span>
           </router-link>
 
           <!-- 9. Results Management -->
@@ -186,7 +190,7 @@ onMounted(() => {
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <span class="nav-label">Results Management</span>
+            <span class="nav-label">{{ t('nav.resultsManagement') }}</span>
           </router-link>
 
           <!-- 10. Fees & Payments (with Chevron >) -->
@@ -199,7 +203,7 @@ onMounted(() => {
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span class="nav-label">Fees & Payments</span>
+            <span class="nav-label">{{ t('nav.feesPayments') }}</span>
             <svg class="nav-chevron" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
             </svg>
@@ -215,7 +219,7 @@ onMounted(() => {
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            <span class="nav-label">Reports</span>
+            <span class="nav-label">{{ t('nav.reports') }}</span>
             <svg class="nav-chevron" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
             </svg>
@@ -231,7 +235,7 @@ onMounted(() => {
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <span class="nav-label">Users & Roles</span>
+            <span class="nav-label">{{ t('nav.usersRoles') }}</span>
           </router-link>
 
           <!-- 13. Settings -->
@@ -245,7 +249,7 @@ onMounted(() => {
               <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <span class="nav-label">Settings</span>
+            <span class="nav-label">{{ t('nav.settings') }}</span>
           </router-link>
         </nav>
 
@@ -258,13 +262,18 @@ onMounted(() => {
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 11a9 9 0 0118 0v3a3 3 0 01-3 3h-1a2 2 0 01-2-2v-4a2 2 0 012-2h2M3 11v3a3 3 0 003 3h1a2 2 0 002-2v-4a2 2 0 00-2-2H5" />
               </svg>
             </div>
-            <h4 class="support-title">Need Help?</h4>
-            <p class="support-desc">Our support team is here to assist you.</p>
+            <h4 class="support-title">{{ t('nav.needHelp') }}</h4>
+            <p class="support-desc">{{ t('nav.supportDesc') }}</p>
             <button type="button" class="support-btn" @click="router.push('/admin/settings')">
-              <span>Contact Support</span>
+              <span>{{ t('nav.contactSupport') }}</span>
               <span class="support-arrow">&rarr;</span>
             </button>
           </div>
+        </div>
+
+        <!-- Somroyal SaaS Platform Attribution Footer -->
+        <div class="sidebar-saas-footer">
+          <span class="saas-badge">POWERED BY SOMROYAL EMS</span>
         </div>
       </div>
     </aside>
@@ -299,56 +308,80 @@ onMounted(() => {
 
 .brand-logo-wrap {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.somroyal-crown-icon {
-  width: 20px;
-  height: 12px;
-  margin-bottom: -2px;
+.school-header-img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  border-radius: 8px;
+  background-color: #ffffff;
+  padding: 2px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
-.somroyal-s-wrap {
-  width: 28px;
-  height: 28px;
+.school-initials-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #FF6500 0%, #FF8A00 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(255, 101, 0, 0.35);
 }
 
-.somroyal-s-letter {
-  font-family: 'Outfit', 'Inter', sans-serif;
-  font-size: 1.65rem;
-  font-weight: 900;
-  color: #2563EB;
-  text-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
-  line-height: 1;
+.school-initials-text {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.5px;
 }
 
 .brand-details {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
 }
 
 .brand-title {
-  font-size: 1.15rem;
+  font-size: 0.95rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  letter-spacing: -0.01em;
   color: #ffffff;
   margin: 0;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .brand-subtitle {
-  font-size: 0.58rem;
+  font-size: 0.65rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
   color: #94A3B8;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.sidebar-saas-footer {
+  padding: 0.75rem 1.25rem 1.25rem;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.saas-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .close-sidebar-btn {

@@ -271,12 +271,82 @@ const items = computed(() => [
 @media (max-width: 1024px) {
   .summary-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
   }
 }
 
 @media (max-width: 640px) {
   .summary-strip {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+  }
+
+  .summary-tile {
+    padding: 0.85rem 0.75rem;
+    gap: 0.65rem;
+    border-radius: 14px;
+  }
+
+  .tile-icon-box {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border-radius: 10px;
+  }
+
+  .tile-svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .desktop-label {
+    display: none;
+  }
+
+  .mobile-label {
+    display: inline-block;
+    font-size: 0.72rem;
+  }
+
+  .tile-number {
+    font-size: 1.35rem;
+  }
+
+  .tile-caption {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .summary-strip {
+    gap: 0.5rem;
+  }
+
+  .summary-tile {
+    padding: 0.75rem 0.55rem;
+    gap: 0.5rem;
+    border-radius: 12px;
+  }
+
+  .tile-icon-box {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 8px;
+  }
+
+  .tile-svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .mobile-label {
+    font-size: 0.66rem;
+  }
+
+  .tile-number {
+    font-size: 1.2rem;
   }
 }
 </style>

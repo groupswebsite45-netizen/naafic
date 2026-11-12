@@ -3180,5 +3180,9 @@ tr:hover td {
   .form-box.full-span {
     grid-column: span 1;
   }
+  .receipt-numbers-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+  }
 }
 </style>

@@ -127,7 +127,7 @@ const benefitsList = computed<BenefitItem[]>(() => [
 
 .section-title {
   font-family: 'Outfit', sans-serif;
-  font-size: 2.35rem;
+  font-size: clamp(1.85rem, 5vw, 2.35rem);
   font-weight: 800;
   color: #0f2b5c;
   line-height: 1.25;
@@ -135,7 +135,7 @@ const benefitsList = computed<BenefitItem[]>(() => [
 }
 
 .section-subtitle {
-  font-size: 1.05rem;
+  font-size: clamp(0.925rem, 2.5vw, 1.05rem);
   color: #64748b;
   line-height: 1.6;
 }
@@ -150,7 +150,7 @@ const benefitsList = computed<BenefitItem[]>(() => [
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  padding: 2rem;
+  padding: clamp(1.35rem, 3.5vw, 2rem);
   display: flex;
   flex-direction: column;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -210,14 +210,31 @@ const benefitsList = computed<BenefitItem[]>(() => [
 }
 
 @media (max-width: 1024px) {
+  .benefits-section {
+    padding: 65px 0;
+  }
   .benefits-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .benefits-section {
+    padding: 55px 0 65px;
+  }
+  .benefits-container {
+    padding: 0 clamp(0.85rem, 3vw, 1.5rem);
+  }
+  .section-header {
+    margin-bottom: 2.25rem;
   }
 }
 
 @media (max-width: 640px) {
   .benefits-grid {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
 }
 </style>

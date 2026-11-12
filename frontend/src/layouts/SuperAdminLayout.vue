@@ -138,11 +138,13 @@ onUnmounted(() => {
 <template>
   <div class="super-admin-layout" :class="{ 'sidebar-collapsed': isCollapsed }">
     <!-- Mobile Backdrop Overlay -->
-    <div
-      v-if="isMobileOpen"
-      class="sidebar-backdrop"
-      @click="closeMobileSidebar"
-    ></div>
+    <transition name="fade">
+      <div
+        v-if="isMobileOpen"
+        class="sidebar-backdrop"
+        @click="closeMobileSidebar"
+      ></div>
+    </transition>
 
     <!-- Left Deep Navy Sidebar -->
     <aside
@@ -154,7 +156,7 @@ onUnmounted(() => {
     >
       <!-- Logo Header Section -->
       <div class="sa-logo-section">
-        <router-link to="/super-admin/dashboard" class="sa-logo-link">
+        <router-link to="/super-admin/dashboard" class="sa-logo-link" @click="closeMobileSidebar">
           <!-- Crown & Shield Emblem -->
           <div class="sa-emblem-wrap">
             <!-- Crown SVG -->
@@ -177,14 +179,14 @@ onUnmounted(() => {
           <!-- Typography (Hidden when collapsed) -->
           <div v-show="!isCollapsed" class="sa-brand-text">
             <span class="sa-brand-name">SOMROYAL</span>
-            <span class="sa-brand-tagline">EDUCATIONAL MANAGEMENT SYSTEM</span>
+            <span class="sa-brand-tagline">SUPER ADMIN PORTAL</span>
           </div>
         </router-link>
 
         <!-- Close button for mobile drawer -->
         <button class="sa-close-mobile-btn" @click="closeMobileSidebar" aria-label="Close menu">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
@@ -251,22 +253,22 @@ onUnmounted(() => {
         </router-link>
       </nav>
 
-      <!-- Bottom Dedicated Support Card (from Reference Image) -->
+      <!-- Bottom Dedicated Support Card -->
       <div class="sa-sidebar-footer">
         <div v-if="!isCollapsed" class="sa-support-card">
           <div class="sa-support-header">
             <div class="sa-support-icon">
-              <svg class="w-5 h-5 text-blue-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
                 <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
               </svg>
             </div>
             <div>
               <h4 class="sa-support-title">Need Help?</h4>
-              <p class="sa-support-desc">Our support team is here to assist you.</p>
+              <p class="sa-support-desc">Somroyal 24/7 technical assistance.</p>
             </div>
           </div>
-          <router-link to="/super-admin/settings" class="sa-support-btn">
+          <router-link to="/super-admin/settings" class="sa-support-btn" @click="closeMobileSidebar">
             <span>Contact Support</span>
             <svg class="w-4 h-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -312,7 +314,7 @@ onUnmounted(() => {
               v-model="searchQuery"
               @keydown="handleSearch"
               class="sa-search-input"
-              placeholder="Search institutions, subscriptions, payments, or anything..."
+              placeholder="Search institutions, subscriptions, payments..."
             />
             <span class="sa-search-shortcut">Ctrl + K</span>
           </div>
@@ -320,7 +322,7 @@ onUnmounted(() => {
 
         <!-- Right Controls: Language Dropdown, Notifications, Messages, Super Admin Profile -->
         <div class="sa-topbar-right">
-          <!-- Language Selector (US Flag + EN Dropdown as in Reference Image) -->
+          <!-- Language Selector -->
           <div class="sa-lang-box" @click.stop>
             <button
               type="button"
@@ -328,7 +330,7 @@ onUnmounted(() => {
               @click="toggleLangMenu"
               aria-haspopup="true"
             >
-              <!-- Vector US Flag (renders correctly everywhere, avoiding OS 'US' emoji text fallback) -->
+              <!-- Vector Flag -->
               <span class="sa-flag-wrap" v-if="currentLang === 'en'" title="United States">
                 <svg class="sa-flag-svg" viewBox="0 0 640 480">
                   <path fill="#bd3d44" d="M0 0h640v480H0z"/>
@@ -411,9 +413,9 @@ onUnmounted(() => {
             </transition>
           </div>
 
-          <!-- Notification Bell with Counter (3) -->
+          <!-- Notification Bell with Counter -->
           <div class="sa-icon-btn-wrap">
-            <button class="sa-header-icon-btn" aria-label="Notifications" title="Notifications">
+            <button class="sa-header-icon-btn" aria-label="Notifications" title="System Notifications">
               <svg class="sa-header-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-linecap="round" stroke-linejoin="round" />
@@ -434,7 +436,7 @@ onUnmounted(() => {
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke-linecap="round" stroke-linejoin="round" />
                 <polyline points="22,6 12,13 2,6" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
-              <span v-if="unreadInquiries > 0" class="sa-header-badge">{{ unreadInquiries }}</span>
+              <span v-if="unreadInquiries > 0" class="sa-header-badge sa-header-badge-pulse">{{ unreadInquiries }}</span>
             </router-link>
           </div>
 
@@ -442,14 +444,14 @@ onUnmounted(() => {
           <div class="sa-user-menu-wrapper" @click.stop>
             <button class="sa-user-btn" @click="toggleUserMenu" :aria-expanded="isUserMenuOpen">
               <div class="sa-user-avatar">
-                <span>S</span>
+                <span>SA</span>
               </div>
               <div class="sa-user-info">
-                <span class="sa-user-name">Somroyal Super Admin</span>
+                <span class="sa-user-name">Somroyal Admin</span>
                 <span class="sa-user-role">Super Administrator</span>
               </div>
-              <svg class="sa-user-chevron" :class="{ 'rotate-180': isUserMenuOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              <svg class="sa-user-chevron" :class="{ 'rotate-180': isUserMenuOpen }" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
               </svg>
             </button>
 
@@ -458,22 +460,22 @@ onUnmounted(() => {
               <div v-if="isUserMenuOpen" class="sa-dropdown-menu">
                 <div class="sa-dropdown-header">
                   <p class="sa-dd-name">Somroyal Super Admin</p>
-                  <p class="sa-dd-email">{{ authStore.user?.email || 'superadmin@somroyal.com' }}</p>
+                  <p class="sa-dd-email">superadmin@somroyal.com</p>
                 </div>
                 <div class="sa-dropdown-divider"></div>
                 <router-link to="/super-admin/settings" class="sa-dd-item" @click="isUserMenuOpen = false">
                   <svg class="sa-dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3" />
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                   </svg>
-                  Platform Settings
+                  System Settings
                 </router-link>
-                <router-link to="/" class="sa-dd-item" @click="isUserMenuOpen = false">
+                <router-link to="/super-admin/inbox" class="sa-dd-item" @click="isUserMenuOpen = false">
                   <svg class="sa-dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="2" y1="12" x2="22" y2="12" />
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                    <polyline points="22,6 12,13 2,6" />
                   </svg>
-                  Public Website
+                  CRM Inquiries
                 </router-link>
                 <div class="sa-dropdown-divider"></div>
                 <button class="sa-dd-item sa-dd-danger" @click="handleLogout">
@@ -490,7 +492,7 @@ onUnmounted(() => {
         </div>
       </header>
 
-      <!-- Main Body -->
+      <!-- Main Body View -->
       <main class="sa-content-view">
         <router-view />
       </main>
@@ -502,16 +504,17 @@ onUnmounted(() => {
 .super-admin-layout {
   min-height: 100vh;
   display: flex;
-  background-color: #f7f9fc;
+  background-color: #f8fafc;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
   color: #1e293b;
   position: relative;
+  overflow-x: hidden;
 }
 
 /* Sidebar */
 .sa-sidebar {
-  width: 250px;
-  background: radial-gradient(120% 80% at 20% 90%, #0d2859 0%, #061737 60%, #041026 100%);
+  width: 255px;
+  background: radial-gradient(130% 90% at 20% 90%, #0d2859 0%, #061737 60%, #030d1d 100%);
   color: #ffffff;
   display: flex;
   flex-direction: column;
@@ -520,8 +523,8 @@ onUnmounted(() => {
   bottom: 0;
   left: 0;
   z-index: 50;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
-  transition: width 0.25s ease-in-out, transform 0.25s ease-in-out;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sa-sidebar.collapsed {
@@ -573,27 +576,37 @@ onUnmounted(() => {
 }
 
 .sa-brand-name {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 900;
   color: #ffffff;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, #ffffff 0%, #fed7aa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .sa-brand-tagline {
   font-size: 0.58rem;
   font-weight: 700;
   color: #94a3b8;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   margin-top: 2px;
 }
 
 .sa-close-mobile-btn {
   display: none;
-  background: transparent;
-  border: none;
-  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.4rem;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+
+.sa-close-mobile-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
 /* Nav */
@@ -602,39 +615,44 @@ onUnmounted(() => {
   padding: 1.25rem 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.35rem;
   overflow-y: auto;
 }
 
 .sa-nav-item {
   display: flex;
   align-items: center;
-  padding: 0.7rem 1rem;
-  border-radius: 10px;
-  color: #cbd5e1;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  color: #94a3b8;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   gap: 0.85rem;
   white-space: nowrap;
 }
 
 .sa-sidebar.collapsed .sa-nav-item {
   justify-content: center;
-  padding: 0.7rem 0;
+  padding: 0.75rem 0;
 }
 
 .sa-nav-item:hover {
   color: #ffffff;
   background-color: rgba(255, 255, 255, 0.08);
+  transform: translateX(2px);
+}
+
+.sa-sidebar.collapsed .sa-nav-item:hover {
+  transform: none;
 }
 
 .sa-nav-item.active {
-  background-color: #ff6500;
+  background: linear-gradient(135deg, #ff6500 0%, #ea580c 100%);
   color: #ffffff;
   font-weight: 600;
-  box-shadow: 0 4px 14px rgba(255, 101, 0, 0.4);
+  box-shadow: 0 4px 16px rgba(255, 101, 0, 0.35);
 }
 
 .sa-nav-icon {
@@ -643,20 +661,33 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
+.sa-sidebar-unread-badge {
+  margin-left: auto;
+  background: #ff6500;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(255, 101, 0, 0.4);
+}
+
 /* Sidebar Footer Support Card */
 .sa-sidebar-footer {
   padding: 1rem 0.85rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .sa-support-card {
-  background: rgba(14, 38, 77, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(14, 38, 77, 0.9) 0%, rgba(7, 23, 49, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 14px;
   padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
 
 .sa-support-header {
@@ -689,12 +720,6 @@ onUnmounted(() => {
   line-height: 1.35;
 }
 
-.sa-support-icon svg {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-}
-
 .sa-support-btn {
   display: flex;
   align-items: center;
@@ -707,7 +732,7 @@ onUnmounted(() => {
   font-weight: 700;
   padding: 0.6rem 0.75rem;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(255, 101, 0, 0.35);
+  box-shadow: 0 3px 10px rgba(255, 101, 0, 0.35);
   transition: all 0.2s;
 }
 
@@ -739,12 +764,6 @@ onUnmounted(() => {
   transition: background 0.2s;
 }
 
-.sa-collapsed-support svg {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-}
-
 .sa-collapsed-support:hover {
   background: rgba(255, 255, 255, 0.15);
 }
@@ -752,12 +771,12 @@ onUnmounted(() => {
 /* Main Area */
 .sa-main-wrapper {
   flex: 1;
-  margin-left: 250px;
+  margin-left: 255px;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   min-width: 0;
-  transition: margin-left 0.25s ease-in-out;
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sa-main-wrapper.collapsed {
@@ -777,7 +796,7 @@ onUnmounted(() => {
   top: 0;
   z-index: 40;
   gap: 1.25rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .sa-topbar-left {
@@ -790,14 +809,14 @@ onUnmounted(() => {
 }
 
 .sa-hamburger-btn {
-  background: transparent;
-  border: 1px solid transparent;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   color: #1e293b;
   cursor: pointer;
   padding: 0;
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -807,12 +826,12 @@ onUnmounted(() => {
 
 .sa-hamburger-btn:hover {
   background: #f1f5f9;
-  border-color: #e2e8f0;
+  border-color: #cbd5e1;
 }
 
 .sa-hamburger-svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   stroke: #1e293b;
   flex-shrink: 0;
   display: block;
@@ -821,20 +840,20 @@ onUnmounted(() => {
 .sa-search-box {
   display: flex;
   align-items: center;
-  background: #f1f5f9;
+  background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   padding: 0 0.85rem;
   height: 42px;
   width: 100%;
   gap: 0.65rem;
-  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+  transition: all 0.15s ease;
 }
 
 .sa-search-box:focus-within {
   background: #ffffff;
-  border-color: #FF6500;
-  box-shadow: 0 0 0 3px rgba(255, 101, 0, 0.1);
+  border-color: #ff6500;
+  box-shadow: 0 0 0 3px rgba(255, 101, 0, 0.12);
 }
 
 .sa-search-icon {
@@ -850,7 +869,7 @@ onUnmounted(() => {
   background: transparent;
   outline: none;
   font-size: 0.875rem;
-  color: #1e293b;
+  color: #0f172a;
   width: 100%;
   padding: 0;
 }
@@ -865,7 +884,7 @@ onUnmounted(() => {
   color: #64748b;
   background: #e2e8f0;
   padding: 0.2rem 0.5rem;
-  border-radius: 4px;
+  border-radius: 5px;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -874,7 +893,7 @@ onUnmounted(() => {
 .sa-topbar-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
   flex-shrink: 0;
 }
 
@@ -887,12 +906,12 @@ onUnmounted(() => {
 .sa-lang-dropdown-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   padding: 0.35rem 0.65rem;
-  height: 38px;
-  border-radius: 8px;
+  height: 40px;
+  border-radius: 10px;
   font-size: 0.82rem;
   font-weight: 600;
   color: #334155;
@@ -926,10 +945,11 @@ onUnmounted(() => {
 }
 
 .sa-dropdown-chevron {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   color: #64748b;
   flex-shrink: 0;
+  transition: transform 0.2s;
 }
 
 .sa-lang-dropdown-menu {
@@ -938,9 +958,9 @@ onUnmounted(() => {
   right: 0;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-  padding: 0.35rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  padding: 0.4rem;
   width: 140px;
   z-index: 50;
   display: flex;
@@ -952,8 +972,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  padding: 0.45rem 0.6rem;
-  border-radius: 6px;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
   font-size: 0.82rem;
   color: #334155;
   border: none;
@@ -961,6 +981,7 @@ onUnmounted(() => {
   width: 100%;
   cursor: pointer;
   text-align: left;
+  transition: background 0.15s;
 }
 
 .sa-lang-option:hover {
@@ -969,12 +990,12 @@ onUnmounted(() => {
 
 .sa-lang-option.active {
   background: #eff6ff;
-  color: #2563eb;
-  font-weight: 600;
+  color: #1e40af;
+  font-weight: 700;
 }
 
 .sa-lang-opt-name {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* Icon Buttons with badge */
@@ -984,9 +1005,9 @@ onUnmounted(() => {
 }
 
 .sa-header-icon-btn {
-  background: #ffffff;
+  background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 50%;
+  border-radius: 10px;
   width: 40px;
   height: 40px;
   display: flex;
@@ -1000,22 +1021,22 @@ onUnmounted(() => {
 }
 
 .sa-header-icon-btn:hover {
-  background: #f8fafc;
+  background: #f1f5f9;
   border-color: #cbd5e1;
 }
 
 .sa-header-icon-svg {
   width: 19px;
   height: 19px;
-  color: #1e293b;
-  stroke: #1e293b;
+  color: #334155;
+  stroke: #334155;
   flex-shrink: 0;
 }
 
 .sa-header-badge {
   position: absolute;
-  top: -2px;
-  right: -2px;
+  top: -4px;
+  right: -4px;
   background: #ff6500;
   color: #ffffff;
   font-size: 0.7rem;
@@ -1030,17 +1051,15 @@ onUnmounted(() => {
   line-height: 1;
 }
 
-.sa-sidebar-unread-badge {
-  margin-left: auto;
-  background: #ff6500;
-  color: #ffffff;
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 0.2rem 0.55rem;
-  border-radius: 9999px;
-  line-height: 1;
+.sa-header-badge-pulse {
+  animation: badge-pulse 2s infinite;
 }
 
+@keyframes badge-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 101, 0, 0.7); }
+  70% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(255, 101, 0, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 101, 0, 0); }
+}
 
 /* User Profile */
 .sa-user-menu-wrapper {
@@ -1052,34 +1071,34 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  background: transparent;
-  border: 1px solid transparent;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  border-radius: 10px;
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
   transition: all 0.15s ease;
   flex-shrink: 0;
 }
 
 .sa-user-btn:hover {
-  background: #f8fafc;
-  border-color: #e2e8f0;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 .sa-user-avatar {
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  min-height: 40px;
-  border-radius: 50%;
-  background: #061737;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #061737 0%, #1e40af 100%);
   color: #ffffff;
   font-weight: 800;
-  font-size: 1rem;
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(6, 23, 55, 0.2);
   flex-shrink: 0;
 }
 
@@ -1092,19 +1111,17 @@ onUnmounted(() => {
 }
 
 .sa-user-name {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #0f172a;
   line-height: 1.25;
-  white-space: nowrap;
 }
 
 .sa-user-role {
-  font-size: 0.72rem;
-  font-weight: 500;
-  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #ff6500;
   line-height: 1.2;
-  white-space: nowrap;
   margin-top: 2px;
 }
 
@@ -1112,7 +1129,6 @@ onUnmounted(() => {
   width: 14px;
   height: 14px;
   color: #64748b;
-  stroke: #64748b;
   flex-shrink: 0;
   margin-left: 2px;
   transition: transform 0.2s ease;
@@ -1129,14 +1145,14 @@ onUnmounted(() => {
   width: 230px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
   padding: 0.5rem;
   z-index: 50;
 }
 
 .sa-dropdown-header {
-  padding: 0.5rem 0.75rem;
+  padding: 0.6rem 0.75rem;
 }
 
 .sa-dd-name {
@@ -1144,14 +1160,12 @@ onUnmounted(() => {
   font-weight: 700;
   color: #0f172a;
   margin: 0;
-  white-space: nowrap;
 }
 
 .sa-dd-email {
   font-size: 0.72rem;
   color: #64748b;
-  margin: 0.15rem 0 0;
-  white-space: nowrap;
+  margin: 0.2rem 0 0;
 }
 
 .sa-dropdown-divider {
@@ -1163,11 +1177,11 @@ onUnmounted(() => {
 .sa-dd-item {
   display: flex;
   align-items: center;
-  padding: 0.55rem 0.75rem;
+  padding: 0.6rem 0.75rem;
   font-size: 0.82rem;
   color: #334155;
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: 8px;
   width: 100%;
   text-align: left;
   border: none;
@@ -1175,16 +1189,18 @@ onUnmounted(() => {
   cursor: pointer;
   transition: background 0.15s;
   box-sizing: border-box;
+  font-weight: 500;
 }
 
 .sa-dd-item:hover {
-  background: #f1f5f9;
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 .sa-dd-icon {
   width: 16px;
   height: 16px;
-  margin-right: 0.5rem;
+  margin-right: 0.6rem;
   flex-shrink: 0;
   color: #64748b;
 }
@@ -1195,6 +1211,7 @@ onUnmounted(() => {
 
 .sa-dd-danger:hover {
   background: #fef2f2;
+  color: #b91c1c;
 }
 
 .sa-icon-danger {
@@ -1207,12 +1224,14 @@ onUnmounted(() => {
   padding: 2rem 2.25rem;
   width: 100%;
   box-sizing: border-box;
+  max-width: 1680px;
+  margin: 0 auto;
 }
 
 /* Animations */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fade-slide-enter-from,
@@ -1221,11 +1240,21 @@ onUnmounted(() => {
   transform: translateY(-8px);
 }
 
-/* Responsive */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Responsive Rules */
 @media (max-width: 1024px) {
   .sa-sidebar {
     transform: translateX(-100%);
-    width: 250px !important;
+    width: 270px !important;
   }
 
   .sa-sidebar.mobile-open {
@@ -1233,7 +1262,9 @@ onUnmounted(() => {
   }
 
   .sa-close-mobile-btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .sa-main-wrapper {
@@ -1243,31 +1274,61 @@ onUnmounted(() => {
   .sidebar-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
+    background: rgba(6, 23, 55, 0.65);
+    backdrop-filter: blur(4px);
     z-index: 45;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .sa-topbar {
     padding: 0 1rem;
+    height: 64px;
+    gap: 0.75rem;
   }
 
   .sa-content-view {
     padding: 1.25rem 1rem;
   }
 
-  .sa-user-info {
-    display: none;
-  }
-
   .sa-search-box {
-    max-width: 170px;
+    max-width: 200px;
+    height: 38px;
   }
 
   .sa-search-shortcut {
     display: none;
+  }
+
+  .sa-user-info {
+    display: none;
+  }
+
+  .sa-user-btn {
+    padding: 0.2rem;
+    border-radius: 50%;
+  }
+
+  .sa-user-chevron {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .sa-search-box {
+    max-width: 140px;
+  }
+
+  .sa-search-input::placeholder {
+    content: "Search...";
+  }
+
+  .sa-lang-label {
+    display: none;
+  }
+
+  .sa-lang-dropdown-btn {
+    padding: 0.35rem 0.45rem;
   }
 }
 </style>

@@ -75,12 +75,14 @@ function emitScroll(target: string) {
   border-radius: 50%;
   filter: blur(80px);
   pointer-events: none;
+  max-width: 100vw;
 }
 
 .orb-1 {
   top: -60px;
   right: -60px;
   width: 320px;
+  max-width: 100vw;
   height: 320px;
   background: #FF6B00;
   opacity: 0.25;
@@ -90,6 +92,7 @@ function emitScroll(target: string) {
   bottom: -60px;
   left: -60px;
   width: 320px;
+  max-width: 100vw;
   height: 320px;
   background: #0B1F4B;
   opacity: 0.4;
@@ -117,7 +120,7 @@ function emitScroll(target: string) {
 
 .cta-title {
   font-family: 'Outfit', sans-serif;
-  font-size: 2.65rem;
+  font-size: clamp(1.85rem, 5vw, 2.65rem);
   font-weight: 800;
   color: #ffffff;
   line-height: 1.2;
@@ -126,10 +129,10 @@ function emitScroll(target: string) {
 }
 
 .cta-subtitle {
-  font-size: 1.15rem;
+  font-size: clamp(0.95rem, 2.5vw, 1.15rem);
   color: #EAF0F8;
   line-height: 1.6;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2.25rem;
 }
 
 .cta-btn-group {
@@ -145,6 +148,7 @@ function emitScroll(target: string) {
   align-items: center;
   gap: 0.5rem;
   padding: 0.95rem 2rem;
+  min-height: 48px;
   font-size: 1.05rem;
   font-weight: 700;
   color: #ffffff;
@@ -167,6 +171,7 @@ function emitScroll(target: string) {
   align-items: center;
   gap: 0.5rem;
   padding: 0.95rem 2rem;
+  min-height: 48px;
   font-size: 1.05rem;
   font-weight: 600;
   color: #ffffff;
@@ -185,11 +190,28 @@ function emitScroll(target: string) {
 }
 
 @media (max-width: 640px) {
+  .cta-section {
+    padding: 45px 0;
+  }
+  .cta-container {
+    padding: 0 clamp(0.85rem, 3vw, 1.5rem);
+  }
   .cta-title {
-    font-size: 2rem;
+    font-size: clamp(1.65rem, 5.5vw, 2.1rem);
   }
   .cta-card {
-    padding: 3rem 1.5rem;
+    padding: 2.75rem 1.25rem;
+    border-radius: 18px;
+  }
+  .cta-btn-group {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
+  .btn-cta-primary,
+  .btn-cta-ghost {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>

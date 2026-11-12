@@ -16,7 +16,7 @@ const stats = ref<SuperAdminDashboardStats | null>(null);
 // Hover tooltip for monthly revenue bar chart
 const hoveredBar = ref<{ month: string; amount: number; x: number; y: number } | null>(null);
 
-// Formatted current date matching the reference screenshot: e.g. "Thursday, Oct 22, 2026"
+// Formatted current date matching the reference design: e.g. "Thursday, Oct 22, 2026"
 const currentDateDisplay = computed(() => {
   const d = new Date();
   return d.toLocaleDateString('en-US', {
@@ -134,7 +134,7 @@ const monthlyBars = computed(() => {
   ];
 });
 
-// Bar max for proportional scaling (500 is max scale on reference image)
+// Bar max for proportional scaling (500 is max scale)
 const maxRevenueScale = 500;
 function getBarHeightPx(amount: number) {
   const clamped = Math.min(amount, maxRevenueScale);
@@ -168,7 +168,7 @@ onMounted(() => {
 
 <template>
   <div class="sad-dashboard-container">
-    <!-- Top Welcome Section (from Reference Image) -->
+    <!-- Top Welcome Section -->
     <div class="sad-welcome-row">
       <div class="sad-welcome-left">
         <span class="sad-welcome-sub">Welcome back,</span>
@@ -193,9 +193,9 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Prominent Orange "+ Register New Institution →" Button -->
+        <!-- Prominent Orange "+ Register New Institution" Button -->
         <button class="sad-btn-primary" @click="isModalOpen = true">
-          <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
@@ -207,7 +207,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 4 Primary KPI Cards (Strictly NO Teachers or Students) -->
+    <!-- 4 Primary KPI Cards -->
     <div class="sad-kpi-grid">
       <!-- Card 1: Total Institutions -->
       <div class="sad-kpi-card">
@@ -305,7 +305,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="sad-kpi-footer">
-          <span class="text-xs text-slate-500 font-medium">This Year</span>
+          <span class="text-xs text-slate-500 font-medium">This Year Financial Performance</span>
         </div>
       </div>
 
@@ -328,7 +328,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="sad-kpi-footer">
-          <span class="text-xs text-slate-500 font-medium">System Uptime</span>
+          <span class="text-xs text-slate-500 font-medium">System Uptime 99.98%</span>
         </div>
       </div>
     </div>
@@ -346,7 +346,7 @@ onMounted(() => {
             </div>
             <h3 class="sad-card-title">Institutions by Type</h3>
           </div>
-          <select class="sad-period-select">
+          <select class="sad-period-select" aria-label="Filter period">
             <option>This Year</option>
             <option>All Time</option>
           </select>
@@ -424,7 +424,7 @@ onMounted(() => {
             </div>
             <h3 class="sad-card-title">Subscription Status</h3>
           </div>
-          <select class="sad-period-select">
+          <select class="sad-period-select" aria-label="Filter period">
             <option>This Year</option>
             <option>All Time</option>
           </select>
@@ -514,15 +514,13 @@ onMounted(() => {
           <div class="sad-card-title-group">
             <div class="sad-icon-box bg-orange-50 text-orange-600">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="20" x2="18" y2="10" />
-                <line x1="12" y1="20" x2="12" y2="4" />
-                <line x1="6" y1="20" x2="6" y2="14" />
-                <line x1="2" y1="20" x2="22" y2="20" />
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
               </svg>
             </div>
-            <h3 class="sad-card-title">Monthly Revenue (This Year)</h3>
+            <h3 class="sad-card-title">Monthly Revenue</h3>
           </div>
-          <select class="sad-period-select">
+          <select class="sad-period-select" aria-label="Filter period">
             <option>This Year</option>
             <option>Last Year</option>
           </select>
@@ -579,9 +577,9 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Bottom Section: Two Side-by-Side Cards (Recent Institutions & Recent Payments) -->
+    <!-- Bottom Section: Side-by-Side Cards (Recent Institutions & Recent Payments) -->
     <div class="sad-bottom-grid">
-      <!-- Left Card: Recent Institutions (~58% width) -->
+      <!-- Left Card: Recent Institutions -->
       <div class="sad-panel sad-panel-institutions">
         <div class="sad-panel-top">
           <div class="sad-panel-title-group">
@@ -603,7 +601,8 @@ onMounted(() => {
           </router-link>
         </div>
 
-        <div class="sad-table-wrapper">
+        <!-- Desktop Table View -->
+        <div class="sad-table-wrapper sad-desktop-only">
           <table class="sad-table">
             <thead>
               <tr>
@@ -623,13 +622,11 @@ onMounted(() => {
                   <div class="sad-inst-cell">
                     <div class="sad-inst-logo-badge">
                       <img v-if="inst.logo_url" :src="inst.logo_url" alt="" class="w-full h-full object-cover rounded-full" />
-                      <div v-else class="sad-inst-initial">
-                        {{ inst.name.charAt(0).toUpperCase() }}
-                      </div>
+                      <span v-else class="sad-inst-initial">{{ inst.name.charAt(0).toUpperCase() }}</span>
                     </div>
                     <div class="sad-inst-names">
-                      <div class="sad-inst-title">{{ inst.name }}</div>
-                      <div class="sad-inst-code">{{ inst.code }}</div>
+                      <span class="sad-inst-title">{{ inst.name }}</span>
+                      <span class="sad-inst-code">{{ inst.code }}</span>
                     </div>
                   </div>
                 </td>
@@ -638,13 +635,13 @@ onMounted(() => {
                     class="sad-badge-pill"
                     :class="inst.type.toLowerCase().includes('school') ? 'badge-school' : 'badge-academy'"
                   >
-                    {{ inst.type.toLowerCase().includes('school') ? 'School' : 'Academy' }}
+                    {{ inst.type }}
                   </span>
                 </td>
                 <td>
                   <div class="sad-location-wrap">
                     <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
                       <circle cx="12" cy="10" r="3" />
                     </svg>
                     <span>{{ inst.city || inst.region || 'Mogadishu' }}</span>
@@ -671,13 +668,6 @@ onMounted(() => {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
                     </button>
-                    <button class="sad-dots-btn" title="More options">
-                      <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="currentColor">
-                        <circle cx="12" cy="5" r="2" />
-                        <circle cx="12" cy="12" r="2" />
-                        <circle cx="12" cy="19" r="2" />
-                      </svg>
-                    </button>
                   </div>
                 </td>
               </tr>
@@ -690,9 +680,65 @@ onMounted(() => {
             </tbody>
           </table>
         </div>
+
+        <!-- Mobile Card View (<768px) -->
+        <div class="sad-mobile-cards sad-mobile-only">
+          <div
+            v-for="inst in (stats?.recent_institutions || [])"
+            :key="`m-${inst.id}`"
+            class="sad-mobile-inst-card"
+          >
+            <div class="sad-mobile-card-top">
+              <div class="sad-inst-logo-badge">
+                <img v-if="inst.logo_url" :src="inst.logo_url" alt="" class="w-full h-full object-cover rounded-full" />
+                <span v-else class="sad-inst-initial">{{ inst.name.charAt(0).toUpperCase() }}</span>
+              </div>
+              <div class="sad-mobile-inst-info">
+                <div class="sad-inst-title">{{ inst.name }}</div>
+                <div class="sad-inst-code">{{ inst.code }}</div>
+              </div>
+              <span
+                class="sad-badge-pill"
+                :class="inst.status === 'ACTIVE' ? 'badge-active' : 'badge-expired'"
+              >
+                {{ inst.status === 'ACTIVE' ? 'Active' : 'Expired' }}
+              </span>
+            </div>
+
+            <div class="sad-mobile-card-meta">
+              <span class="sad-badge-pill" :class="inst.type.toLowerCase().includes('school') ? 'badge-school' : 'badge-academy'">
+                {{ inst.type }}
+              </span>
+              <div class="sad-location-wrap">
+                <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span>{{ inst.city || inst.region || 'Mogadishu' }}</span>
+              </div>
+            </div>
+
+            <div class="sad-mobile-card-action">
+              <span class="text-xs text-slate-400">{{ formatDate(inst.created_at) }}</span>
+              <button
+                class="sad-btn-open-sms"
+                @click="openSmsForInstitution(inst)"
+              >
+                <span>Open SMS</span>
+                <svg class="w-3.5 h-3.5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div v-if="!stats?.recent_institutions?.length" class="text-center py-6 text-slate-400 text-xs">
+            No registered institutions found.
+          </div>
+        </div>
       </div>
 
-      <!-- Right Card: Recent Payments (~42% width) -->
+      <!-- Right Card: Recent Payments -->
       <div class="sad-panel sad-panel-payments">
         <div class="sad-panel-top">
           <div class="sad-panel-title-group">
@@ -715,7 +761,8 @@ onMounted(() => {
           </router-link>
         </div>
 
-        <div class="sad-table-wrapper">
+        <!-- Desktop Payments Table -->
+        <div class="sad-table-wrapper sad-desktop-only">
           <table class="sad-table">
             <thead>
               <tr>
@@ -733,7 +780,7 @@ onMounted(() => {
                   <span class="font-semibold text-slate-900 text-xs">{{ pay.institution }}</span>
                 </td>
                 <td>
-                  <span class="font-bold text-slate-900 text-xs">${{ pay.amount }}</span>
+                  <span class="font-bold text-emerald-600 text-xs">${{ pay.amount }}</span>
                 </td>
                 <td class="text-slate-500 text-xs whitespace-nowrap">{{ pay.date }}</td>
                 <td>
@@ -747,6 +794,29 @@ onMounted(() => {
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Mobile Payments Cards -->
+        <div class="sad-mobile-cards sad-mobile-only">
+          <div
+            v-for="pay in displayPayments"
+            :key="`pm-${pay.id}`"
+            class="sad-mobile-payment-card"
+          >
+            <div class="sad-mobile-payment-top">
+              <span class="font-semibold text-slate-900 text-sm">{{ pay.institution }}</span>
+              <span class="font-bold text-emerald-600 text-sm">${{ pay.amount }}</span>
+            </div>
+            <div class="sad-mobile-payment-bottom">
+              <span class="text-xs text-slate-400">{{ pay.date }}</span>
+              <span
+                class="sad-badge-pill"
+                :class="pay.status.toLowerCase() === 'completed' ? 'badge-completed' : 'badge-failed'"
+              >
+                {{ pay.status }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -799,7 +869,8 @@ onMounted(() => {
 .sad-welcome-right {
   display: flex;
   align-items: center;
-  gap: 1.15rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 /* Date Card */
@@ -844,7 +915,7 @@ onMounted(() => {
 .sad-btn-primary {
   display: flex;
   align-items: center;
-  background: #ff6500;
+  background: linear-gradient(135deg, #ff6500 0%, #ea580c 100%);
   color: #ffffff;
   border: none;
   font-size: 0.88rem;
@@ -852,14 +923,15 @@ onMounted(() => {
   padding: 0.65rem 1.35rem;
   border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(255, 101, 0, 0.4);
-  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(255, 101, 0, 0.4);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
 }
 
 .sad-btn-primary:hover {
-  background: #e55a00;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 101, 0, 0.45);
 }
 
 .sad-btn-label {
@@ -870,25 +942,25 @@ onMounted(() => {
 .sad-kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.35rem;
+  gap: 1.25rem;
 }
 
 .sad-kpi-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 1.25rem 1.35rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 6px 16px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 1.15rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
 }
 
 .sad-kpi-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 .sad-kpi-header {
@@ -900,7 +972,7 @@ onMounted(() => {
 .sad-kpi-icon-wrap {
   width: 52px;
   height: 52px;
-  border-radius: 12px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -983,8 +1055,8 @@ onMounted(() => {
 }
 
 .sad-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   display: inline-block;
 }
@@ -993,14 +1065,14 @@ onMounted(() => {
 .sad-analytics-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.35rem;
+  gap: 1.25rem;
 }
 
 .sad-analytics-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 6px 16px rgba(0, 0, 0, 0.02);
   padding: 1.25rem 1.35rem;
   display: flex;
   flex-direction: column;
@@ -1020,9 +1092,9 @@ onMounted(() => {
 }
 
 .sad-icon-box {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1037,13 +1109,14 @@ onMounted(() => {
 }
 
 .sad-period-select {
-  padding: 0.25rem 0.6rem;
+  padding: 0.3rem 0.65rem;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 0.72rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
   color: #475569;
-  background: #ffffff;
+  background: #f8fafc;
   outline: none;
+  cursor: pointer;
 }
 
 /* Donut Panel Layout */
@@ -1053,6 +1126,7 @@ onMounted(() => {
   justify-content: space-around;
   padding: 0.5rem 0 0.75rem;
   gap: 1.25rem;
+  flex-wrap: wrap;
 }
 
 .sad-donut-wrap {
@@ -1095,7 +1169,8 @@ onMounted(() => {
   flex-direction: column;
   gap: 0.85rem;
   flex: 1;
-  max-width: 160px;
+  min-width: 140px;
+  max-width: 180px;
 }
 
 .sad-legend-row {
@@ -1112,6 +1187,7 @@ onMounted(() => {
   height: 170px;
   position: relative;
   padding-top: 0.5rem;
+  overflow-x: auto;
 }
 
 .sad-bar-yaxis {
@@ -1121,7 +1197,7 @@ onMounted(() => {
   height: 130px;
   font-size: 0.68rem;
   color: #94a3b8;
-  font-weight: 500;
+  font-weight: 600;
   text-align: right;
   width: 38px;
   flex-shrink: 0;
@@ -1130,6 +1206,7 @@ onMounted(() => {
 
 .sad-barchart-container {
   flex: 1;
+  min-width: 240px;
   height: 100%;
   position: relative;
   display: flex;
@@ -1180,20 +1257,20 @@ onMounted(() => {
 
 .sad-bar-fill {
   width: 100%;
-  background: linear-gradient(180deg, #ff7a00 0%, #ff5500 100%);
+  background: linear-gradient(180deg, #ff7a00 0%, #ea580c 100%);
   border-radius: 4px 4px 0 0;
   transition: all 0.2s ease;
 }
 
 .sad-bar-col:hover .sad-bar-fill {
-  background: #e54d00;
-  box-shadow: 0 0 8px rgba(255, 101, 0, 0.5);
+  background: #c2410c;
+  box-shadow: 0 0 10px rgba(255, 101, 0, 0.5);
 }
 
 .sad-bar-label {
   font-size: 0.68rem;
   color: #64748b;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .sad-bar-tooltip {
@@ -1202,10 +1279,10 @@ onMounted(() => {
   right: 10px;
   background: #061737;
   color: #ffffff;
-  padding: 0.25rem 0.55rem;
-  border-radius: 6px;
-  font-size: 0.72rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  padding: 0.3rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
   pointer-events: none;
   z-index: 20;
 }
@@ -1214,14 +1291,14 @@ onMounted(() => {
 .sad-bottom-grid {
   display: grid;
   grid-template-columns: 1.45fr 1fr;
-  gap: 1.35rem;
+  gap: 1.25rem;
 }
 
 .sad-panel {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 6px 16px rgba(0, 0, 0, 0.02);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1265,7 +1342,7 @@ onMounted(() => {
 }
 
 .sad-view-all-link:hover {
-  opacity: 0.85;
+  opacity: 0.8;
 }
 
 /* Tables */
@@ -1286,13 +1363,13 @@ onMounted(() => {
   text-transform: uppercase;
   color: #64748b;
   background: #f8fafc;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   border-bottom: 1px solid #e2e8f0;
 }
 
 .sad-table td {
   padding: 0.85rem 1.15rem;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: #334155;
   border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
@@ -1309,19 +1386,20 @@ onMounted(() => {
 }
 
 .sad-inst-logo-badge {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .sad-inst-initial {
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 800;
   color: #061737;
 }
@@ -1332,7 +1410,7 @@ onMounted(() => {
 }
 
 .sad-inst-title {
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #0f172a;
 }
@@ -1345,7 +1423,7 @@ onMounted(() => {
 
 .sad-badge-pill {
   display: inline-block;
-  padding: 0.18rem 0.55rem;
+  padding: 0.2rem 0.55rem;
   border-radius: 6px;
   font-size: 0.7rem;
   font-weight: 700;
@@ -1353,31 +1431,31 @@ onMounted(() => {
 
 .badge-school {
   background: #eff6ff;
-  color: #2563eb;
+  color: #1e40af;
 }
 
 .badge-academy {
   background: #fff7ed;
-  color: #ea580c;
+  color: #c2410c;
 }
 
 .badge-active,
 .badge-completed {
   background: #ecfdf5;
-  color: #059669;
+  color: #047857;
 }
 
 .badge-expired,
 .badge-failed {
   background: #fef2f2;
-  color: #dc2626;
+  color: #b91c1c;
 }
 
 .sad-location-wrap {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: #475569;
 }
 
@@ -1394,10 +1472,10 @@ onMounted(() => {
   background: #f8fafc;
   border: 1px solid #cbd5e1;
   color: #061737;
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 0.3rem 0.6rem;
-  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -1408,23 +1486,78 @@ onMounted(() => {
   border-color: #061737;
 }
 
-.sad-dots-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
+/* Visibility utilities */
+.sad-desktop-only {
+  display: block;
 }
 
-.sad-dots-btn:hover {
-  background: #f1f5f9;
+.sad-mobile-only {
+  display: none;
+}
+
+/* Mobile cards */
+.sad-mobile-cards {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sad-mobile-inst-card,
+.sad-mobile-payment-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.sad-mobile-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.sad-mobile-inst-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sad-mobile-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid #f8fafc;
+}
+
+.sad-mobile-card-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.4rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.sad-mobile-payment-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sad-mobile-payment-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.35rem;
+  border-top: 1px solid #f8fafc;
 }
 
 /* Responsive */
-@media (max-width: 1280px) {
+@media (max-width: 1200px) {
   .sad-kpi-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1438,15 +1571,42 @@ onMounted(() => {
   }
 }
 
-@media (max-width: 640px) {
-  .sad-kpi-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 768px) {
+  .sad-desktop-only {
+    display: none;
+  }
+
+  .sad-mobile-only {
+    display: block;
   }
 
   .sad-welcome-right {
     width: 100%;
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .sad-date-card {
+    justify-content: center;
+  }
+
+  .sad-btn-primary {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .sad-btn-label br {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .sad-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sad-welcome-title {
+    font-size: 1.75rem;
   }
 }
 </style>

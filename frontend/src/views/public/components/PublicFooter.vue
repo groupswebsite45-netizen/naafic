@@ -685,8 +685,10 @@ function emitScroll(target: string) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
   border-radius: 50%;
   background: #0C2346;
   border: 1px solid rgba(85, 142, 210, 0.28);
@@ -999,11 +1001,11 @@ function emitScroll(target: string) {
 
 @media (max-width: 768px) {
   .footer-container {
-    padding: 0 1.25rem;
+    padding: 0 clamp(0.85rem, 3vw, 1.25rem);
   }
   .footer-main-grid {
     grid-template-columns: 1fr;
-    gap: 2.5rem;
+    gap: 2rem;
   }
   .footer-col:nth-child(1),
   .footer-col:nth-child(3) {
@@ -1022,12 +1024,35 @@ function emitScroll(target: string) {
   .footer-benefits-strip {
     grid-template-columns: 1fr;
     gap: 1.25rem;
+    padding: 1.25rem 1rem;
   }
   .footer-copyright-row {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 0.75rem;
+    gap: 0.85rem;
+  }
+  .footer-legal-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-brand-title {
+    font-size: 1.15rem;
+  }
+  .footer-contact-link,
+  .footer-link {
+    font-size: 0.85rem;
+    padding: 0.25rem 0;
+  }
+  .legal-link-btn {
+    font-size: 0.78rem;
+  }
+  .copyright-text {
+    font-size: 0.78rem;
   }
 }
 </style>

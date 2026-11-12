@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 interface Props {
   billed?: number;
@@ -8,7 +8,7 @@ interface Props {
   loading?: boolean;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   billed: 0,
   collected: 0,
   outstanding: 0,
@@ -17,18 +17,26 @@ withDefaults(defineProps<Props>(), {
 
 const selectedPeriod = ref('This Year');
 
-const monthlyData = [
-  { month: 'Jan', value: 0, heightPct: 4, label: '$0' },
-  { month: 'Feb', value: 35, heightPct: 15, label: '$35' },
-  { month: 'Mar', value: 50, heightPct: 22, label: '$50' },
-  { month: 'Apr', value: 80, heightPct: 32, label: '$80' },
-  { month: 'May', value: 110, heightPct: 42, label: '$110' },
-  { month: 'Jun', value: 145, heightPct: 54, label: '$145' },
-  { month: 'Jul', value: 190, heightPct: 68, label: '$190' },
-  { month: 'Aug', value: 240, heightPct: 78, label: '$240' },
-  { month: 'Sep', value: 320, heightPct: 88, label: '$320' },
-  { month: 'Oct', value: 410, heightPct: 96, label: '$410' },
-];
+const monthsList = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
+
+const monthlyData = computed(() => {
+  const currentMonthIdx = new Date().getMonth();
+  const collectedVal = Number(props.collected ?? 0);
+  const billedVal = Number(props.billed ?? 0);
+  const isZero = collectedVal <= 0 && billedVal <= 0;
+
+  return monthsList.map((m, idx) => {
+    if (isZero) {
+      return { month: m, value: 0, heightPct: 0, label: '$0.00' };
+    }
+    if (idx === Math.min(currentMonthIdx, 9)) {
+      const maxVal = Math.max(billedVal, collectedVal, 100);
+      const height = Math.min(100, Math.max(8, Math.round((collectedVal / maxVal) * 100)));
+      return { month: m, value: collectedVal, heightPct: height, label: `$${collectedVal.toFixed(2)}` };
+    }
+    return { month: m, value: 0, heightPct: 0, label: '$0.00' };
+  });
+});
 
 const hoveredMonth = ref<string | null>('Jan');
 </script>
@@ -293,5 +301,19 @@ const hoveredMonth = ref<string | null>('Jan');
 .active-month {
   color: #0F172A;
   font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .analytics-card {
+    padding: 1rem 0.75rem;
+    gap: 0.85rem;
+  }
+  .card-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .barchart-container {
+    gap: 0.25rem;
+  }
 }
 </style>

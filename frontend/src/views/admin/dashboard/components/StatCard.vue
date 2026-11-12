@@ -383,4 +383,92 @@ withDefaults(defineProps<Props>(), {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
+
+@media (max-width: 640px) {
+  .stat-card {
+    padding: 0.85rem 0.75rem;
+    gap: 0.65rem;
+    border-radius: 14px;
+    min-width: 0;
+  }
+
+  .stat-icon-wrap {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border-radius: 10px;
+  }
+
+  .stat-icon-wrap svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .stat-body {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .stat-top-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+  }
+
+  .stat-title {
+    font-size: 0.74rem;
+    line-height: 1.2;
+    white-space: normal;
+  }
+
+  .trend-badge {
+    font-size: 0.62rem;
+    padding: 0.1rem 0.35rem;
+  }
+
+  .stat-value {
+    font-size: 1.35rem;
+  }
+
+  .stat-subtext {
+    font-size: 0.68rem;
+    line-height: 1.2;
+  }
+
+  .stat-chevron-wrap {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .stat-card {
+    padding: 0.75rem 0.55rem;
+    gap: 0.5rem;
+    border-radius: 12px;
+  }
+
+  .stat-icon-wrap {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 8px;
+  }
+
+  .stat-icon-wrap svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .stat-title {
+    font-size: 0.68rem;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
+
+  .stat-subtext {
+    font-size: 0.62rem;
+  }
+}
 </style>

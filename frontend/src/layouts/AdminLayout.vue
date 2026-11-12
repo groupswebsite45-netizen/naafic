@@ -3,8 +3,10 @@ import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import AdminSidebar from '../components/admin/AdminSidebar.vue';
 import AdminHeader from '../components/admin/AdminHeader.vue';
+import { useI18n } from '../i18n';
 
 const route = useRoute();
+const { locale } = useI18n();
 const isSidebarOpen = ref(false);
 
 const currentPageTitle = computed(() => {
@@ -40,7 +42,7 @@ function closeSidebar() {
       <!-- Minimal Admin Footer -->
       <footer class="admin-footer">
         <p class="footer-text">
-          &copy; {{ new Date().getFullYear() }} Education Management System. All rights reserved.
+          &copy; {{ new Date().getFullYear() }} Somroyal Educational Management System. {{ locale === 'so' ? 'Dhammaan xuquuqda way dhowran yihiin.' : 'All rights reserved.' }}
         </p>
       </footer>
     </div>
@@ -55,6 +57,7 @@ function closeSidebar() {
   display: flex;
   background-color: var(--bg-app);
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .admin-main-wrapper {
@@ -68,6 +71,7 @@ function closeSidebar() {
   width: calc(100% - var(--sidebar-width));
   max-width: 100%;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .admin-content-area {

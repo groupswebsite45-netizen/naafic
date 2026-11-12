@@ -316,11 +316,11 @@ function handleFormSubmit() {
           <div class="support-entries">
             <div class="support-item">
               <span class="support-label">Official IT Support:</span>
-              <span class="support-val">{{ SCHOOL_BRANDING.contactEmail }}</span>
+              <span class="support-val">{{ activeInstitution?.email || SCHOOL_BRANDING.contactEmail }}</span>
             </div>
             <div class="support-item">
               <span class="support-label">Campus Administration:</span>
-              <span class="support-val">{{ SCHOOL_BRANDING.contactPhone }}</span>
+              <span class="support-val">{{ activeInstitution?.phone || SCHOOL_BRANDING.contactPhone }}</span>
             </div>
           </div>
         </div>
@@ -361,21 +361,90 @@ function handleFormSubmit() {
 }
 
 .login-card-wrapper {
+  position: relative;
   width: 100%;
   max-width: 460px;
   animation: cardSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Ambient glowing aura behind the card wrapper */
+.login-card-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: -14px;
+  border-radius: 34px;
+  background: radial-gradient(circle at 50% 12%, rgba(255, 105, 0, 0.32) 0%, rgba(255, 105, 0, 0.14) 45%, rgba(11, 31, 75, 0.08) 70%, transparent 85%);
+  filter: blur(20px);
+  z-index: 0;
+  pointer-events: none;
+  animation: ambientAura 4.5s ease-in-out infinite alternate;
+}
+
+@keyframes ambientAura {
+  0% {
+    opacity: 0.75;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
 .login-card {
-  background-color: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: 20px;
-  padding: 1.65rem 2.25rem;
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%);
+  border: 1.5px solid rgba(255, 105, 0, 0.42);
+  border-radius: 24px;
+  padding: 1.85rem 2.25rem;
   box-shadow: 
-    0 16px 36px -12px rgba(7, 31, 73, 0.08),
-    0 1px 3px 0 rgba(7, 31, 73, 0.04);
+    0 0 0 1px rgba(255, 105, 0, 0.2),
+    0 0 24px -2px rgba(255, 105, 0, 0.32),
+    0 0 50px 4px rgba(255, 105, 0, 0.14),
+    0 20px 45px -10px rgba(7, 23, 53, 0.14);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Illuminated top accent glow line */
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #FF6900 0%, #FFA858 50%, #0B1F4B 100%);
+  box-shadow: 0 2px 14px rgba(255, 105, 0, 0.65);
+  z-index: 2;
+}
+
+/* Corner ambient soft glow refraction */
+.login-card::after {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 130px;
+  height: 130px;
+  background: radial-gradient(circle, rgba(255, 105, 0, 0.16) 0%, transparent 70%);
+  filter: blur(20px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.login-card:hover,
+.login-card:focus-within {
+  border-color: rgba(255, 105, 0, 0.7);
+  box-shadow: 
+    0 0 0 2px rgba(255, 105, 0, 0.35),
+    0 0 32px 0 rgba(255, 105, 0, 0.42),
+    0 0 65px 8px rgba(255, 105, 0, 0.2),
+    0 25px 55px -10px rgba(7, 23, 53, 0.18);
+  transform: translateY(-2px);
 }
 
 /* Header */
@@ -384,27 +453,35 @@ function handleFormSubmit() {
   flex-direction: column;
   align-items: flex-start;
   margin-bottom: 0.85rem;
+  position: relative;
+  z-index: 2;
 }
 
 .card-brand-header {
   display: flex;
   align-items: center;
-  margin-bottom: 0.65rem;
+  margin-bottom: 0.75rem;
 }
 
 .card-brand-logo {
-  height: 42px;
+  height: 44px;
   width: auto;
-  max-width: 210px;
+  max-width: 220px;
   object-fit: contain;
   display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.04));
+  transition: transform 0.2s ease;
+}
+
+.card-brand-logo:hover {
+  transform: scale(1.02);
 }
 
 .header-badge-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.45rem;
 }
 
 .welcome-badge {
@@ -413,10 +490,11 @@ function handleFormSubmit() {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #EA580C;
-  background: #FFF7ED;
-  border: 1px solid #FFEDD5;
-  padding: 0.15rem 0.55rem;
-  border-radius: 5px;
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+  border: 1px solid rgba(255, 105, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 105, 0, 0.1);
+  padding: 0.2rem 0.65rem;
+  border-radius: 6px;
 }
 
 .badge-dot {
@@ -428,12 +506,13 @@ function handleFormSubmit() {
 
 .system-badge {
   font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   color: #071F49;
-  background: #f1f5f9;
-  padding: 0.15rem 0.55rem;
-  border-radius: 5px;
+  background: #F0F4FA;
+  border: 1px solid rgba(7, 31, 73, 0.12);
+  padding: 0.2rem 0.65rem;
+  border-radius: 6px;
 }
 
 .card-main-heading {
@@ -584,12 +663,12 @@ function handleFormSubmit() {
 }
 
 .modern-input:focus {
-  border-color: #071F49;
-  box-shadow: 0 0 0 3px rgba(255, 101, 0, 0.18);
+  border-color: #FF6900;
+  box-shadow: 0 0 0 3.5px rgba(255, 105, 0, 0.18), 0 2px 8px rgba(255, 105, 0, 0.08);
 }
 
 .input-control-box:focus-within .leading-icon {
-  color: #174ea6;
+  color: #FF6900;
 }
 
 .has-error .modern-input {
@@ -704,37 +783,32 @@ function handleFormSubmit() {
 /* Primary Submit CTA */
 .submit-cta-btn {
   width: 100%;
-  height: 48px;
-  border-radius: 12px;
-  border: none;
-  background: linear-gradient(135deg, #071F49 0%, #0A2963 100%);
+  height: 50px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 105, 0, 0.28);
+  background: linear-gradient(135deg, #071735 0%, #0F2759 100%);
   color: #ffffff;
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.98rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.65rem;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(7, 31, 73, 0.28);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 6px 18px rgba(7, 23, 53, 0.28), 0 0 16px rgba(255, 105, 0, 0.15);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .submit-cta-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(7, 31, 73, 0.35), 0 0 0 2px rgba(255, 101, 0, 0.35);
-  filter: brightness(1.04);
-}
-
-.submit-cta-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(23, 78, 166, 0.38);
-  filter: brightness(1.04);
+  background: linear-gradient(135deg, #FF6900 0%, #FF851B 100%);
+  border-color: #FF6900;
+  box-shadow: 0 10px 28px rgba(255, 105, 0, 0.42), 0 0 20px rgba(255, 105, 0, 0.28);
 }
 
 .submit-cta-btn:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(23, 78, 166, 0.2);
+  box-shadow: 0 4px 12px rgba(255, 105, 0, 0.25);
 }
 
 .submit-cta-btn:disabled {
@@ -986,8 +1060,13 @@ function handleFormSubmit() {
 
   .login-card {
     padding: 2rem 1.75rem;
-    border-radius: 20px;
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
+    border-radius: 22px;
+    border: 1.5px solid rgba(255, 105, 0, 0.45);
+    box-shadow: 
+      0 0 0 1px rgba(255, 105, 0, 0.22),
+      0 0 22px -2px rgba(255, 105, 0, 0.3),
+      0 0 45px 2px rgba(255, 105, 0, 0.12),
+      0 16px 36px -8px rgba(7, 23, 53, 0.12);
   }
 
   .logo-badge-container {
@@ -1006,7 +1085,12 @@ function handleFormSubmit() {
 
   .login-card {
     padding: 1.75rem 1.25rem;
-    border-radius: 18px;
+    border-radius: 20px;
+    border: 1.5px solid rgba(255, 105, 0, 0.45);
+    box-shadow: 
+      0 0 0 1px rgba(255, 105, 0, 0.2),
+      0 0 18px -2px rgba(255, 105, 0, 0.28),
+      0 12px 28px -6px rgba(7, 23, 53, 0.1);
   }
 
   .modern-input {

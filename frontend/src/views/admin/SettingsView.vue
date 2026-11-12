@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { SCHOOL_BRANDING } from '../../constants/branding';
+import { useSchoolBrandingStore } from '../../stores/schoolBranding';
 import { adminService } from '../../services/adminService';
 import { SystemSetting } from '../../types/admin';
 import StatusBadge from '../../components/common/StatusBadge.vue';
 
+const brandingStore = useSchoolBrandingStore();
 const dbSettings = ref<SystemSetting[]>([]);
 const isLoading = ref<boolean>(true);
 
@@ -38,41 +39,49 @@ onMounted(() => {
     <div class="card branding-card">
       <div class="branding-header">
         <div class="branding-logo-box">
-          <img :src="SCHOOL_BRANDING.logoUrl" alt="School Emblem" class="branding-logo-img" />
+          <img
+            v-if="brandingStore.schoolLogo"
+            :src="brandingStore.schoolLogo"
+            :alt="brandingStore.schoolName"
+            class="branding-logo-img"
+          />
+          <div v-else class="school-initials-badge">
+            <span class="school-initials-text">{{ brandingStore.schoolInitials }}</span>
+          </div>
         </div>
         <div class="branding-info">
-          <h3 class="institution-name">{{ SCHOOL_BRANDING.institutionName }}</h3>
-          <p class="institution-motto">"{{ SCHOOL_BRANDING.motto }}"</p>
-          <span class="location-tag">{{ SCHOOL_BRANDING.district }}, {{ SCHOOL_BRANDING.city }}, {{ SCHOOL_BRANDING.country }}</span>
+          <h3 class="institution-name">{{ brandingStore.schoolName }}</h3>
+          <p class="institution-motto">"{{ brandingStore.schoolCode }} &bull; {{ brandingStore.schoolType }}"</p>
+          <span class="location-tag">{{ brandingStore.city }}, Somalia</span>
         </div>
       </div>
 
       <div class="branding-meta-grid">
         <div class="meta-item">
-          <span class="meta-label">Short Name</span>
-          <span class="meta-value">{{ SCHOOL_BRANDING.shortName }}</span>
+          <span class="meta-label">Institution Code</span>
+          <span class="meta-value">{{ brandingStore.schoolCode }}</span>
         </div>
         <div class="meta-item">
           <span class="meta-label">Primary Color</span>
           <div class="color-preview-row">
-            <span class="color-swatch" :style="{ backgroundColor: SCHOOL_BRANDING.theme.primary }" />
-            <code>{{ SCHOOL_BRANDING.theme.primary }}</code>
+            <span class="color-swatch" :style="{ backgroundColor: '#0B1F4B' }" />
+            <code>#0B1F4B (Navy)</code>
           </div>
         </div>
         <div class="meta-item">
-          <span class="meta-label">Secondary Color</span>
+          <span class="meta-label">Brand Accent</span>
           <div class="color-preview-row">
-            <span class="color-swatch" :style="{ backgroundColor: SCHOOL_BRANDING.theme.secondary }" />
-            <code>{{ SCHOOL_BRANDING.theme.secondary }}</code>
+            <span class="color-swatch" :style="{ backgroundColor: '#FF6500' }" />
+            <code>#FF6500 (Orange)</code>
           </div>
         </div>
         <div class="meta-item">
           <span class="meta-label">Contact Email</span>
-          <span class="meta-value">{{ SCHOOL_BRANDING.contactEmail }}</span>
+          <span class="meta-value">{{ brandingStore.contactEmail || 'Not configured' }}</span>
         </div>
         <div class="meta-item">
           <span class="meta-label">Campus Phone</span>
-          <span class="meta-value">{{ SCHOOL_BRANDING.contactPhone }}</span>
+          <span class="meta-value">{{ brandingStore.contactPhone || 'Not configured' }}</span>
         </div>
       </div>
     </div>
@@ -301,6 +310,15 @@ onMounted(() => {
   .branding-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+  .branding-meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .settings-table th,
+  .settings-table td {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.8rem;
   }
 }
 </style>

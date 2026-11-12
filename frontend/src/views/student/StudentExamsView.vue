@@ -165,19 +165,25 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="portal-page">
+  <div class="exams-portal">
     <!-- Header -->
     <div class="page-header">
-      <div class="header-content-row">
-        <div>
-          <h1 class="page-title">My Examinations & Academic Transcripts</h1>
-          <p class="page-subtitle">View published examination schedules, timetables, and officially released transcripts.</p>
+      <div class="header-main">
+        <div class="header-titles">
+          <div class="somroyal-tag">
+            <svg class="crown-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+            </svg>
+            <span>ACADEMIC EVALUATIONS & TRANSCRIPTS</span>
+          </div>
+          <h1 class="page-title">My Exams & Results</h1>
+          <p class="page-subtitle">Inspect scheduled examination dates, paper schedules, and certified official academic transcripts.</p>
         </div>
 
         <!-- Controls: Year Selector & Refresh -->
-        <div class="header-actions">
-          <div v-if="academicYears.length > 0" class="year-selector-wrap">
-            <label for="exam-year-select" class="selector-lbl">Academic Year:</label>
+        <div class="header-controls">
+          <div v-if="academicYears.length > 0" class="year-selector-box">
+            <label for="exam-year-select" class="selector-lbl">Academic Year</label>
             <select
               id="exam-year-select"
               v-model="selectedYear"
@@ -191,46 +197,46 @@ onMounted(() => {
           <button
             type="button"
             class="btn-refresh"
-            title="Refresh examination data"
+            title="Refresh examination records"
             :disabled="isLoading"
             @click="loadData"
           >
             <svg class="refresh-icon" :class="{ spinning: isLoading }" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
             </svg>
-            <span class="btn-text">Refresh</span>
+            <span>Sync</span>
           </button>
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
-      <div class="tabs-nav">
+      <!-- Somroyal Segmented Navigation Tabs -->
+      <div class="tabs-bar">
         <button
           type="button"
-          class="tab-btn"
+          class="tab-pill"
           :class="{ active: activeTab === 'schedules' }"
           @click="activeTab = 'schedules'"
         >
-          <svg class="tab-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="tab-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <span>Published Exams & Schedules</span>
-          <span class="badge-count" :class="{ highlight: publishedExams.length > 0 }">
+          <span class="tab-text">Published Schedules</span>
+          <span class="tab-counter" :class="{ highlight: publishedExams.length > 0 }">
             {{ publishedExams.length }}
           </span>
         </button>
 
         <button
           type="button"
-          class="tab-btn"
+          class="tab-pill"
           :class="{ active: activeTab === 'results' }"
           @click="activeTab = 'results'"
         >
-          <svg class="tab-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="tab-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span>Verified Results & Transcripts</span>
-          <span class="badge-count" :class="{ highlight: results.length > 0 }">
+          <span class="tab-text">Official Transcripts</span>
+          <span class="tab-counter" :class="{ highlight: results.length > 0 }">
             {{ results.length }}
           </span>
         </button>
@@ -238,51 +244,64 @@ onMounted(() => {
     </div>
 
     <!-- Error State -->
-    <div v-if="errorMessage" class="card error-card">
-      <p class="error-title">Unable to Load Examination Data</p>
-      <p class="error-desc">{{ errorMessage }}</p>
-      <button class="retry-btn" @click="loadData">Try Again</button>
+    <div v-if="errorMessage" class="error-banner">
+      <div class="error-icon-box">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+      </div>
+      <div class="error-details">
+        <h3 class="error-title">Unable to Load Examination Data</h3>
+        <p class="error-desc">{{ errorMessage }}</p>
+      </div>
+      <button class="btn-retry" @click="loadData">Try Again</button>
     </div>
 
     <!-- Main Container -->
-    <div class="report-container card">
+    <div class="exam-body-card">
       <!-- Loading State -->
-      <div v-if="isLoading" class="loading-state">
-        <div class="spinner" />
-        <span>Loading examination schedules and transcripts from database...</span>
+      <div v-if="isLoading" class="state-container">
+        <div class="spinner-ring" />
+        <p class="loading-label">Loading examination records from Somroyal database...</p>
       </div>
 
       <!-- TAB 1: PUBLISHED EXAMS & SCHEDULES -->
-      <div v-else-if="activeTab === 'schedules'" class="schedules-view">
+      <div v-else-if="activeTab === 'schedules'" class="tab-content">
         <!-- Empty State -->
-        <div v-if="publishedExams.length === 0" class="empty-state">
-          <div class="empty-icon-wrap">
-            <svg class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div v-if="publishedExams.length === 0" class="state-container empty">
+          <div class="empty-icon-circle">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <h3 class="empty-title">No Published Examinations Found</h3>
-          <p class="empty-desc">
+          <h3 class="state-title">No Published Examinations Found</h3>
+          <p class="state-desc">
             There are currently no examinations scheduled or published for your enrolled class in academic year {{ selectedYear }}.
             Upcoming examination dates, timetables, and subject schedules announced by school administration will appear here automatically.
           </p>
         </div>
 
         <!-- Published Exams List -->
-        <div v-else class="published-exams-wrap">
+        <div v-else class="exam-groups-wrapper">
           <div
             v-for="(groupExams, groupName) in publishedExamGroups"
             :key="groupName"
-            class="exam-group-block"
+            class="exam-group-card"
           >
             <!-- Group Header -->
-            <div class="exam-group-header">
-              <div class="group-header-left">
-                <span class="exam-cycle-badge">{{ groupExams[0]?.exam_type || 'EXAMINATION' }}</span>
-                <h2 class="exam-group-title">{{ groupName }}</h2>
+            <div class="exam-group-head">
+              <div class="group-title-side">
+                <span class="exam-type-pill">{{ groupExams[0]?.exam_type || 'EXAMINATION' }}</span>
+                <h2 class="exam-group-heading">{{ groupName }}</h2>
               </div>
-              <div class="group-header-right">
-                <span class="subject-count-pill">{{ groupExams.length }} {{ groupExams.length === 1 ? 'Paper' : 'Papers' }} Scheduled</span>
+              <div class="group-meta-side">
+                <span class="papers-pill">
+                  <svg viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z" />
+                    <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
+                  </svg>
+                  {{ groupExams.length }} {{ groupExams.length === 1 ? 'Subject Paper' : 'Subject Papers' }}
+                </span>
               </div>
             </div>
 
@@ -291,88 +310,91 @@ onMounted(() => {
               <div
                 v-for="exam in groupExams"
                 :key="exam.id"
-                class="paper-card"
+                class="paper-item"
               >
-                <!-- Card Top: Subject & Status -->
-                <div class="paper-top">
+                <!-- Card Header -->
+                <div class="paper-header">
                   <div>
-                    <div class="paper-subj-code">{{ exam.subject_code || 'SUBJ' }}</div>
-                    <h3 class="paper-subj-name">{{ exam.subject_name || 'Subject Examination' }}</h3>
+                    <span class="subject-badge">{{ exam.subject_code || 'SUBJ' }}</span>
+                    <h3 class="subject-name">{{ exam.subject_name || 'Subject Examination' }}</h3>
                   </div>
-                  <div class="paper-status-pill">
-                    <span class="live-dot" />
+                  <div class="status-live-tag">
+                    <span class="pulse-dot" />
                     <span>PUBLISHED</span>
                   </div>
                 </div>
 
                 <!-- Schedule Details Grid -->
-                <div class="paper-meta-grid">
-                  <div class="meta-cell">
-                    <span class="cell-label">CLASS / SECTION</span>
-                    <span class="cell-val">
-                      {{ exam.class_name || 'Assigned Class' }}
-                      <span v-if="exam.section" class="section-tag">Section {{ exam.section }}</span>
+                <div class="paper-details-grid">
+                  <div class="detail-cell">
+                    <span class="detail-label">CLASS / SECTION</span>
+                    <span class="detail-value">
+                      {{ exam.class_name || 'Enrolled Class' }}
+                      <span v-if="exam.section" class="section-tag">Sec {{ exam.section }}</span>
                     </span>
                   </div>
 
-                  <div class="meta-cell">
-                    <span class="cell-label">EXAM DATE</span>
-                    <span class="cell-val bold">
+                  <div class="detail-cell">
+                    <span class="detail-label">EXAM DATE</span>
+                    <span class="detail-value highlight-date">
                       📅 {{ formatDate(exam.start_date) }}
-                      <span v-if="exam.end_date && exam.end_date !== exam.start_date"> - {{ formatDate(exam.end_date) }}</span>
+                      <span v-if="exam.end_date && exam.end_date !== exam.start_date"> &ndash; {{ formatDate(exam.end_date) }}</span>
                     </span>
                   </div>
 
-                  <div class="meta-cell">
-                    <span class="cell-label">SESSION TIME</span>
-                    <span class="cell-val">
-                      ⏰ {{ exam.start_time || '08:30' }} - {{ exam.end_time || '11:30' }}
+                  <div class="detail-cell">
+                    <span class="detail-label">SESSION TIME</span>
+                    <span class="detail-value">
+                      ⏰ {{ exam.start_time || '08:30' }} &ndash; {{ exam.end_time || '11:30' }}
                     </span>
                   </div>
 
-                  <div class="meta-cell">
-                    <span class="cell-label">PASSING MARKS</span>
-                    <span class="cell-val">
+                  <div class="detail-cell">
+                    <span class="detail-label">PASSING CRITERIA</span>
+                    <span class="detail-value">
                       {{ exam.pass_marks }} / {{ exam.max_marks }} pts ({{ Math.round((exam.pass_marks / (exam.max_marks || 100)) * 100) }}%)
                     </span>
                   </div>
 
-                  <div v-if="exam.teacher_name" class="meta-cell full-width">
-                    <span class="cell-label">INVIGILATOR / TEACHER</span>
-                    <span class="cell-val">👤 {{ exam.teacher_name }}</span>
+                  <div v-if="exam.teacher_name" class="detail-cell full-span">
+                    <span class="detail-label">INVIGILATOR / FACULTY</span>
+                    <span class="detail-value">👨‍🏫 {{ exam.teacher_name }}</span>
                   </div>
                 </div>
 
                 <!-- Instructions -->
-                <div v-if="exam.instructions" class="paper-instructions">
-                  <svg class="instr-icon" viewBox="0 0 20 20" fill="currentColor">
+                <div v-if="exam.instructions" class="paper-instructions-box">
+                  <svg class="info-svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
                   </svg>
-                  <p class="instr-text">{{ exam.instructions }}</p>
+                  <p class="instructions-text">{{ exam.instructions }}</p>
                 </div>
 
-                <!-- Card Bottom: Result Visibility Status -->
-                <div class="paper-footer">
-                  <div v-if="exam.has_released_result" class="result-released-banner">
-                    <span class="rel-badge">
-                      <svg class="check-sm" viewBox="0 0 20 20" fill="currentColor">
+                <!-- Footer: Result Status -->
+                <div class="paper-card-footer">
+                  <div v-if="exam.has_released_result" class="result-ready-bar">
+                    <span class="ready-badge">
+                      <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                       </svg>
-                      Official Result Released: Grade {{ exam.grade || 'PASS' }} ({{ exam.marks_obtained ?? '-' }} / {{ exam.total_marks }})
+                      Grade {{ exam.grade || 'PASS' }} ({{ exam.marks_obtained ?? '-' }} / {{ exam.total_marks }})
                     </span>
                     <button
                       type="button"
-                      class="btn-view-transcript"
+                      class="btn-view-card"
                       @click="switchToResults(exam.name)"
                     >
-                      View Report Card &rarr;
+                      <span>View Transcript</span>
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                      </svg>
                     </button>
                   </div>
-                  <div v-else class="result-pending-banner">
-                    <svg class="pending-icon" viewBox="0 0 20 20" fill="currentColor">
+                  <div v-else class="result-pending-bar">
+                    <svg class="clock-icon" viewBox="0 0 20 20" fill="currentColor">
                       <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
                     </svg>
-                    <span>Schedule Published • Marks will be released by School Administration once grading is complete.</span>
+                    <span>Schedule Published • Results will be published by Administration upon grade approval.</span>
                   </div>
                 </div>
               </div>
@@ -382,28 +404,28 @@ onMounted(() => {
       </div>
 
       <!-- TAB 2: VERIFIED RESULTS & TRANSCRIPTS -->
-      <div v-else-if="activeTab === 'results'" class="results-view">
+      <div v-else-if="activeTab === 'results'" class="tab-content">
         <!-- Empty State -->
-        <div v-if="results.length === 0" class="empty-state">
-          <div class="empty-icon-wrap">
-            <svg class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div v-if="results.length === 0" class="state-container empty">
+          <div class="empty-icon-circle">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <h3 class="empty-title">Results Are Being Processed</h3>
-          <p class="empty-desc">
+          <h3 class="state-title">Results Are Being Processed</h3>
+          <p class="state-desc">
             No examination results have been officially released for academic year {{ selectedYear }} yet.
-            Marks undergo administrative review and will appear here immediately upon official release.
+            Marks undergo administrative verification and will appear here immediately upon official release.
           </p>
         </div>
 
-        <div v-else class="results-content">
+        <div v-else class="results-wrapper">
           <!-- Exam Selector Tabs -->
-          <div v-if="Object.keys(examGroups).length > 1" class="exam-tabs-strip">
+          <div v-if="Object.keys(examGroups).length > 1" class="exam-pills-bar">
             <button
               v-for="(_, examKey) in examGroups"
               :key="examKey"
-              class="exam-tab-pill"
+              class="exam-pill"
               :class="{ active: selectedExam === examKey }"
               @click="selectExam(examKey)"
             >
@@ -411,83 +433,128 @@ onMounted(() => {
             </button>
           </div>
 
-          <!-- Selected Exam Report Card Banner -->
-          <div class="report-card-banner">
-            <div class="banner-info">
-              <div class="badge-official">OFFICIALLY RELEASED &amp; VERIFIED</div>
-              <h2 class="exam-headline">{{ selectedExam }}</h2>
-              <span class="academic-cycle">Class Assessment Record &bull; Academic Year {{ selectedYear }}</span>
+          <!-- Official Somroyal Certificate Banner -->
+          <div class="transcript-banner">
+            <div class="banner-crest">
+              <div class="crest-circle">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="banner-body">
+              <div class="verified-tag">
+                <span class="tag-dot" />
+                <span>OFFICIALLY RELEASED &amp; VERIFIED</span>
+              </div>
+              <h2 class="exam-title-text">{{ selectedExam }}</h2>
+              <p class="transcript-subtext">Certified Somroyal Student Grade Transcript &bull; Academic Year {{ selectedYear }}</p>
             </div>
 
             <!-- Big Overall GPA / Grade Badge -->
-            <div v-if="examStats" class="gpa-box">
-              <div class="gpa-val">{{ examStats.avgPct }}%</div>
-              <div class="gpa-grade">Grade: {{ examStats.overallGrade }}</div>
+            <div v-if="examStats" class="gpa-card">
+              <div class="gpa-score">{{ examStats.avgPct }}%</div>
+              <div class="gpa-badge">Grade: <strong>{{ examStats.overallGrade }}</strong></div>
             </div>
           </div>
 
-          <!-- Stats Strip -->
-          <div v-if="examStats" class="stats-strip">
-            <div class="stat-box">
-              <span class="stat-lbl">SUBJECTS</span>
-              <span class="stat-num">{{ examStats.subjectsCount }}</span>
+          <!-- Performance Metric Cards (2x2 on mobile, 4 columns on desktop) -->
+          <div v-if="examStats" class="exam-kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-icon-box blue">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                </svg>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">SUBJECTS</span>
+                <span class="kpi-val">{{ examStats.subjectsCount }}</span>
+              </div>
             </div>
-            <div class="stat-box">
-              <span class="stat-lbl">TOTAL SCORE</span>
-              <span class="stat-num">{{ examStats.totalScore }} / {{ examStats.totalMax }}</span>
+
+            <div class="kpi-card">
+              <div class="kpi-icon-box amber">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">TOTAL SCORE</span>
+                <span class="kpi-val">{{ examStats.totalScore }} / {{ examStats.totalMax }}</span>
+              </div>
             </div>
-            <div class="stat-box">
-              <span class="stat-lbl">PASSED</span>
-              <span class="stat-num text-success">{{ examStats.passedCount }}</span>
+
+            <div class="kpi-card">
+              <div class="kpi-icon-box emerald">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">PASSED</span>
+                <span class="kpi-val text-emerald">{{ examStats.passedCount }}</span>
+              </div>
             </div>
-            <div class="stat-box">
-              <span class="stat-lbl">FAILED / ABSENT</span>
-              <span class="stat-num text-danger">{{ examStats.failedCount + examStats.absentCount }}</span>
+
+            <div class="kpi-card">
+              <div class="kpi-icon-box rose">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="kpi-info">
+                <span class="kpi-label">FAILED / ABSENT</span>
+                <span class="kpi-val text-rose">{{ examStats.failedCount + examStats.absentCount }}</span>
+              </div>
             </div>
           </div>
 
-          <!-- Desktop Table -->
-          <div class="desktop-table-wrap">
-            <table class="report-table">
+          <!-- Desktop Table View -->
+          <div class="table-container">
+            <table class="somroyal-table">
               <thead>
                 <tr>
-                  <th class="idx-col">#</th>
+                  <th class="w-idx">#</th>
                   <th>SUBJECT</th>
                   <th>ATTENDANCE</th>
                   <th class="text-center">MARKS</th>
-                  <th class="text-center">MAX</th>
+                  <th class="text-center">TOTAL</th>
                   <th class="text-center">PCT</th>
                   <th class="text-center">GRADE</th>
-                  <th>REMARKS</th>
+                  <th>FACULTY REMARKS</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(row, idx) in currentExamResults" :key="row.id">
-                  <td class="idx-col">{{ idx + 1 }}</td>
-                  <td class="subject-col">
-                    <strong>{{ row.subject_name || 'Subject' }}</strong>
-                    <span v-if="row.subject_code" class="sub-code">{{ row.subject_code }}</span>
+                  <td class="w-idx text-muted">{{ idx + 1 }}</td>
+                  <td>
+                    <div class="subj-cell">
+                      <strong class="subj-cell-name">{{ row.subject_name || 'Subject' }}</strong>
+                      <span v-if="row.subject_code" class="subj-cell-code">{{ row.subject_code }}</span>
+                    </div>
                   </td>
                   <td>
                     <span
-                      class="attendance-pill"
+                      class="att-pill"
                       :class="{
                         present: row.attendance_status === 'PRESENT',
                         absent: row.attendance_status === 'ABSENT',
                         excused: row.attendance_status === 'EXCUSED'
                       }"
                     >
-                      {{ row.attendance_status }}
+                      <span class="att-dot" />
+                      <span>{{ row.attendance_status }}</span>
                     </span>
                   </td>
-                  <td class="text-center score-col">
-                    <span v-if="row.marks_obtained !== null">{{ row.marks_obtained }}</span>
-                    <span v-else class="text-muted">-</span>
+                  <td class="text-center score-cell">
+                    <span v-if="row.marks_obtained !== null" class="score-num">{{ row.marks_obtained }}</span>
+                    <span v-else class="text-muted">&ndash;</span>
                   </td>
-                  <td class="text-center max-col">{{ row.total_marks || 100 }}</td>
-                  <td class="text-center pct-col">
-                    <span v-if="row.percentage !== null">{{ row.percentage }}%</span>
-                    <span v-else class="text-muted">-</span>
+                  <td class="text-center text-muted">{{ row.total_marks || 100 }}</td>
+                  <td class="text-center pct-cell">
+                    <span v-if="row.percentage !== null" class="pct-num">{{ row.percentage }}%</span>
+                    <span v-else class="text-muted">&ndash;</span>
                   </td>
                   <td class="text-center">
                     <span
@@ -495,65 +562,97 @@ onMounted(() => {
                       class="grade-pill"
                       :class="{
                         'grade-high': ['A+', 'A', 'B+', 'B'].includes(row.grade),
-                        'grade-low': ['F'].includes(row.grade),
+                        'grade-pass': ['C+', 'C', 'D'].includes(row.grade),
+                        'grade-fail': ['F'].includes(row.grade),
                         'grade-abs': ['ABSENT'].includes(row.grade)
                       }"
                     >
                       {{ row.grade }}
                     </span>
-                    <span v-else class="text-muted">-</span>
+                    <span v-else class="text-muted">&ndash;</span>
                   </td>
-                  <td class="remarks-col">{{ row.remarks || 'Standard Performance' }}</td>
+                  <td class="remarks-cell">
+                    <span class="remarks-text">{{ row.remarks || 'Standard Performance' }}</span>
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <!-- Mobile Cards -->
-          <div class="mobile-results-cards">
-            <div v-for="(row, idx) in currentExamResults" :key="row.id" class="mobile-res-card">
-              <div class="res-card-top">
-                <span class="res-idx">#{{ idx + 1 }}</span>
+          <!-- Mobile Cards View (Hidden on desktop, shown on mobile/tablet) -->
+          <div class="mobile-results-list">
+            <div
+              v-for="(row, idx) in currentExamResults"
+              :key="row.id"
+              class="mobile-result-card"
+            >
+              <div class="m-card-header">
+                <div class="m-idx-subj">
+                  <span class="m-idx">#{{ idx + 1 }}</span>
+                  <div>
+                    <h4 class="m-subj-title">{{ row.subject_name || 'Subject' }}</h4>
+                    <span v-if="row.subject_code" class="m-subj-code">{{ row.subject_code }}</span>
+                  </div>
+                </div>
                 <span
-                  class="attendance-pill"
+                  class="att-pill sm"
                   :class="{
                     present: row.attendance_status === 'PRESENT',
                     absent: row.attendance_status === 'ABSENT',
                     excused: row.attendance_status === 'EXCUSED'
                   }"
                 >
-                  {{ row.attendance_status }}
+                  <span class="att-dot" />
+                  <span>{{ row.attendance_status }}</span>
                 </span>
               </div>
-              <h4 class="res-subj-name">{{ row.subject_name || 'Subject' }}</h4>
-              <div class="res-score-row">
-                <div class="res-score-item">
-                  <span class="lbl">Marks</span>
-                  <strong class="val">{{ row.marks_obtained !== null ? row.marks_obtained : '-' }} / {{ row.total_marks }}</strong>
+
+              <!-- 3-box score strip -->
+              <div class="m-score-strip">
+                <div class="m-score-box">
+                  <span class="m-box-lbl">Marks</span>
+                  <span class="m-box-val">{{ row.marks_obtained !== null ? row.marks_obtained : '-' }} / {{ row.total_marks }}</span>
                 </div>
-                <div class="res-score-item">
-                  <span class="lbl">Percentage</span>
-                  <strong class="val">{{ row.percentage !== null ? `${row.percentage}%` : '-' }}</strong>
+                <div class="m-score-box">
+                  <span class="m-box-lbl">Percentage</span>
+                  <span class="m-box-val">{{ row.percentage !== null ? `${row.percentage}%` : '-' }}</span>
                 </div>
-                <div class="res-score-item">
-                  <span class="lbl">Grade</span>
-                  <strong class="val">{{ row.grade || '-' }}</strong>
+                <div class="m-score-box">
+                  <span class="m-box-lbl">Grade</span>
+                  <span
+                    class="grade-pill sm"
+                    :class="{
+                      'grade-high': ['A+', 'A', 'B+', 'B'].includes(row.grade || ''),
+                      'grade-pass': ['C+', 'C', 'D'].includes(row.grade || ''),
+                      'grade-fail': ['F'].includes(row.grade || ''),
+                      'grade-abs': ['ABSENT'].includes(row.grade || '')
+                    }"
+                  >
+                    {{ row.grade || '-' }}
+                  </span>
                 </div>
               </div>
-              <div v-if="row.remarks" class="res-card-remarks">
-                &ldquo;{{ row.remarks }}&rdquo;
+
+              <div v-if="row.remarks" class="m-remarks-box">
+                <svg class="quote-icon" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 000 2h3a1 1 0 100-2H6z" clip-rule="evenodd" />
+                </svg>
+                <span>{{ row.remarks }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Official Delivery Receipt Footer -->
-          <div class="delivery-receipt-footer">
-            <svg class="check-badge-icon" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            </svg>
-            <span>
-              This is a digitally generated transcript for the authenticated student profile. Official grade certification by School Registry.
-            </span>
+          <!-- Official Delivery Verification Footer -->
+          <div class="verification-footer">
+            <div class="footer-seal">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="footer-text">
+              <strong>Somroyal Institutional Grade Certification</strong>
+              <span>This is an official, digitally generated student transcript verified by the Office of the Registrar. Any alterations render this document invalid.</span>
+            </div>
           </div>
         </div>
       </div>
@@ -562,64 +661,86 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.portal-page {
-  padding: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
+.exams-portal {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
+/* Page Header */
 .page-header {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
 }
 
-.header-content-row {
+.header-main {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.25rem;
+}
+
+.somroyal-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #10B981;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.crown-icon {
+  width: 14px;
+  height: 14px;
+  color: #F59E0B;
 }
 
 .page-title {
-  font-size: 1.6rem;
+  font-size: 1.75rem;
   font-weight: 800;
-  color: var(--text-primary);
-  margin: 0;
+  color: #0A192F;
   letter-spacing: -0.02em;
+  margin: 0;
 }
 
 .page-subtitle {
   font-size: 0.88rem;
-  color: var(--text-muted);
+  color: #64748B;
   margin-top: 0.25rem;
+  line-height: 1.5;
 }
 
-.header-actions {
+.header-controls {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.year-selector-wrap {
+.year-selector-box {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: var(--bg-surface-secondary);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   padding: 0.35rem 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .selector-lbl {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: var(--text-muted);
+  color: #64748B;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .year-select {
@@ -627,7 +748,7 @@ onMounted(() => {
   border: none;
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #0A192F;
   cursor: pointer;
   outline: none;
 }
@@ -635,704 +756,1108 @@ onMounted(() => {
 .btn-refresh {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  background-color: var(--bg-surface-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-subtle);
-  padding: 0.45rem 0.85rem;
-  border-radius: 8px;
+  gap: 0.4rem;
+  background: #FFFFFF;
+  color: #0A192F;
+  border: 1px solid #E2E8F0;
+  padding: 0.5rem 0.85rem;
+  border-radius: 10px;
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .btn-refresh:hover:not(:disabled) {
-  background-color: var(--bg-surface-hover, #e2e8f0);
+  border-color: #10B981;
+  color: #10B981;
+  background: #ECFDF5;
 }
 
 .refresh-icon {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
 }
 
 .refresh-icon.spinning {
   animation: spin 0.8s linear infinite;
 }
 
-/* Tabs Navigation */
-.tabs-nav {
-  display: flex;
-  gap: 0.5rem;
-  border-bottom: 2px solid var(--border-subtle);
-  padding-bottom: 0.15rem;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-.tab-btn {
+/* Tabs Bar */
+.tabs-bar {
+  display: flex;
+  gap: 0.5rem;
+  background: #E2E8F0;
+  padding: 0.25rem;
+  border-radius: 12px;
+  width: fit-content;
+}
+
+.tab-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.65rem 1.15rem;
-  font-size: 0.88rem;
+  padding: 0.6rem 1.15rem;
+  font-size: 0.86rem;
   font-weight: 700;
-  color: var(--text-muted);
+  color: #64748B;
   background: transparent;
   border: none;
-  border-bottom: 3px solid transparent;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  margin-bottom: -2px;
+  transition: all 0.2s ease;
 }
 
-.tab-btn:hover {
-  color: var(--text-primary);
+.tab-pill:hover {
+  color: #0A192F;
 }
 
-.tab-btn.active {
-  color: #2563eb;
-  border-bottom-color: #2563eb;
+.tab-pill.active {
+  background: #FFFFFF;
+  color: #0A192F;
+  box-shadow: 0 2px 6px rgba(10, 25, 47, 0.08);
 }
 
-.tab-icon {
-  width: 18px;
-  height: 18px;
+.tab-svg {
+  width: 17px;
+  height: 17px;
 }
 
-.badge-count {
+.tab-counter {
   font-size: 0.72rem;
   padding: 0.1rem 0.45rem;
-  border-radius: 10px;
-  background-color: var(--bg-surface-secondary);
-  color: var(--text-muted);
+  border-radius: 8px;
+  background: #F1F5F9;
+  color: #64748B;
 }
 
-.badge-count.highlight {
-  background-color: rgba(37, 99, 235, 0.12);
-  color: #2563eb;
+.tab-pill.active .tab-counter.highlight {
+  background: #ECFDF5;
+  color: #059669;
+  font-weight: 800;
 }
 
-/* Container */
-.report-container {
-  background: var(--bg-surface);
+/* Error Banner */
+.error-banner {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
   border-radius: 12px;
-  border: 1px solid var(--border-subtle);
-  overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-/* Tab 1: Published Exams Schedules View */
-.published-exams-wrap {
+.error-icon-box {
+  width: 36px;
+  height: 36px;
+  background: #EF4444;
+  color: #FFFFFF;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.error-icon-box svg {
+  width: 20px;
+  height: 20px;
+}
+
+.error-details {
+  flex: 1;
+}
+
+.error-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #991B1B;
+  margin: 0;
+}
+
+.error-desc {
+  font-size: 0.82rem;
+  color: #B91C1C;
+  margin: 0.15rem 0 0 0;
+}
+
+.btn-retry {
+  background: #991B1B;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Exam Body Card */
+.exam-body-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 12px rgba(10, 25, 47, 0.04);
+  overflow: hidden;
+}
+
+/* Loading & Empty States */
+.state-container {
+  padding: 4rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.spinner-ring {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #E2E8F0;
+  border-top-color: #10B981;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-label {
+  font-size: 0.88rem;
+  color: #64748B;
+  font-weight: 600;
+}
+
+.empty-icon-circle {
+  width: 56px;
+  height: 56px;
+  background: #F1F5F9;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94A3B8;
+}
+
+.empty-icon-circle svg {
+  width: 28px;
+  height: 28px;
+}
+
+.state-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0A192F;
+  margin: 0;
+}
+
+.state-desc {
+  font-size: 0.86rem;
+  color: #64748B;
+  max-width: 520px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Tab 1: Schedules */
+.tab-content {
   padding: 1.5rem;
+}
+
+.exam-groups-wrapper {
   display: flex;
   flex-direction: column;
   gap: 2rem;
 }
 
-.exam-group-block {
+.exam-group-card {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.15rem;
 }
 
-.exam-group-header {
+.exam-group-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-subtle);
+  gap: 0.75rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 2px solid #F1F5F9;
 }
 
-.group-header-left {
+.group-title-side {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.exam-cycle-badge {
+.exam-type-pill {
   font-size: 0.7rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background-color: #ede9fe;
-  color: #7c3aed;
-  padding: 0.2rem 0.55rem;
-  border-radius: 4px;
-}
-
-.exam-group-title {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.subject-count-pill {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  background-color: var(--bg-surface-secondary);
-  padding: 0.25rem 0.65rem;
+  letter-spacing: 0.06em;
+  background: #0A192F;
+  color: #FFFFFF;
+  padding: 0.25rem 0.6rem;
   border-radius: 6px;
 }
 
+.exam-group-heading {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0A192F;
+  margin: 0;
+}
+
+.papers-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #059669;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+}
+
+.papers-pill svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Papers Grid */
 .papers-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.25rem;
 }
 
-.paper-card {
-  background-color: var(--bg-surface-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 10px;
+.paper-item {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  gap: 1rem;
+  transition: all 0.2s ease;
 }
 
-.paper-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.08);
+.paper-item:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 14px rgba(10, 25, 47, 0.05);
 }
 
-.paper-top {
+.paper-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.subject-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #2563EB;
+  background: #EFF6FF;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 0.35rem;
+}
+
+.subject-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0A192F;
+  margin: 0;
+}
+
+.status-live-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #059669;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  background: #10B981;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.paper-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  background: #FFFFFF;
+  padding: 0.85rem;
+  border-radius: 10px;
+  border: 1px solid #E2E8F0;
+}
+
+.detail-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.detail-cell.full-span {
+  grid-column: span 2;
+  padding-top: 0.35rem;
+  border-top: 1px dashed #E2E8F0;
+}
+
+.detail-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.detail-value {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.detail-value.highlight-date {
+  color: #0A192F;
+}
+
+.section-tag {
+  font-size: 0.7rem;
+  background: #F1F5F9;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  color: #475569;
+  margin-left: 0.25rem;
+}
+
+.paper-instructions-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background: #EFF6FF;
+  border-left: 3px solid #3B82F6;
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+}
+
+.info-svg {
+  width: 16px;
+  height: 16px;
+  color: #3B82F6;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.instructions-text {
+  font-size: 0.78rem;
+  color: #1E3A8A;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.paper-card-footer {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.result-ready-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
+}
+
+.ready-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #065F46;
+}
+
+.check-icon {
+  width: 15px;
+  height: 15px;
+  color: #10B981;
+}
+
+.btn-view-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #059669;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-view-card svg {
+  width: 13px;
+  height: 13px;
+}
+
+.btn-view-card:hover {
+  background: #047857;
+}
+
+.result-pending-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  color: #64748B;
+  background: #F1F5F9;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  line-height: 1.35;
+}
+
+.clock-icon {
+  width: 15px;
+  height: 15px;
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+/* Tab 2: Results */
+.results-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.exam-pills-bar {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.exam-pill {
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.45rem 0.95rem;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.exam-pill:hover {
+  border-color: #CBD5E1;
+  color: #0A192F;
+}
+
+.exam-pill.active {
+  background: #0A192F;
+  color: #FFFFFF;
+  border-color: #0A192F;
+}
+
+/* Official Somroyal Transcript Banner */
+.transcript-banner {
+  background: linear-gradient(135deg, #0A192F 0%, #0F2A4A 60%, #081528 100%);
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(10, 25, 47, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.transcript-banner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 300px;
+  background: radial-gradient(circle at right, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.banner-crest {
+  flex-shrink: 0;
+}
+
+.crest-circle {
+  width: 52px;
+  height: 52px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #10B981;
+}
+
+.crest-circle svg {
+  width: 28px;
+  height: 28px;
+}
+
+.banner-body {
+  flex: 1;
+  min-width: 240px;
+}
+
+.verified-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #10B981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+  margin-bottom: 0.5rem;
+}
+
+.tag-dot {
+  width: 6px;
+  height: 6px;
+  background: #10B981;
+  border-radius: 50%;
+}
+
+.exam-title-text {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: #FFFFFF;
+}
+
+.transcript-subtext {
+  font-size: 0.84rem;
+  color: #94A3B8;
+  margin-top: 0.35rem;
+}
+
+.gpa-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 0.85rem 1.5rem;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+
+.gpa-score {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #FFFFFF;
+  line-height: 1;
+}
+
+.gpa-badge {
+  font-size: 0.78rem;
+  color: #E2E8F0;
+  margin-top: 0.35rem;
+}
+
+.gpa-badge strong {
+  color: #F59E0B;
+  font-size: 0.92rem;
+}
+
+/* KPI Cards Strip */
+.exam-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.kpi-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.kpi-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpi-icon-box svg {
+  width: 20px;
+  height: 20px;
+}
+
+.kpi-icon-box.blue {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+.kpi-icon-box.amber {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.kpi-icon-box.emerald {
+  background: #ECFDF5;
+  color: #059669;
+}
+
+.kpi-icon-box.rose {
+  background: #FEF2F2;
+  color: #DC2626;
+}
+
+.kpi-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.kpi-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kpi-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0A192F;
+}
+
+.text-emerald {
+  color: #059669 !important;
+}
+
+.text-rose {
+  color: #DC2626 !important;
+}
+
+/* Desktop Results Table */
+.table-container {
+  overflow-x: auto;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+}
+
+.somroyal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  text-align: left;
+}
+
+.somroyal-table thead {
+  background: #0A192F;
+  color: #FFFFFF;
+}
+
+.somroyal-table th {
+  padding: 0.85rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #1E293B;
+}
+
+.somroyal-table td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #F1F5F9;
+  color: #1E293B;
+  vertical-align: middle;
+}
+
+.somroyal-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.w-idx {
+  width: 44px;
+}
+
+.subj-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.subj-cell-name {
+  font-weight: 700;
+  color: #0A192F;
+}
+
+.subj-cell-code {
+  font-size: 0.72rem;
+  color: #64748B;
+}
+
+.att-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+}
+
+.att-pill.sm {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
+}
+
+.att-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.att-pill.present {
+  background: #ECFDF5;
+  color: #065F46;
+}
+.att-pill.present .att-dot {
+  background: #10B981;
+}
+
+.att-pill.absent {
+  background: #FEF2F2;
+  color: #991B1B;
+}
+.att-pill.absent .att-dot {
+  background: #EF4444;
+}
+
+.att-pill.excused {
+  background: #FEF3C7;
+  color: #92400E;
+}
+.att-pill.excused .att-dot {
+  background: #F59E0B;
+}
+
+.score-num {
+  font-weight: 800;
+  color: #0A192F;
+  font-size: 0.95rem;
+}
+
+.pct-num {
+  font-weight: 700;
+  color: #059669;
+}
+
+.grade-pill {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  min-width: 32px;
+  text-align: center;
+}
+
+.grade-pill.sm {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.45rem;
+}
+
+.grade-pill.grade-high {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.grade-pill.grade-pass {
+  background: #EFF6FF;
+  color: #1E40AF;
+  border: 1px solid #BFDBFE;
+}
+
+.grade-pill.grade-fail {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.grade-pill.grade-abs {
+  background: #F1F5F9;
+  color: #64748B;
+  border: 1px solid #E2E8F0;
+}
+
+.remarks-text {
+  font-size: 0.8rem;
+  color: #64748B;
+  font-style: italic;
+}
+
+/* Mobile Results Cards */
+.mobile-results-list {
+  display: none;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mobile-result-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.m-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 0.5rem;
 }
 
-.paper-subj-code {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #2563eb;
-  letter-spacing: 0.05em;
-}
-
-.paper-subj-name {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin: 0.15rem 0 0 0;
-}
-
-.paper-status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.68rem;
-  font-weight: 800;
-  color: #059669;
-  background-color: rgba(16, 185, 129, 0.15);
-  padding: 0.2rem 0.55rem;
-  border-radius: 12px;
-  letter-spacing: 0.05em;
-}
-
-.live-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: #10b981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
-}
-
-.paper-meta-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
-  background-color: var(--bg-surface);
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-subtle);
-}
-
-.meta-cell {
+.m-idx-subj {
   display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.meta-cell.full-width {
-  grid-column: span 2;
-}
-
-.cell-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 0.03em;
-}
-
-.cell-val {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.cell-val.bold {
-  font-weight: 700;
-}
-
-.section-tag {
-  display: inline-block;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #475569;
-  background-color: #e2e8f0;
-  padding: 0.05rem 0.35rem;
-  border-radius: 4px;
-  margin-left: 0.25rem;
-}
-
-.paper-instructions {
-  display: flex;
+  align-items: flex-start;
   gap: 0.5rem;
-  background-color: rgba(245, 158, 11, 0.08);
-  border-left: 3px solid #f59e0b;
-  padding: 0.6rem 0.75rem;
-  border-radius: 4px;
 }
 
-.instr-icon {
-  width: 16px;
-  height: 16px;
-  color: #d97706;
-  flex-shrink: 0;
-  margin-top: 0.1rem;
-}
-
-.instr-text {
-  font-size: 0.76rem;
-  color: var(--text-secondary, #475569);
-  line-height: 1.4;
-  margin: 0;
-}
-
-.paper-footer {
-  margin-top: auto;
-  padding-top: 0.5rem;
-}
-
-.result-released-banner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
-  background-color: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-}
-
-.rel-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #065f46;
-}
-
-.check-sm {
-  width: 16px;
-  height: 16px;
-  color: #059669;
-}
-
-.btn-view-transcript {
-  background-color: #059669;
-  color: #fff;
-  border: none;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 0.3rem 0.65rem;
-  border-radius: 4px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.btn-view-transcript:hover {
-  background-color: #047857;
-}
-
-.result-pending-banner {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.74rem;
-  color: var(--text-muted);
-  background-color: var(--bg-surface);
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  border: 1px dashed var(--border-subtle);
-}
-
-.pending-icon {
-  width: 16px;
-  height: 16px;
-  color: #94a3b8;
-  flex-shrink: 0;
-}
-
-/* Tab 2: Verified Results View */
-.results-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.exam-tabs-strip {
-  display: flex;
-  gap: 0.5rem;
-  padding: 1rem 1.5rem;
-  background-color: var(--bg-surface-secondary);
-  border-bottom: 1px solid var(--border-subtle);
-  overflow-x: auto;
-}
-
-.exam-tab-pill {
-  padding: 0.45rem 1rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  background-color: var(--bg-surface);
-  color: var(--text-muted);
-  border: 1px solid var(--border-subtle);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-}
-
-.exam-tab-pill.active {
-  background-color: #0f172a;
-  color: #ffffff;
-  border-color: #0f172a;
-}
-
-.report-card-banner {
-  padding: 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
-  border-bottom: 1px solid var(--border-subtle);
-  gap: 1rem;
-}
-
-.badge-official {
-  font-size: 0.65rem;
-  font-weight: 800;
-  color: #10b981;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.25rem;
-}
-
-.exam-headline {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.academic-cycle {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.gpa-box {
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  padding: 0.75rem 1.25rem;
-  border-radius: 10px;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.gpa-val {
-  font-size: 1.8rem;
-  font-weight: 900;
-  color: #10b981;
-  line-height: 1;
-}
-
-.gpa-grade {
+.m-idx {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
+  color: #94A3B8;
+  padding-top: 0.15rem;
 }
 
-.stats-strip {
+.m-subj-title {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #0A192F;
+  margin: 0;
+}
+
+.m-subj-code {
+  font-size: 0.7rem;
+  color: #64748B;
+}
+
+.m-score-strip {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-bottom: 1px solid var(--border-subtle);
-  background-color: var(--bg-surface);
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0.65rem;
+  text-align: center;
 }
 
-.stat-box {
-  padding: 1rem;
+.m-score-box {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  border-right: 1px solid var(--border-subtle);
 }
 
-.stat-box:last-child {
-  border-right: none;
-}
-
-.stat-lbl {
+.m-box-lbl {
   font-size: 0.65rem;
   font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
+  color: #94A3B8;
+  text-transform: uppercase;
 }
 
-.stat-num {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--text-primary);
-}
-
-.text-success { color: #10b981; }
-.text-danger { color: #ef4444; }
-
-/* Table */
-.desktop-table-wrap {
-  overflow-x: auto;
-}
-
-.report-table {
-  width: 100%;
-  border-collapse: collapse;
+.m-box-val {
   font-size: 0.88rem;
-  text-align: left;
-}
-
-.report-table th {
-  background-color: var(--bg-surface-secondary);
-  color: var(--text-muted);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 0.85rem 1.25rem;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.report-table td {
-  padding: 0.85rem 1.25rem;
-  border-bottom: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-  vertical-align: middle;
-}
-
-.idx-col { color: var(--text-muted); width: 35px; }
-.subject-col strong { color: var(--text-primary); }
-.sub-code { display: block; font-size: 0.72rem; color: var(--text-muted); }
-.score-col { font-weight: 800; font-size: 0.95rem; }
-.max-col { color: var(--text-muted); }
-.pct-col { font-weight: 700; }
-.remarks-col { font-size: 0.8rem; color: var(--text-secondary); }
-
-.attendance-pill {
-  display: inline-block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 0.15rem 0.45rem;
-  border-radius: 4px;
-}
-
-.attendance-pill.present { background-color: rgba(16, 185, 129, 0.15); color: #10b981; }
-.attendance-pill.absent { background-color: rgba(239, 68, 68, 0.15); color: #ef4444; }
-.attendance-pill.excused { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-
-.grade-pill {
-  display: inline-block;
-  padding: 0.2rem 0.55rem;
-  border-radius: 4px;
   font-weight: 800;
-  font-size: 0.82rem;
+  color: #0A192F;
 }
 
-.grade-high { background-color: rgba(16, 185, 129, 0.18); color: #10b981; }
-.grade-low { background-color: rgba(239, 68, 68, 0.18); color: #ef4444; }
-.grade-abs { background-color: rgba(245, 158, 11, 0.18); color: #f59e0b; }
-
-.text-center { text-align: center; }
-.text-muted { color: var(--text-muted); }
-
-/* Mobile Cards */
-.mobile-results-cards {
-  display: none;
-  flex-direction: column;
-  gap: 0.85rem;
-  padding: 1rem;
-}
-
-.mobile-res-card {
-  padding: 1rem;
-  background: var(--bg-surface-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
+.m-remarks-box {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.res-card-top {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-}
-
-.res-idx {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
-.res-subj-name {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.res-score-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  background: var(--bg-surface);
-  padding: 0.65rem;
+  gap: 0.4rem;
+  font-size: 0.76rem;
+  color: #64748B;
+  font-style: italic;
+  padding: 0.4rem 0.6rem;
+  background: #F1F5F9;
   border-radius: 6px;
 }
 
-.res-score-item {
+.quote-icon {
+  width: 14px;
+  height: 14px;
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+/* Verification Footer */
+.verification-footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.footer-seal {
+  width: 38px;
+  height: 38px;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #059669;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.footer-seal svg {
+  width: 22px;
+  height: 22px;
+}
+
+.footer-text {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
 }
 
-.res-score-item .lbl {
-  font-size: 0.68rem;
-  color: var(--text-muted);
+.footer-text strong {
+  font-size: 0.82rem;
+  color: #0A192F;
 }
 
-.res-score-item .val {
-  font-size: 0.95rem;
-  color: var(--text-primary);
+.footer-text span {
+  font-size: 0.74rem;
+  color: #64748B;
+  line-height: 1.4;
 }
 
-.res-card-remarks {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-/* Footer Verification Badge */
-.delivery-receipt-footer {
-  padding: 0.85rem 1.5rem;
-  background-color: var(--bg-surface-secondary);
-  border-top: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.check-badge-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #10b981;
-  flex-shrink: 0;
-}
-
-/* Loading & Empty States */
-.loading-state, .empty-state, .error-card {
-  padding: 4rem 1.5rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--border-subtle);
-  border-top-color: #2563eb;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.empty-icon-wrap {
-  width: 52px;
-  height: 52px;
-  background-color: var(--bg-surface-secondary);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.empty-icon {
-  width: 1.75rem;
-  height: 1.75rem;
-  color: var(--text-muted);
-}
-
-.empty-title, .error-title {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.empty-desc, .error-desc {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  max-width: 500px;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.retry-btn {
-  background-color: #0f172a;
-  color: #fff;
-  border: 1px solid #334155;
-  padding: 0.4rem 1rem;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
+/* Responsive Breakpoints */
+@media (max-width: 900px) {
+  .exam-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
-  .desktop-table-wrap {
-    display: none;
-  }
-  .mobile-results-cards {
-    display: flex;
-  }
-  .stats-strip {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .report-card-banner {
+  .header-main {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
   }
-  .gpa-box {
+
+  .header-controls {
+    justify-content: space-between;
+  }
+
+  .tabs-bar {
     width: 100%;
   }
+
+  .tab-pill {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .transcript-banner {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+    padding: 1.5rem;
+  }
+
+  .banner-crest {
+    display: none;
+  }
+
+  .gpa-card {
+    text-align: center;
+  }
+
+  .table-container {
+    display: none;
+  }
+
+  .mobile-results-list {
+    display: flex;
+  }
+
   .papers-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .exam-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .verification-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
   }
 }
 </style>

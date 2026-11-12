@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+
 interface AuditLogItem {
   id: number;
   action: string;
@@ -13,43 +15,60 @@ interface Props {
   loading?: boolean;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   logs: () => [],
   loading: false,
 });
 
-const activities = [
-  {
-    id: 1,
-    title: 'New student registered',
-    entity: 'Hassan Mohamed',
-    time: '2 hours ago',
-    icon: 'user',
-    iconBg: '#EFF6FF',
-    iconColor: '#2563EB',
-    dotColor: '#D97706',
-  },
-  {
-    id: 2,
-    title: 'Timetable updated',
-    entity: 'Grade 1 - A',
-    time: '4 hours ago',
-    icon: 'calendar',
-    iconBg: '#FFF7ED',
-    iconColor: '#F97316',
-    dotColor: '#DC2626',
-  },
-  {
-    id: 3,
-    title: 'Exam created',
-    entity: 'Mid-Term Examination',
-    time: '1 day ago',
-    icon: 'exam',
-    iconBg: '#FEF2F2',
-    iconColor: '#EF4444',
-    dotColor: '#2563EB',
-  },
-];
+function formatRelativeTime(dateStr?: string) {
+  if (!dateStr) return 'Just now';
+  try {
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
+  } catch {
+    return 'Recently';
+  }
+}
+
+const activities = computed(() => {
+  if (!props.logs || props.logs.length === 0) return [];
+  return props.logs.slice(0, 5).map((log) => {
+    let icon = 'user';
+    let iconBg = '#EFF6FF';
+    let iconColor = '#2563EB';
+    let dotColor = '#10B981';
+
+    const actionLower = (log.action || '').toLowerCase();
+    if (actionLower.includes('exam')) {
+      icon = 'exam';
+      iconBg = '#FEF2F2';
+      iconColor = '#EF4444';
+      dotColor = '#EF4444';
+    } else if (actionLower.includes('class') || actionLower.includes('timetable') || actionLower.includes('schedule')) {
+      icon = 'calendar';
+      iconBg = '#FFF7ED';
+      iconColor = '#F97316';
+      dotColor = '#F97316';
+    }
+
+    return {
+      id: log.id,
+      title: log.action || 'System Event',
+      entity: log.details?.entity || log.status || 'Completed',
+      time: formatRelativeTime(log.created_at),
+      icon,
+      iconBg,
+      iconColor,
+      dotColor,
+    };
+  });
+});
 </script>
 
 <template>
@@ -71,8 +90,19 @@ const activities = [
       </router-link>
     </div>
 
+    <!-- Empty State when 0 logs -->
+    <div v-if="activities.length === 0" class="empty-activities">
+      <div class="empty-icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <p class="empty-title">No Recent Activities</p>
+      <p class="empty-desc">System events and operational logs will appear here as records are created.</p>
+    </div>
+
     <!-- Activity Rows -->
-    <div class="activities-list">
+    <div v-else class="activities-list">
       <div
         v-for="act in activities"
         :key="act.id"
@@ -275,5 +305,64 @@ const activities = [
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+/* Empty State */
+.empty-activities {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1.5rem 1rem;
+}
+
+.empty-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #F1F5F9;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.65rem;
+}
+
+.empty-icon-box svg {
+  width: 22px;
+  height: 22px;
+}
+
+.empty-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #334155;
+  margin: 0 0 0.25rem 0;
+}
+
+.empty-desc {
+  font-size: 0.8rem;
+  color: #94A3B8;
+  max-width: 320px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+@media (max-width: 600px) {
+  .activity-row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .activity-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  .activity-time-group {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 </style>

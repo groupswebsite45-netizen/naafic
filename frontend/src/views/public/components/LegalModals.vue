@@ -92,13 +92,14 @@ const emit = defineEmits<{
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: clamp(0.75rem, 3vw, 1.5rem);
 }
 
 .modal-window {
@@ -106,10 +107,10 @@ const emit = defineEmits<{
   border-radius: 16px;
   width: 100%;
   max-width: 600px;
-  max-height: 85vh;
+  max-height: 88vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
   overflow: hidden;
 }
 
@@ -117,27 +118,40 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 1.75rem;
+  padding: 1.15rem clamp(1rem, 3vw, 1.75rem);
   border-bottom: 1px solid #f1f5f9;
 }
 
 .modal-title {
-  font-size: 1.2rem;
+  font-size: clamp(1.05rem, 3vw, 1.25rem);
   font-weight: 800;
   color: #0f2b5c;
 }
 
 .btn-close {
   background: #f1f5f9;
-  border: none;
-  padding: 0.35rem;
-  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
   color: #64748b;
   cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  border-color: #fca5a5;
 }
 
 .modal-body {
-  padding: 1.75rem;
+  padding: clamp(1rem, 3vw, 1.75rem);
   overflow-y: auto;
   font-size: 0.925rem;
   color: #334155;
@@ -162,7 +176,7 @@ const emit = defineEmits<{
 }
 
 .modal-footer {
-  padding: 1rem 1.75rem;
+  padding: 1rem clamp(1rem, 3vw, 1.75rem);
   border-top: 1px solid #f1f5f9;
   display: flex;
   justify-content: flex-end;
@@ -172,15 +186,24 @@ const emit = defineEmits<{
 .btn-primary {
   background: #0f2b5c;
   color: #ffffff;
-  padding: 0.6rem 1.25rem;
+  padding: 0.65rem 1.45rem;
+  min-height: 44px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   border: none;
+  transition: all 0.2s;
 }
 
 .btn-primary:hover {
   background: #1d4ed8;
+}
+
+@media (max-width: 480px) {
+  .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .modal-fade-enter-active,

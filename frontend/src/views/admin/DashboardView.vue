@@ -15,6 +15,11 @@ import FeesWidget from './dashboard/components/FeesWidget.vue';
 import ResultsProgressWidget from './dashboard/components/ResultsProgressWidget.vue';
 import RecentActivityWidget from './dashboard/components/RecentActivityWidget.vue';
 import QuickActionsWidget from './dashboard/components/QuickActionsWidget.vue';
+import { useSchoolBrandingStore } from '../../stores/schoolBranding';
+import { useI18n } from '../../i18n';
+
+const { t } = useI18n();
+const brandingStore = useSchoolBrandingStore();
 
 // Reactive State
 const overview = ref<DashboardOverview | null>(null);
@@ -30,19 +35,37 @@ const fetchError = ref<string | null>(null);
 
 // Metric calculations
 const totalStudentsCount = computed(() => {
-  return overview.value?.metrics?.total_students ?? 21;
+  return overview.value?.metrics?.total_students ?? 0;
 });
 
 const totalTeachersCount = computed(() => {
-  return overview.value?.metrics?.total_teachers ?? 2;
+  return overview.value?.metrics?.total_teachers ?? 0;
 });
 
 const totalClassesCount = computed(() => {
-  return overview.value?.metrics?.total_classes ?? 2;
+  return overview.value?.metrics?.total_classes ?? 0;
 });
 
 const totalSubjectsCount = computed(() => {
-  return overview.value?.metrics?.total_subjects ?? 2;
+  return overview.value?.metrics?.total_subjects ?? 0;
+});
+
+const upcomingExamsCount = computed(() => {
+  return overview.value?.metrics?.upcoming_exams_count ?? upcomingExams.value?.length ?? 0;
+});
+
+const todayClassesCount = computed(() => {
+  return overview.value?.metrics?.today_timetable_count ?? 0;
+});
+
+const feesCollectedFormatted = computed(() => {
+  const val = overview.value?.metrics?.total_fees_collected ?? 0;
+  return `$${Number(val).toFixed(2)}`;
+});
+
+const feesOutstandingFormatted = computed(() => {
+  const val = overview.value?.metrics?.total_fees_outstanding ?? 0;
+  return `$${Number(val).toFixed(2)}`;
 });
 
 async function loadDashboardData() {
@@ -59,6 +82,9 @@ async function loadDashboardData() {
 
     if (overviewRes.status === 'fulfilled') {
       overview.value = overviewRes.value;
+      if ((overviewRes.value as any).school) {
+        brandingStore.setLiveSchoolInfo((overviewRes.value as any).school);
+      }
     }
 
     if (examsRes.status === 'fulfilled' && Array.isArray(examsRes.value)) {
@@ -96,9 +122,9 @@ onMounted(() => {
     
     <!-- 1. Top Hero Welcome Banner Card -->
     <DashboardHero
-      admin-name="Abdikadir Ali Mire"
-      school-name="Garasale Primary School"
-      school-code="SOM-SCH-0001"
+      :admin-name="brandingStore.adminName"
+      :school-name="brandingStore.schoolName"
+      :school-code="brandingStore.schoolCode"
       :academic-year="selectedAcademicYear"
       :academic-years="availableAcademicYears"
       @update:academic-year="handleYearChange"
@@ -107,37 +133,37 @@ onMounted(() => {
     <!-- 2. Primary KPI Stats Row (4 Cards) -->
     <section class="kpi-grid primary-kpi-grid" aria-label="Primary Key Performance Indicators">
       <StatCard
-        title="Total Students"
+        :title="t('dashboard.totalStudents')"
         :value="totalStudentsCount"
-        trend-badge="↑ +12%"
-        subtext="21 Active Enrolled"
+        :trend-badge="totalStudentsCount > 0 ? 'Active' : 'Zero Records'"
+        :subtext="`${totalStudentsCount} Enrolled Students`"
         icon-variant="blue"
         :loading="isLoading"
       />
 
       <StatCard
-        title="Total Teachers"
+        :title="t('dashboard.totalTeachers')"
         :value="totalTeachersCount"
-        trend-badge="↑ +0%"
-        subtext="2 Active Faculty"
+        :trend-badge="totalTeachersCount > 0 ? 'Active' : 'Zero Records'"
+        :subtext="`${totalTeachersCount} Active Faculty`"
         icon-variant="green"
         :loading="isLoading"
       />
 
       <StatCard
-        title="Total Classes"
+        :title="t('dashboard.totalClasses')"
         :value="totalClassesCount"
-        trend-badge="↑ +0%"
-        subtext="Grade Levels & Sections"
+        :trend-badge="totalClassesCount > 0 ? 'Active' : 'Zero Records'"
+        :subtext="`${totalClassesCount} Grade Levels & Sections`"
         icon-variant="purple"
         :loading="isLoading"
       />
 
       <StatCard
-        title="Total Subjects"
+        :title="t('dashboard.totalSubjects')"
         :value="totalSubjectsCount"
-        trend-badge="↑ +0%"
-        subtext="Active Curriculum Subjects"
+        :trend-badge="totalSubjectsCount > 0 ? 'Active' : 'Zero Records'"
+        :subtext="`${totalSubjectsCount} Curriculum Subjects`"
         icon-variant="orange"
         :loading="isLoading"
       />
@@ -147,7 +173,7 @@ onMounted(() => {
     <section class="kpi-grid secondary-kpi-grid" aria-label="Operational Key Performance Indicators">
       <StatCard
         title="Today's Classes"
-        :value="overview?.metrics?.today_timetable_count ?? 0"
+        :value="todayClassesCount"
         subtext="Scheduled Class Periods"
         icon-variant="amber"
         :has-chevron="true"
@@ -156,7 +182,7 @@ onMounted(() => {
 
       <StatCard
         title="Upcoming Exams"
-        :value="3"
+        :value="upcomingExamsCount"
         subtext="Scheduled Assessments"
         icon-variant="red"
         :has-chevron="true"
@@ -165,7 +191,7 @@ onMounted(() => {
 
       <StatCard
         title="Fees Collected"
-        value="$0.00"
+        :value="feesCollectedFormatted"
         subtext="Recorded Realized Payments"
         icon-variant="emerald"
         :has-chevron="true"
@@ -174,7 +200,7 @@ onMounted(() => {
 
       <StatCard
         title="Outstanding Fees"
-        value="$0.00"
+        :value="feesOutstandingFormatted"
         subtext="Total Unpaid Student Balances"
         icon-variant="purple"
         :has-chevron="true"
@@ -186,8 +212,8 @@ onMounted(() => {
     <section class="analytics-3col-grid" aria-label="Analytics and Performance Charts">
       <!-- Card 1: Student Enrollment Overview Donut Chart -->
       <StudentLevelWidget
-        :total-students="21"
-        :primary-count="21"
+        :total-students="totalStudentsCount"
+        :primary-count="totalStudentsCount"
         :secondary-count="0"
         :others-count="0"
         :loading="isLoading"
@@ -195,9 +221,9 @@ onMounted(() => {
 
       <!-- Card 2: Fees & Revenue Overview Monthly Bar Chart -->
       <FeesWidget
-        :billed="0"
-        :collected="0"
-        :outstanding="0"
+        :billed="overview?.metrics?.total_fees_billed ?? 0"
+        :collected="overview?.metrics?.total_fees_collected ?? 0"
+        :outstanding="overview?.metrics?.total_fees_outstanding ?? 0"
         :loading="isLoading"
       />
 
@@ -237,40 +263,50 @@ onMounted(() => {
 /* 4-Card Grid for Primary and Secondary KPIs */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1.25rem;
 }
 
 /* 3-Column Grid for Analytics Row */
 .analytics-3col-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.25rem;
 }
 
 /* 2-Column Grid for Bottom Section */
 .bottom-2col-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.25rem;
 }
 
 /* Responsive Breakpoints */
-@media (max-width: 1200px) {
-  .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+@media (max-width: 1360px) {
   .analytics-3col-grid {
     grid-template-columns: 1fr;
-  }
-  .bottom-2col-grid {
-    grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 1200px) {
   .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .bottom-2col-grid {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 580px) {
+  .dashboard-viewport {
+    gap: 1rem;
+  }
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
   }
 }
 </style>

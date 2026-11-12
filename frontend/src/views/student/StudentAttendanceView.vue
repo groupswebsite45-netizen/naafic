@@ -58,8 +58,8 @@ async function initPage() {
       selectedYear.value = academicYears.value[0];
     }
   } catch {
-    academicYears.value = ['2025-2026'];
-    selectedYear.value = '2025-2026';
+    academicYears.value = ['2026/2027'];
+    selectedYear.value = '2026/2027';
   }
   await fetchAttendance();
 }
@@ -86,194 +86,271 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="portal-page">
+  <div class="portal-page student-attendance-view">
     <!-- Header -->
     <div class="page-header">
       <div>
         <h1 class="page-title">My Class Attendance</h1>
-        <p class="page-subtitle">Your subject period attendance logs, attendance rate, and unexcused absence audits.</p>
+        <p class="page-subtitle">Your subject period attendance logs, overall attendance rate, and verified absence records.</p>
       </div>
     </div>
 
     <!-- Summary KPI Cards -->
-    <div v-if="attendanceData" class="summary-grid">
-      <div class="summary-card card blue">
-        <span class="sum-label">TOTAL CLASSES</span>
+    <section v-if="attendanceData" class="summary-grid" aria-label="Attendance Overview Metrics">
+      <!-- Total Classes -->
+      <div class="card summary-card variant-blue">
+        <div class="sum-top">
+          <span class="sum-label">TOTAL CLASSES</span>
+          <div class="sum-icon-box bg-blue-tint">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+        </div>
         <span class="sum-val">{{ attendanceData.summary.total_classes }}</span>
-        <span class="sum-sub">Scheduled Periods</span>
+        <span class="sum-sub">Conducted Periods</span>
       </div>
-      <div class="summary-card card green">
-        <span class="sum-label">CLASSES PRESENT</span>
-        <span class="sum-val text-emerald">{{ attendanceData.summary.present_count }}</span>
+
+      <!-- Classes Present -->
+      <div class="card summary-card variant-emerald">
+        <div class="sum-top">
+          <span class="sum-label">CLASSES PRESENT</span>
+          <div class="sum-icon-box bg-emerald-tint">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <span class="sum-val text-emerald-600">{{ attendanceData.summary.present_count }}</span>
         <span class="sum-sub">Attended Lectures</span>
       </div>
-      <div class="summary-card card red">
-        <span class="sum-label">ABSENT</span>
-        <span class="sum-val text-rose">{{ attendanceData.summary.absent_count }}</span>
-        <span class="sum-sub">{{ attendanceData.summary.absent_count === 0 ? 'Perfect Record' : 'Missed Sessions' }}</span>
+
+      <!-- Absent -->
+      <div class="card summary-card variant-rose">
+        <div class="sum-top">
+          <span class="sum-label">ABSENT PERIODS</span>
+          <div class="sum-icon-box bg-rose-tint">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <span class="sum-val text-rose-600">{{ attendanceData.summary.absent_count }}</span>
+        <span class="sum-sub">{{ attendanceData.summary.absent_count === 0 ? '✓ Perfect Attendance' : 'Missed Periods' }}</span>
       </div>
-      <div class="summary-card card purple">
-        <span class="sum-label">ATTENDANCE RATE</span>
-        <span class="sum-val" :class="attendanceData.summary.attendance_percentage >= 80 ? 'text-emerald' : 'text-amber'">
+
+      <!-- Attendance Rate -->
+      <div class="card summary-card variant-purple">
+        <div class="sum-top">
+          <span class="sum-label">ATTENDANCE RATE</span>
+          <div class="sum-icon-box bg-purple-tint">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+        </div>
+        <span class="sum-val" :class="attendanceData.summary.attendance_percentage >= 80 ? 'text-emerald-600' : 'text-amber-600'">
           {{ attendanceData.summary.attendance_percentage }}%
         </span>
-        <span class="sum-sub">Minimum 75% Required</span>
+        <span class="sum-sub">Minimum 75% Requirement</span>
       </div>
-    </div>
+    </section>
 
-    <!-- Attendance by Subject -->
-    <div v-if="attendanceData && attendanceData.by_subject.length > 0" class="section-block">
-      <h3 class="section-title">Attendance by Subject</h3>
+    <!-- Attendance by Subject Breakdown -->
+    <section v-if="attendanceData && attendanceData.by_subject.length > 0" class="card section-panel">
+      <div class="panel-header-simple">
+        <h3 class="panel-title">Subject-Wise Attendance Breakdown</h3>
+        <p class="panel-sub">Performance metrics calculated across your enrolled subjects.</p>
+      </div>
+
       <div class="subject-att-grid">
-        <div v-for="sub in attendanceData.by_subject" :key="sub.subject_id" class="card subject-att-card">
+        <div v-for="sub in attendanceData.by_subject" :key="sub.subject_id" class="subject-att-card">
           <div class="subj-header">
-            <h4 class="subj-name">{{ sub.subject_name }}</h4>
-            <span class="subj-pct" :class="sub.attendance_percentage >= 80 ? 'good' : 'warn'">
+            <h4 class="subj-name" :title="sub.subject_name">{{ sub.subject_name }}</h4>
+            <span class="subj-pct" :class="sub.attendance_percentage >= 80 ? 'pct-good' : 'pct-warn'">
               {{ sub.attendance_percentage }}%
             </span>
           </div>
+
+          <!-- Progress Bar -->
+          <div class="progress-track">
+            <div
+              class="progress-fill"
+              :class="sub.attendance_percentage >= 80 ? 'fill-good' : 'fill-warn'"
+              :style="{ width: `${Math.min(sub.attendance_percentage, 100)}%` }"
+            />
+          </div>
+
           <div class="subj-stats-row">
             <div class="subj-stat">
               <span class="lbl">Present</span>
-              <strong class="val text-emerald">{{ sub.present_count }}</strong>
+              <strong class="val text-emerald-600">{{ sub.present_count }}</strong>
             </div>
             <div class="subj-stat">
               <span class="lbl">Absent</span>
-              <strong class="val" :class="sub.absent_count > 0 ? 'text-rose' : ''">{{ sub.absent_count }}</strong>
+              <strong class="val" :class="sub.absent_count > 0 ? 'text-rose-600' : 'text-slate-600'">{{ sub.absent_count }}</strong>
             </div>
             <div class="subj-stat">
               <span class="lbl">Total</span>
-              <strong class="val">{{ sub.total_classes }}</strong>
+              <strong class="val text-slate-800">{{ sub.total_classes }}</strong>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Filter Bar -->
-    <div class="card filter-card">
-      <div class="filter-group">
-        <label for="year-select" class="filter-label">Academic Year</label>
-        <select id="year-select" v-model="selectedYear" class="form-select" @change="fetchAttendance">
-          <option v-for="y in academicYears" :key="y" :value="y">{{ y }}</option>
-        </select>
-      </div>
+    <!-- Filter Bar Card -->
+    <section class="card filter-card" aria-label="Filter Attendance Records">
+      <div class="filter-controls-grid">
+        <div class="filter-group">
+          <label for="year-select" class="filter-label">Academic Year</label>
+          <div class="select-box">
+            <select id="year-select" v-model="selectedYear" class="form-select" @change="fetchAttendance">
+              <option v-for="y in academicYears" :key="y" :value="y">{{ y }}</option>
+            </select>
+          </div>
+        </div>
 
-      <div class="filter-group">
-        <label for="month-select" class="filter-label">Month</label>
-        <select id="month-select" v-model="selectedMonth" class="form-select" @change="fetchAttendance">
-          <option value="">All Months</option>
-          <option v-for="m in monthsList" :key="m.value" :value="m.value">{{ m.label }}</option>
-        </select>
-      </div>
+        <div class="filter-group">
+          <label for="month-select" class="filter-label">Month</label>
+          <div class="select-box">
+            <select id="month-select" v-model="selectedMonth" class="form-select" @change="fetchAttendance">
+              <option value="">All Months</option>
+              <option v-for="m in monthsList" :key="m.value" :value="m.value">{{ m.label }}</option>
+            </select>
+          </div>
+        </div>
 
-      <div class="filter-group">
-        <label for="subject-select" class="filter-label">Subject</label>
-        <select id="subject-select" v-model="selectedSubjectId" class="form-select" @change="fetchAttendance">
-          <option value="">All Subjects</option>
-          <option
-            v-for="sub in (attendanceData?.by_subject || [])"
-            :key="sub.subject_id"
-            :value="sub.subject_id.toString()"
-          >
-            {{ sub.subject_name }}
-          </option>
-        </select>
-      </div>
+        <div class="filter-group">
+          <label for="subject-select" class="filter-label">Subject</label>
+          <div class="select-box">
+            <select id="subject-select" v-model="selectedSubjectId" class="form-select" @change="fetchAttendance">
+              <option value="">All Subjects</option>
+              <option
+                v-for="sub in (attendanceData?.by_subject || [])"
+                :key="sub.subject_id"
+                :value="sub.subject_id.toString()"
+              >
+                {{ sub.subject_name }}
+              </option>
+            </select>
+          </div>
+        </div>
 
-      <div class="filter-group">
-        <label for="status-select" class="filter-label">Status</label>
-        <select id="status-select" v-model="selectedStatus" class="form-select" @change="fetchAttendance">
-          <option value="">All Statuses</option>
-          <option value="PRESENT">Present Only</option>
-          <option value="ABSENT">Absent Only</option>
-          <option value="EXCUSED">Excused Only</option>
-        </select>
-      </div>
+        <div class="filter-group">
+          <label for="status-select" class="filter-label">Status</label>
+          <div class="select-box">
+            <select id="status-select" v-model="selectedStatus" class="form-select" @change="fetchAttendance">
+              <option value="">All Statuses</option>
+              <option value="PRESENT">Present Only</option>
+              <option value="ABSENT">Absent Only</option>
+              <option value="EXCUSED">Excused Only</option>
+            </select>
+          </div>
+        </div>
 
-      <div class="filter-actions">
-        <button class="reset-btn" @click="resetFilters">Reset</button>
+        <div class="filter-actions">
+          <button type="button" class="reset-btn" @click="resetFilters">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>Reset</span>
+          </button>
+        </div>
       </div>
-    </div>
+    </section>
 
     <!-- Loading State -->
     <div v-if="isLoading" class="card loading-card">
       <div class="spinner" />
-      <span>Querying real attendance records from PostgreSQL...</span>
+      <span>Filtering student attendance records from PostgreSQL...</span>
     </div>
 
     <!-- Error State -->
     <div v-else-if="errorMessage" class="card error-card">
-      <p class="error-title">Unable to Load Attendance</p>
-      <p class="error-desc">{{ errorMessage }}</p>
-      <button class="retry-btn" @click="fetchAttendance">Try Again</button>
+      <div class="error-icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10" stroke-width="2" />
+          <line x1="12" y1="8" x2="12" y2="12" stroke-width="2" stroke-linecap="round" />
+          <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </div>
+      <div class="error-content">
+        <p class="error-title">Unable to Load Attendance</p>
+        <p class="error-desc">{{ errorMessage }}</p>
+      </div>
+      <button type="button" class="retry-btn" @click="fetchAttendance">Try Again</button>
     </div>
 
-    <!-- Attendance History List -->
-    <div v-else-if="attendanceData">
-      <div v-if="attendanceData.history.length === 0" class="card empty-card">
-        <div class="empty-icon-wrap">
-          <svg class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-        </div>
-        <h4 class="empty-title">No Attendance Records Found</h4>
-        <p class="empty-desc">No attendance entries match your selected criteria.</p>
+    <!-- Empty State -->
+    <div
+      v-else-if="!attendanceData || attendanceData.history.length === 0"
+      class="card empty-card"
+    >
+      <div class="empty-icon-wrap">
+        <svg class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+        </svg>
       </div>
+      <h3 class="empty-title">No Attendance Records Found</h3>
+      <p class="empty-desc">No attendance entries matched the selected academic filters or no logs have been recorded for this period.</p>
+    </div>
 
-      <div v-else class="history-list">
-        <!-- Desktop Table View -->
-        <div class="desktop-table-wrap card">
-          <table class="att-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Subject</th>
-                <th>Period</th>
-                <th>Teacher</th>
-                <th>Status</th>
-                <th>Remarks</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in attendanceData.history" :key="item.id">
-                <td class="font-bold">{{ formatDate(item.date) }}</td>
-                <td>
-                  <strong>{{ item.subject_name }}</strong>
-                  <span v-if="item.subject_code" class="sub-code">{{ item.subject_code }}</span>
-                </td>
-                <td class="font-mono">{{ item.period || 'Scheduled Period' }}</td>
-                <td>{{ item.teacher_name || 'Assigned Faculty' }}</td>
-                <td>
-                  <span class="status-pill" :class="item.status.toLowerCase()">
-                    {{ item.status }}
-                  </span>
-                </td>
-                <td class="remarks-cell">{{ item.remarks || '—' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Mobile Stacked Card View -->
-        <div class="mobile-cards-wrap">
-          <div v-for="item in attendanceData.history" :key="item.id" class="card mobile-att-card">
-            <div class="card-top-row">
-              <span class="card-date">{{ formatDate(item.date) }}</span>
-              <span class="status-pill" :class="item.status.toLowerCase()">
-                {{ item.status }}
-              </span>
-            </div>
-            <h4 class="card-subj">{{ item.subject_name }}</h4>
-            <div class="card-meta">
-              <span class="meta-item font-mono">{{ item.period || '08:00 - 09:00' }}</span>
-              <span v-if="item.teacher_name" class="meta-item">&bull; {{ item.teacher_name }}</span>
-            </div>
-            <p v-if="item.remarks" class="card-remarks">Note: {{ item.remarks }}</p>
+    <!-- Attendance Records Table Card -->
+    <section v-else class="card section-panel">
+      <div class="panel-header-simple">
+        <div class="flex-between">
+          <div>
+            <h3 class="panel-title">Detailed Period Attendance Logs</h3>
+            <p class="panel-sub">Showing {{ attendanceData.history.length }} recorded period entries.</p>
           </div>
+          <span class="count-pill">{{ attendanceData.history.length }} Records</span>
         </div>
       </div>
-    </div>
+
+      <div class="table-responsive-wrapper">
+        <table class="somroyal-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Subject</th>
+              <th>Period Time</th>
+              <th>Teacher</th>
+              <th>Status</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="rec in attendanceData.history" :key="rec.id">
+              <td class="font-bold text-slate-900">{{ formatDate(rec.date) }}</td>
+              <td class="font-semibold text-slate-800">{{ rec.subject_name || 'Subject' }}</td>
+              <td>
+                <span class="time-badge">
+                  {{ rec.period || 'Standard Period' }}
+                </span>
+              </td>
+              <td class="text-slate-600">{{ rec.teacher_name || 'Faculty Member' }}</td>
+              <td>
+                <span
+                  class="status-pill"
+                  :class="{
+                    'status-present': rec.status === 'PRESENT',
+                    'status-absent': rec.status === 'ABSENT',
+                    'status-excused': rec.status === 'EXCUSED' || rec.status === 'LATE',
+                  }"
+                >
+                  <span class="status-dot" />
+                  {{ rec.status }}
+                </span>
+              </td>
+              <td class="text-slate-500 font-normal">
+                {{ rec.remarks || '—' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -282,368 +359,528 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
+}
+
+.page-header {
+  margin-bottom: 0.25rem;
 }
 
 .page-title {
-  font-size: 1.6rem;
+  font-size: 1.45rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: #0F172A;
   margin: 0;
 }
 
 .page-subtitle {
-  font-size: 0.88rem;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: #64748B;
+  margin: 0.25rem 0 0 0;
 }
 
-/* Summary Grid */
+/* Base Card Style */
+.card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Summary KPI Cards Grid (4 columns) */
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.15rem;
 }
 
 .summary-card {
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  border-left: 4px solid var(--brand-primary);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  justify-content: space-between;
 }
 
-.summary-card.blue { border-left-color: #0284c7; }
-.summary-card.green { border-left-color: #10b981; }
-.summary-card.red { border-left-color: #ef4444; }
-.summary-card.purple { border-left-color: #8b5cf6; }
+.sum-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
 
 .sum-label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  color: #64748B;
 }
+
+.sum-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sum-icon-box svg {
+  width: 17px;
+  height: 17px;
+}
+
+.bg-blue-tint { background: #EFF6FF; color: #2563EB; }
+.bg-emerald-tint { background: #ECFDF5; color: #059669; }
+.bg-rose-tint { background: #FEF2F2; color: #DC2626; }
+.bg-purple-tint { background: #FAF5FF; color: #7C3AED; }
 
 .sum-val {
   font-size: 1.6rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: #0F172A;
+  line-height: 1.15;
+  margin-bottom: 0.35rem;
 }
 
 .sum-sub {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+  font-size: 0.74rem;
+  color: #64748B;
 }
-
-.text-emerald { color: #10b981; }
-.text-rose { color: #ef4444; }
-.text-amber { color: #f59e0b; }
 
 /* Subject Breakdown */
-.section-block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+.section-panel {
+  padding: 1.5rem;
 }
 
-.section-title {
-  font-size: 1.15rem;
+.panel-header-simple {
+  margin-bottom: 1.25rem;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.panel-title {
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #0F172A;
   margin: 0;
+}
+
+.panel-sub {
+  font-size: 0.78rem;
+  color: #64748B;
+  margin: 0.2rem 0 0 0;
+}
+
+.count-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #F1F5F9;
+  color: #475569;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  border: 1px solid #E2E8F0;
 }
 
 .subject-att-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 1rem;
 }
 
 .subject-att-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  gap: 0.65rem;
+  transition: all 0.15s ease;
+}
+
+.subject-att-card:hover {
+  background: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .subj-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 0.4rem;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .subj-name {
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 700;
+  color: #0F172A;
   margin: 0;
-  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .subj-pct {
   font-size: 0.78rem;
   font-weight: 800;
-  padding: 0.15rem 0.45rem;
-  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
 }
 
-.subj-pct.good {
-  background-color: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+.pct-good {
+  background: #ECFDF5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
 }
 
-.subj-pct.warn {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+.pct-warn {
+  background: #FFFBEB;
+  color: #D97706;
+  border: 1px solid #FDE68A;
+}
+
+.progress-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: #E2E8F0;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+.fill-good {
+  background: linear-gradient(90deg, #10B981, #059669);
+}
+
+.fill-warn {
+  background: linear-gradient(90deg, #F59E0B, #D97706);
 }
 
 .subj-stats-row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  font-size: 0.8rem;
+  border-top: 1px solid #E2E8F0;
+  padding-top: 0.5rem;
 }
 
 .subj-stat {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  line-height: 1.15;
 }
 
 .subj-stat .lbl {
-  font-size: 0.7rem;
-  color: var(--text-muted);
+  font-size: 0.68rem;
+  color: #64748B;
 }
 
 .subj-stat .val {
-  font-size: 0.95rem;
+  font-size: 0.86rem;
+  font-weight: 700;
 }
 
 /* Filter Card */
 .filter-card {
-  padding: 1rem 1.25rem;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
+  padding: 1.25rem 1.5rem;
+}
+
+.filter-controls-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) auto;
   gap: 1rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  align-items: flex-end;
 }
 
 .filter-group {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  flex: 1;
-  min-width: 140px;
 }
 
 .filter-label {
   font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.02em;
+}
+
+.select-box {
+  position: relative;
 }
 
 .form-select {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--border-subtle);
-  background-color: var(--bg-surface-secondary);
-  color: var(--text-primary);
-  border-radius: 6px;
-  font-size: 0.85rem;
+  width: 100%;
+  background-color: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.82rem;
+  color: #1E293B;
   outline: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.filter-actions {
-  display: flex;
-  align-items: flex-end;
+.form-select:focus {
+  background-color: #FFFFFF;
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
 .reset-btn {
-  padding: 0.5rem 0.85rem;
-  background: none;
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  border-radius: 6px;
-  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.48rem 1rem;
+  background-color: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .reset-btn:hover {
-  background-color: var(--bg-surface-secondary);
-  color: var(--text-primary);
+  background-color: #E2E8F0;
+  color: #0F172A;
 }
 
-/* Table View */
-.desktop-table-wrap {
-  overflow-x: auto;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-}
-
-.att-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  font-size: 0.88rem;
-}
-
-.att-table th {
-  background: var(--bg-surface-secondary);
-  padding: 0.75rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.att-table td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-}
-
-.sub-code {
-  display: block;
-  font-size: 0.72rem;
-  color: var(--text-muted);
-}
-
-.status-pill {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.2rem 0.55rem;
-  border-radius: 4px;
-}
-
-.status-pill.present {
-  background-color: rgba(16, 185, 129, 0.15);
-  color: #10b981;
-}
-
-.status-pill.absent {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-}
-
-.status-pill.excused {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
-}
-
-.font-bold { font-weight: 700; }
-.font-mono { font-family: monospace; font-size: 0.8rem; }
-.remarks-cell { font-size: 0.8rem; color: var(--text-muted); }
-
-/* Mobile Cards View */
-.mobile-cards-wrap {
-  display: none;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.mobile-att-card {
-  padding: 1rem;
+/* Loading, Error, Empty */
+.loading-card,
+.empty-card {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-}
-
-.card-top-row {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-}
-
-.card-date {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.card-subj {
-  font-size: 1rem;
-  font-weight: 700;
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.card-meta {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.card-remarks {
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-  font-style: italic;
-  margin: 0;
-}
-
-/* Empty & Loading */
-.loading-card, .empty-card, .error-card {
-  padding: 3rem;
+  justify-content: center;
+  padding: 3rem 1.5rem;
   text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
+  color: #64748B;
 }
 
 .spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid var(--border-subtle);
-  border-top-color: #10b981;
+  border: 3px solid #E2E8F0;
+  border-top-color: #10B981;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+  margin-bottom: 0.65rem;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
-.empty-icon-wrap {
-  width: 48px;
-  height: 48px;
-  background-color: var(--bg-surface-secondary);
-  border-radius: 10px;
+.error-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background-color: #FEF2F2;
+  border-color: #FECACA;
+  color: #991B1B;
+}
+
+.error-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #FEE2E2;
+  color: #DC2626;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.error-icon-box svg {
+  width: 22px;
+  height: 22px;
+}
+
+.error-content {
+  flex: 1;
+}
+
+.error-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.error-desc {
+  font-size: 0.82rem;
+  margin: 0.2rem 0 0 0;
+  color: #B91C1C;
+}
+
+.retry-btn {
+  padding: 0.5rem 1rem;
+  background-color: #DC2626;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.empty-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #F1F5F9;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
 }
 
 .empty-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: var(--text-muted);
+  width: 26px;
+  height: 26px;
 }
 
 .empty-title {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
+  color: #0F172A;
+  margin: 0 0 0.25rem 0;
 }
 
 .empty-desc {
-  font-size: 0.85rem;
-  color: var(--text-muted);
+  font-size: 0.82rem;
+  color: #64748B;
+  max-width: 420px;
   margin: 0;
 }
 
-@media (max-width: 768px) {
-  .desktop-table-wrap {
-    display: none;
+/* Table Style */
+.table-responsive-wrapper {
+  overflow-x: auto;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+}
+
+.somroyal-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.84rem;
+}
+
+.somroyal-table thead th {
+  background-color: #F8FAFC;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.somroyal-table tbody tr {
+  border-bottom: 1px solid #F1F5F9;
+  transition: background-color 0.15s ease;
+}
+
+.somroyal-table tbody tr:hover {
+  background-color: #F8FAFC;
+}
+
+.somroyal-table tbody td {
+  padding: 0.85rem 1rem;
+  color: #334155;
+}
+
+.time-badge {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #475569;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.status-present {
+  background-color: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.status-absent {
+  background-color: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.status-excused {
+  background-color: #FFFBEB;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
-  .mobile-cards-wrap {
-    display: flex;
+  .filter-controls-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  .summary-card {
+    padding: 0.95rem;
+  }
+  .sum-val {
+    font-size: 1.35rem;
+  }
+  .filter-controls-grid {
+    grid-template-columns: 1fr;
+  }
+  .reset-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>

@@ -33,6 +33,7 @@ class DashboardOverviewResponse(BaseModel):
     modules: List[ModuleStatus]
     recent_activity: List[Dict[str, Any]] = []
     metrics: Optional[Dict[str, Any]] = None
+    school: Optional[Dict[str, Any]] = None
 
 
 class AuditLogResponse(BaseModel):

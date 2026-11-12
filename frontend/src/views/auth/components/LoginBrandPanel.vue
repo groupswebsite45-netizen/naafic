@@ -1,5 +1,16 @@
 <script setup lang="ts">
-import { SCHOOL_BRANDING } from '../../../constants/branding';
+import { computed } from 'vue';
+import { useAuthStore } from '../../../stores/auth';
+
+const authStore = useAuthStore();
+
+const panelTitle = computed(() => {
+  return authStore.activeInstitution?.name || 'Somroyal Educational Management System';
+});
+
+const panelLogo = computed(() => {
+  return authStore.activeInstitution?.logo_url || '/somroyal-logo-transparent.png';
+});
 </script>
 
 <template>
@@ -16,17 +27,17 @@ import { SCHOOL_BRANDING } from '../../../constants/branding';
       <div class="brand-top-bar">
         <div class="brand-logo-pill">
           <img
-            src="/somroyal-logo-transparent.png"
-            alt="Somroyal Technology Solutions"
+            :src="panelLogo"
+            :alt="panelTitle"
             class="brand-logo-img-left"
           />
         </div>
         <div class="top-title-wrap">
           <span class="motto-pill">
             <span class="star-icon" aria-hidden="true">★</span>
-            EXCELLENCE IN EDUCATION & CHARACTER
+            {{ authStore.activeInstitution?.code ? `TENANT WORKSPACE: ${authStore.activeInstitution.code}` : 'EXCELLENCE IN EDUCATION & CHARACTER' }}
           </span>
-          <h2 class="school-name-text">{{ SCHOOL_BRANDING.institutionName }}</h2>
+          <h2 class="school-name-text">{{ panelTitle }}</h2>
         </div>
       </div>
 
@@ -494,6 +505,8 @@ import { SCHOOL_BRANDING } from '../../../constants/branding';
   .brand-panel {
     flex: none;
     width: 100%;
+    max-width: 100vw;
+    overflow: hidden;
     padding: 2.75rem 1.5rem 4.25rem 1.5rem;
     align-items: flex-start;
   }
@@ -529,9 +542,17 @@ import { SCHOOL_BRANDING } from '../../../constants/branding';
   }
 }
 
+@media (max-width: 640px) {
+  .ambient-glow {
+    display: none;
+  }
+}
+
 @media (max-width: 430px) {
   .brand-panel {
     padding: 2.25rem 1.15rem 3.75rem 1.15rem;
+    overflow: hidden;
+    max-width: 100vw;
   }
 
   .logo-emblem {

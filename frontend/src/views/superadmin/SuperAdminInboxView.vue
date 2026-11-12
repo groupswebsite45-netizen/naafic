@@ -20,6 +20,9 @@ const searchQuery = ref('');
 const activeFilter = ref<'ALL' | InquiryStatus>('ALL');
 const priorityFilter = ref<string>('ALL');
 
+// Mobile view state: 'list' | 'detail'
+const mobileActivePane = ref<'list' | 'detail'>('list');
+
 // Update / CRM action state
 const isUpdating = ref(false);
 const adminNotesInput = ref('');
@@ -62,7 +65,7 @@ async function loadInquiries(preserveSelection = true) {
         selectedInquiry.value = refreshed;
       }
     } else if (inquiries.value.length > 0 && !selectedInquiry.value) {
-      selectInquiry(inquiries.value[0]);
+      selectInquiry(inquiries.value[0], false);
     }
   } catch (err) {
     console.error('Failed to load inquiries:', err);
@@ -72,12 +75,16 @@ async function loadInquiries(preserveSelection = true) {
   }
 }
 
-async function selectInquiry(inquiry: Inquiry) {
+async function selectInquiry(inquiry: Inquiry, switchMobilePane = true) {
   selectedInquiry.value = inquiry;
   adminNotesInput.value = inquiry.admin_notes || '';
   contactedByInput.value = inquiry.contacted_by || '';
   conversionResult.value = null;
   conversionError.value = null;
+
+  if (switchMobilePane) {
+    mobileActivePane.value = 'detail';
+  }
 
   // If status is UNREAD, automatically update to READ
   if (inquiry.status === 'UNREAD') {
@@ -202,6 +209,7 @@ async function deleteCurrentInquiry() {
     await inquiryService.deleteInquiry(selectedInquiry.value.id);
     inquiries.value = inquiries.value.filter((i) => i.id !== selectedInquiry.value?.id);
     selectedInquiry.value = inquiries.value.length > 0 ? inquiries.value[0] : null;
+    mobileActivePane.value = 'list';
     const updatedStats = await inquiryService.getInquiryStats();
     stats.value = updatedStats;
   } catch (err) {
@@ -282,7 +290,7 @@ onMounted(() => {
 
 <template>
   <div class="inbox-page-wrapper">
-    <!-- TOP HEADER & KPI METRICS BAR -->
+    <!-- Header & KPI Metrics -->
     <header class="inbox-header">
       <div class="header-main-info">
         <div class="header-title-group">
@@ -298,7 +306,6 @@ onMounted(() => {
 
         <div class="header-actions">
           <button
-            type="button"
             class="btn-refresh"
             :disabled="isRefreshing"
             @click="loadInquiries(true)"
@@ -313,15 +320,14 @@ onMounted(() => {
               stroke-width="2"
             >
               <polyline points="23 4 23 10 17 10" />
-              <polyline points="1 20 1 14 7 14" />
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
             </svg>
-            <span>{{ isRefreshing ? 'Refreshing...' : 'Refresh Inbox' }}</span>
+            <span>{{ isRefreshing ? 'Refreshing...' : 'Refresh' }}</span>
           </button>
         </div>
       </div>
 
-      <!-- Quick KPI Cards Grid -->
+      <!-- KPI Metrics Strip -->
       <div class="kpi-grid">
         <div class="kpi-card" :class="{ 'active-card': activeFilter === 'ALL' }" @click="activeFilter = 'ALL'">
           <div class="kpi-icon-wrap bg-blue-50 text-blue-600">
@@ -332,11 +338,11 @@ onMounted(() => {
           </div>
           <div class="kpi-data">
             <span class="kpi-value">{{ stats.total }}</span>
-            <span class="kpi-label">Total Leads</span>
+            <span class="kpi-label">Total Inquiries</span>
           </div>
         </div>
 
-        <div class="kpi-card highlight-unread" :class="{ 'active-card': activeFilter === 'UNREAD' }" @click="activeFilter = 'UNREAD'">
+        <div class="kpi-card" :class="{ 'active-card': activeFilter === 'UNREAD' }" @click="activeFilter = 'UNREAD'">
           <div class="kpi-icon-wrap bg-orange-50 text-orange-600">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10" />
@@ -346,7 +352,7 @@ onMounted(() => {
           </div>
           <div class="kpi-data">
             <span class="kpi-value text-orange-600">{{ stats.unread }}</span>
-            <span class="kpi-label">Unread Messages</span>
+            <span class="kpi-label">Unread Leads</span>
           </div>
           <span v-if="stats.unread > 0" class="badge-unread-chip">{{ stats.unread }} New</span>
         </div>
@@ -391,10 +397,13 @@ onMounted(() => {
       </div>
     </header>
 
-    <!-- MAIN TWO-COLUMN SPLIT WORKSPACE -->
+    <!-- Two-Column Split Workspace -->
     <div class="inbox-workspace">
-      <!-- LEFT COLUMN: Inquiry Feed & Filter List -->
-      <section class="inbox-list-column">
+      <!-- LEFT COLUMN: Inquiry Feed -->
+      <section
+        class="inbox-list-column"
+        :class="{ 'mobile-hidden': mobileActivePane === 'detail' }"
+      >
         <!-- Search & Priority Bar -->
         <div class="list-controls-bar">
           <div class="search-input-wrap">
@@ -406,7 +415,7 @@ onMounted(() => {
               v-model="searchQuery"
               type="text"
               class="search-input"
-              placeholder="Search by school, contact, email, phone..."
+              placeholder="Search by school, contact, email..."
             />
             <button v-if="searchQuery" class="btn-clear-search" @click="searchQuery = ''">
               ✕
@@ -463,82 +472,98 @@ onMounted(() => {
           </button>
         </div>
 
-        <!-- Inquiries Scrollable List -->
+        <!-- Inquiries Feed Scroll Container -->
         <div class="inquiries-scroll-container">
           <div v-if="isLoading" class="list-loading-state">
             <div class="loading-spinner"></div>
-            <span>Loading inquiry messages...</span>
+            <p>Loading inquiries...</p>
           </div>
 
           <div v-else-if="inquiries.length === 0" class="list-empty-state">
             <div class="empty-icon-box">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+              <svg class="w-8 h-8 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M8 12h8" />
               </svg>
             </div>
-            <h4>No inquiries found</h4>
-            <p>No messages match the current filter criteria or search query.</p>
+            <h4>No Inquiries Found</h4>
+            <p>No messages match the current filter criteria.</p>
           </div>
 
-          <div
-            v-for="item in inquiries"
-            :key="item.id"
-            class="inquiry-card"
-            :class="{
-              'is-selected': selectedInquiry?.id === item.id,
-              'is-unread': item.status === 'UNREAD',
-            }"
-            @click="selectInquiry(item)"
-          >
-            <div class="card-left-indicator">
-              <span v-if="item.status === 'UNREAD'" class="unread-dot" title="Unread Lead"></span>
-            </div>
-
-            <div class="card-main">
-              <div class="card-top-row">
-                <div class="sender-info">
-                  <div class="avatar-circle">
-                    {{ getInitials(item.full_name) }}
-                  </div>
-                  <div>
-                    <h3 class="sender-name">{{ item.full_name }}</h3>
-                    <p class="school-name">{{ item.school_name }}</p>
-                  </div>
-                </div>
-
-                <div class="meta-right">
-                  <span class="time-ago">{{ formatRelativeTime(item.created_at) }}</span>
-                  <span
-                    class="priority-chip"
-                    :class="`priority-${item.priority.toLowerCase()}`"
-                  >
-                    {{ item.priority }}
-                  </span>
-                </div>
+          <div v-else class="inquiry-cards-list">
+            <div
+              v-for="item in inquiries"
+              :key="item.id"
+              class="inquiry-card"
+              :class="{
+                'is-selected': selectedInquiry?.id === item.id,
+                'is-unread': item.status === 'UNREAD'
+              }"
+              @click="selectInquiry(item, true)"
+            >
+              <div class="card-left-indicator">
+                <span v-if="item.status === 'UNREAD'" class="unread-dot"></span>
               </div>
 
-              <p class="message-preview">
-                {{ item.message }}
-              </p>
+              <div class="card-main">
+                <div class="card-top-row">
+                  <div class="sender-info">
+                    <div class="sender-avatar">
+                      {{ getInitials(item.full_name) }}
+                    </div>
+                    <div>
+                      <h3 class="sender-name">{{ item.full_name }}</h3>
+                      <p class="school-name">{{ item.school_name }}</p>
+                    </div>
+                  </div>
 
-              <div class="card-bottom-tags">
-                <span v-if="item.plan" class="tag-plan">
-                  🏷️ {{ item.plan }}
-                </span>
-                <span class="tag-status" :class="`status-${item.status.toLowerCase()}`">
-                  {{ item.status.replace('_', ' ') }}
-                </span>
-                <span v-if="item.converted_institution_id" class="tag-converted">
-                  ✓ School Provisioned
-                </span>
+                  <div class="meta-right">
+                    <span class="time-ago">{{ formatRelativeTime(item.created_at) }}</span>
+                    <span
+                      class="priority-chip"
+                      :class="`priority-${item.priority.toLowerCase()}`"
+                    >
+                      {{ item.priority }}
+                    </span>
+                  </div>
+                </div>
+
+                <p class="message-preview">
+                  {{ item.message }}
+                </p>
+
+                <div class="card-bottom-tags">
+                  <span v-if="item.plan" class="tag-plan">
+                    🏷️ {{ item.plan }}
+                  </span>
+                  <span class="tag-status" :class="`status-${item.status.toLowerCase()}`">
+                    {{ item.status.replace('_', ' ') }}
+                  </span>
+                  <span v-if="item.converted_institution_id" class="tag-converted">
+                    ✓ Provisioned
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- RIGHT COLUMN: Selected Inquiry Detail & CRM Control Panel -->
-      <section class="inbox-detail-column">
+      <!-- RIGHT COLUMN: Selected Inquiry Detail -->
+      <section
+        class="inbox-detail-column"
+        :class="{ 'mobile-hidden': mobileActivePane === 'list' }"
+      >
+        <!-- Mobile Back Button -->
+        <div class="mobile-back-row">
+          <button class="btn-mobile-back" @click="mobileActivePane = 'list'">
+            <svg class="w-4 h-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Back to Inquiries List</span>
+          </button>
+        </div>
+
         <div v-if="!selectedInquiry" class="detail-empty-state">
           <div class="detail-empty-art">
             <svg class="w-16 h-16 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -551,7 +576,7 @@ onMounted(() => {
         </div>
 
         <div v-else class="detail-content-scroll">
-          <!-- DETAIL TOP BAR: Lead Identity & Quick Status Transitions -->
+          <!-- DETAIL TOP BAR: Lead Identity & Status -->
           <div class="detail-top-card">
             <div class="detail-identity-header">
               <div class="lead-avatar-large">
@@ -565,7 +590,7 @@ onMounted(() => {
                     :class="`priority-${selectedInquiry.priority.toLowerCase()}`"
                     :value="selectedInquiry.priority"
                     @change="updatePriority(($event.target as HTMLSelectElement).value as InquiryPriority)"
-                    title="Click to Change Lead Priority"
+                    title="Change Lead Priority"
                   >
                     <option value="URGENT">🔴 Urgent Priority</option>
                     <option value="HIGH">🟠 High Priority</option>
@@ -604,6 +629,14 @@ onMounted(() => {
                 <button
                   type="button"
                   class="btn-status-action"
+                  :class="{ active: selectedInquiry.status === 'CONVERTED' }"
+                  @click="updateStatus('CONVERTED')"
+                >
+                  Converted
+                </button>
+                <button
+                  type="button"
+                  class="btn-status-action"
                   :class="{ active: selectedInquiry.status === 'ARCHIVED' }"
                   @click="updateStatus('ARCHIVED')"
                 >
@@ -611,182 +644,165 @@ onMounted(() => {
                 </button>
               </div>
 
-              <!-- High-Value 1-Click Convert to Institution Button -->
               <div class="convert-btn-wrapper">
                 <button
                   v-if="!selectedInquiry.converted_institution_id"
-                  type="button"
                   class="btn-convert-institution"
                   @click="openConvertModal"
                 >
-                  <svg class="w-4 h-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                    <path d="M2 17l10 5 10-5" />
-                    <path d="M2 12l10 5 10-5" />
+                  <svg class="w-4 h-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="8.5" cy="7" r="4" />
+                    <polyline points="17 11 19 13 23 9" />
                   </svg>
-                  Convert to School
+                  <span>Provision As Institution</span>
                 </button>
 
                 <router-link
                   v-else
-                  to="/super-admin/institutions"
+                  :to="`/super-admin/institutions?q=${encodeURIComponent(selectedInquiry.school_name)}`"
                   class="btn-converted-link"
                 >
-                  <svg class="w-4 h-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  View Active School
+                  <span>View Provisioned School →</span>
                 </router-link>
 
                 <button
-                  type="button"
                   class="btn-delete-inquiry"
                   :disabled="isDeleting"
                   @click="deleteCurrentInquiry"
                   title="Delete Inquiry"
                 >
                   <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- DIRECT CLIENT ENGAGEMENT STRIP (WhatsApp, Email, Phone) -->
+          <!-- Quick Engagement Bar -->
           <div class="direct-engagement-bar">
-            <h4 class="engagement-title">Direct Outreach Channels:</h4>
-            <div class="channel-buttons-row">
+            <h4 class="engagement-title">Immediate Outreach Actions</h4>
+            <div class="engagement-buttons">
+              <a
+                :href="`tel:${selectedInquiry.phone}`"
+                class="btn-engage btn-call"
+              >
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+                <span>Call Phone</span>
+              </a>
+
               <a
                 :href="getWhatsAppUrl(selectedInquiry.phone, selectedInquiry.school_name, selectedInquiry.full_name)"
                 target="_blank"
-                class="btn-channel btn-whatsapp"
+                rel="noopener"
+                class="btn-engage btn-whatsapp"
               >
-                <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.8 13.47 3.8 11.91C3.81 7.37 7.5 3.67 12.05 3.67Z" />
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.634.075-1.922-.444-1.503-.607-2.482-2.146-2.56-2.247-.074-.101-.617-.821-.617-1.564 0-.743.388-1.109.526-1.261.137-.152.3-.19.4-.19.101 0 .202.001.29.006.091.004.214-.034.335.257.126.302.43 1.05.468 1.127.038.077.064.167.013.27-.051.101-.077.164-.153.253-.076.088-.16.197-.229.265-.077.077-.157.161-.067.315.09.153.399.658.857 1.066.589.524 1.087.687 1.24.764.153.076.242.064.332-.039.09-.102.385-.45.488-.603.103-.153.205-.128.346-.076.141.051.897.423 1.05.5.153.076.256.115.295.179.038.064.038.371-.106.776z"/>
                 </svg>
-                Chat on WhatsApp
+                <span>WhatsApp Client</span>
               </a>
 
               <a
-                :href="`mailto:${selectedInquiry.email}?subject=Somroyal%20EMS%20Inquiry%20-%20${encodeURIComponent(selectedInquiry.school_name)}`"
-                class="btn-channel btn-email"
+                :href="`mailto:${selectedInquiry.email}?subject=Somroyal%20EMS%20Inquiry%20Response%20-%20${encodeURIComponent(selectedInquiry.school_name)}`"
+                class="btn-engage btn-email"
               >
-                <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                   <polyline points="22,6 12,13 2,6" />
                 </svg>
-                Send Email
-              </a>
-
-              <a
-                :href="`tel:${selectedInquiry.phone}`"
-                class="btn-channel btn-phone"
-              >
-                <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                </svg>
-                Call Lead
+                <span>Send Email</span>
               </a>
             </div>
           </div>
 
-          <!-- CLIENT PROFILE SPECIFICATION GRID -->
+          <!-- Lead Details Grid -->
           <div class="lead-specs-grid">
             <div class="spec-card">
-              <span class="spec-label">Official Email:</span>
-              <div class="spec-value-row">
-                <span class="spec-value font-mono">{{ selectedInquiry.email }}</span>
-                <button
-                  class="btn-copy"
-                  @click="copyToClipboard(selectedInquiry.email, 'Email')"
-                  title="Copy email"
-                >
-                  📋
-                </button>
+              <span class="spec-label">Official Email</span>
+              <div class="spec-val-row">
+                <span class="spec-value">{{ selectedInquiry.email }}</span>
+                <button class="btn-copy" @click="copyToClipboard(selectedInquiry.email, 'Email')" title="Copy Email">📋</button>
               </div>
             </div>
 
             <div class="spec-card">
-              <span class="spec-label">Phone / WhatsApp:</span>
-              <div class="spec-value-row">
-                <span class="spec-value font-mono">{{ selectedInquiry.phone }}</span>
-                <button
-                  class="btn-copy"
-                  @click="copyToClipboard(selectedInquiry.phone, 'Phone number')"
-                  title="Copy phone"
-                >
-                  📋
-                </button>
+              <span class="spec-label">Direct Phone</span>
+              <div class="spec-val-row">
+                <span class="spec-value">{{ selectedInquiry.phone }}</span>
+                <button class="btn-copy" @click="copyToClipboard(selectedInquiry.phone, 'Phone')" title="Copy Phone">📋</button>
               </div>
             </div>
 
             <div class="spec-card">
-              <span class="spec-label">Interested Plan / Tier:</span>
-              <span class="spec-value text-blue-700 font-semibold">{{ selectedInquiry.plan || 'Not specified' }}</span>
+              <span class="spec-label">Requested Tier</span>
+              <div class="spec-val-row">
+                <span class="spec-value font-bold text-blue-900">{{ selectedInquiry.plan || 'Not specified' }}</span>
+              </div>
             </div>
 
             <div class="spec-card">
-              <span class="spec-label">Submission Date:</span>
-              <span class="spec-value">{{ formatDate(selectedInquiry.created_at) }}</span>
+              <span class="spec-label">Preferred Channel</span>
+              <div class="spec-val-row">
+                <span class="spec-value">{{ selectedInquiry.preferred_channel || 'Any / Direct' }}</span>
+              </div>
             </div>
           </div>
 
-          <!-- FULL INQUIRY MESSAGE TEXT -->
+          <!-- Message Body Card -->
           <div class="inquiry-message-card">
-            <div class="msg-card-header">
-              <svg class="w-5 h-5 text-orange-500 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-              <h4>Submitted Requirements & Inquiry Message</h4>
+            <div class="msg-card-header flex items-center justify-between">
+              <h4>Client Message & Requirements</h4>
+              <span class="text-xs text-slate-400 font-medium">{{ formatDate(selectedInquiry.created_at) }}</span>
             </div>
             <div class="msg-body-box">
               <p class="msg-text">{{ selectedInquiry.message }}</p>
             </div>
           </div>
 
-          <!-- INTERNAL CRM NOTES & ACCOUNT MANAGEMENT -->
+          <!-- CRM Notes Card -->
           <div class="crm-notes-card">
             <div class="crm-header-row">
               <div>
-                <h4 class="crm-title">Internal CRM Notes & Consultation Records</h4>
-                <p class="crm-subtitle">Document telephone consultations, demo meeting schedules, and quotation details.</p>
+                <h4 class="crm-title">Internal CRM Notes & Staff Outreach</h4>
+                <p class="crm-subtitle">Notes are private to Super Admin team members.</p>
               </div>
-              <transition name="fade">
-                <span v-if="notesSavedToast" class="toast-saved">✓ Saved successfully</span>
-              </transition>
+              <span v-if="notesSavedToast" class="toast-saved">✓ Notes Saved</span>
             </div>
 
             <div class="crm-form-fields">
               <div class="crm-input-group">
-                <label class="crm-label">Contacted By Staff Member:</label>
-                <input
-                  v-model="contactedByInput"
-                  type="text"
-                  class="crm-text-input"
-                  placeholder="e.g. Somroyal Sales Specialist / Eng. Ahmed"
-                />
-              </div>
-
-              <div class="crm-input-group">
-                <label class="crm-label">Follow-up Notes & Agreements:</label>
+                <label class="crm-label">Admin Follow-up Notes</label>
                 <textarea
                   v-model="adminNotesInput"
-                  rows="4"
+                  rows="3"
                   class="crm-textarea"
-                  placeholder="Enter detailed notes regarding discussions with the school principal or administrator..."
+                  placeholder="Record call notes, client requirements, pricing quotes or demo scheduling details..."
                 ></textarea>
               </div>
 
-              <div class="crm-btn-row">
+              <div class="crm-bottom-row">
+                <div class="crm-input-group flex-1">
+                  <label class="crm-label">Contacted By (Staff Member)</label>
+                  <input
+                    v-model="contactedByInput"
+                    type="text"
+                    class="crm-input"
+                    placeholder="e.g. Somroyal Sales / Support Team"
+                  />
+                </div>
+
                 <button
                   type="button"
                   class="btn-save-notes"
                   :disabled="isUpdating"
                   @click="saveAdminNotes"
                 >
-                  {{ isUpdating ? 'Saving...' : 'Save CRM Notes' }}
+                  <span v-if="isUpdating">Saving...</span>
+                  <span v-else>Save CRM Notes</span>
                 </button>
               </div>
             </div>
@@ -795,155 +811,124 @@ onMounted(() => {
       </section>
     </div>
 
-    <!-- MODAL: CONVERT INQUIRY TO REGISTERED INSTITUTION -->
-    <div v-if="isConvertModalOpen" class="modal-overlay" @click.self="isConvertModalOpen = false">
-      <div class="modal-card">
+    <!-- Convert to Institution Modal -->
+    <div v-if="isConvertModalOpen" class="modal-backdrop" @click.self="isConvertModalOpen = false">
+      <div class="modal-box">
         <div class="modal-header">
-          <div>
-            <h3 class="modal-title">Convert Inquiry to Active Institution</h3>
-            <p class="modal-subtitle">
-              Provisioning dedicated database and administrative credentials for {{ selectedInquiry?.school_name }}.
-            </p>
-          </div>
+          <h3 class="modal-title">Provision New Institution from Lead</h3>
           <button class="modal-close-btn" @click="isConvertModalOpen = false">✕</button>
         </div>
 
-        <div v-if="conversionResult" class="modal-success-box">
+        <div v-if="!conversionResult" class="modal-body">
+          <p class="modal-intro">
+            This will provision a full tenant workspace for <strong>{{ selectedInquiry?.school_name }}</strong> and generate administrator credentials.
+          </p>
+
+          <div v-if="conversionError" class="modal-error-alert">
+            {{ conversionError }}
+          </div>
+
+          <div class="modal-form-grid">
+            <div class="form-group">
+              <label class="form-label">Institution Type</label>
+              <select v-model="convertInstitutionType" class="form-input">
+                <option value="School">Primary & Secondary School</option>
+                <option value="Academy">Academy</option>
+                <option value="College">College</option>
+                <option value="Institute">Training Institute</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Subscription Licensing</label>
+              <select v-model="convertPlan" class="form-input">
+                <option value="Starter Academy">Starter Academy ($250/yr)</option>
+                <option value="Professional School">Professional School ($350/yr)</option>
+                <option value="Enterprise Institution">Enterprise Institution ($600/yr)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Region</label>
+              <input v-model="convertRegion" type="text" class="form-input" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">City</label>
+              <input v-model="convertCity" type="text" class="form-input" />
+            </div>
+          </div>
+
+          <div class="form-group mt-3">
+            <label class="form-label">Admin Username</label>
+            <input v-model="convertAdminUsername" type="text" class="form-input" />
+          </div>
+
+          <div class="modal-actions-right">
+            <button class="btn-cancel-modal" @click="isConvertModalOpen = false">Cancel</button>
+            <button class="btn-primary-action" :disabled="isConverting" @click="executeConversion">
+              <span v-if="isConverting">Provisioning...</span>
+              <span v-else>Provision Institution</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Success Result -->
+        <div v-else class="modal-body modal-success-box">
           <div class="success-icon-badge">✓</div>
-          <h4>School Provisioned Successfully!</h4>
+          <h3>Institution Provisioned Successfully!</h3>
           <p>{{ conversionResult.message }}</p>
 
           <div class="cred-table">
             <div class="cred-row">
               <span class="cred-label">Institution Code:</span>
-              <span class="cred-val">{{ conversionResult.institution_code }}</span>
+              <span class="cred-val font-mono">{{ conversionResult.institution_code }}</span>
             </div>
             <div class="cred-row">
               <span class="cred-label">Admin Username:</span>
               <span class="cred-val">{{ conversionResult.admin_username }}</span>
             </div>
             <div class="cred-row">
-              <span class="cred-label">Temporary Password:</span>
-              <span class="cred-val text-orange-600 font-mono">{{ conversionResult.temporary_password }}</span>
+              <span class="cred-label">Admin Password:</span>
+              <span class="cred-val font-mono">{{ conversionResult.admin_password }}</span>
             </div>
           </div>
 
           <div class="modal-actions-right">
-            <router-link to="/super-admin/institutions" class="btn-primary-action">
-              Go to Institutions Management
-            </router-link>
-            <button class="btn-cancel-modal" @click="isConvertModalOpen = false">
-              Close
-            </button>
-          </div>
-        </div>
-
-        <form v-else @submit.prevent="executeConversion" class="modal-form">
-          <div v-if="conversionError" class="modal-error-banner">
-            {{ conversionError }}
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label">School / Institution Name</label>
-              <input
-                type="text"
-                class="form-input"
-                :value="selectedInquiry?.school_name"
-                disabled
-              />
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Institution Type</label>
-              <select v-model="convertInstitutionType" class="form-input">
-                <option value="School">School (Primary & Secondary)</option>
-                <option value="Academy">Academy / College</option>
-                <option value="University">University</option>
-                <option value="Machad">Machad / Institute</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label">Administrative Region</label>
-              <input v-model="convertRegion" type="text" class="form-input" placeholder="e.g. Banaadir" />
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">City</label>
-              <input v-model="convertCity" type="text" class="form-input" placeholder="e.g. Mogadishu" />
-            </div>
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label">Subscription Plan</label>
-              <select v-model="convertPlan" class="form-input">
-                <option value="Starter Academy">Starter Academy ($15/mo)</option>
-                <option value="Professional School">Professional School ($25/mo)</option>
-                <option value="Enterprise Network">Enterprise Network ($45/mo)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Generated Admin Username</label>
-              <input v-model="convertAdminUsername" type="text" class="form-input" />
-            </div>
-          </div>
-
-          <div class="modal-actions-right">
-            <button
-              type="button"
-              class="btn-cancel-modal"
-              :disabled="isConverting"
+            <router-link
+              :to="`/super-admin/institutions?q=${conversionResult.institution_code}`"
+              class="btn-primary-action"
               @click="isConvertModalOpen = false"
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="btn-primary-action"
-              :disabled="isConverting"
-            >
-              {{ isConverting ? 'Provisioning School...' : 'Provision Institution' }}
-            </button>
+              Open Institutions View →
+            </router-link>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* ==========================================================================
-   SOMROYAL SUPER ADMIN CRM INBOX STYLES (PREMIUM HEER SARE AH)
-   ========================================================================== */
-
 .inbox-page-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  min-height: calc(100vh - 120px);
-  color: #1e293b;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  gap: 1.5rem;
 }
 
-/* TOP HEADER & KPIS */
+/* Header */
 .inbox-header {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 24px 28px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
 .header-main-info {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .header-badge-tag {
@@ -953,11 +938,12 @@ onMounted(() => {
   padding: 4px 12px;
   background: #eff6ff;
   color: #1d4ed8;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   border-radius: 9999px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  border: 1px solid #bfdbfe;
 }
 
 .pulse-indicator {
@@ -976,15 +962,15 @@ onMounted(() => {
 }
 
 .header-title {
-  font-size: 26px;
+  font-size: 1.75rem;
   font-weight: 800;
-  color: #0f172a;
+  color: #061737;
   letter-spacing: -0.02em;
-  margin: 0 0 6px;
+  margin: 0 0 4px;
 }
 
 .header-subtitle {
-  font-size: 14px;
+  font-size: 0.88rem;
   color: #64748b;
   margin: 0;
 }
@@ -994,59 +980,60 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px solid #cbd5e1;
-  border-radius: 10px;
+  border-radius: 12px;
   color: #334155;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition: all 0.2s ease;
 }
 
 .btn-refresh:hover:not(:disabled) {
-  background: #e2e8f0;
+  background: #f8fafc;
   color: #0f172a;
+  border-color: #94a3b8;
 }
 
 /* KPI Grid */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
 }
 
 .kpi-card {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-  background: #f8fafc;
+  gap: 12px;
+  padding: 1rem;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   transition: all 0.2s ease;
 }
 
 .kpi-card:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .kpi-card.active-card {
-  background: #ffffff;
   border-color: #ff6500;
-  box-shadow: 0 4px 12px rgba(255, 101, 0, 0.12);
+  box-shadow: 0 4px 14px rgba(255, 101, 0, 0.15);
 }
 
 .kpi-icon-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   border-radius: 10px;
   flex-shrink: 0;
 }
@@ -1057,45 +1044,40 @@ onMounted(() => {
 }
 
 .kpi-value {
-  font-size: 22px;
+  font-size: 1.45rem;
   font-weight: 800;
-  color: #0f172a;
+  color: #061737;
   line-height: 1.2;
 }
 
 .kpi-label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 0.75rem;
   color: #64748b;
+  font-weight: 600;
 }
 
 .badge-unread-chip {
   position: absolute;
   top: 10px;
-  right: 12px;
-  padding: 2px 8px;
+  right: 10px;
   background: #ff6500;
   color: #ffffff;
   font-size: 11px;
   font-weight: 700;
+  padding: 2px 7px;
   border-radius: 9999px;
 }
 
-/* MAIN WORKSPACE */
+/* Workspace */
 .inbox-workspace {
   display: grid;
-  grid-template-columns: 420px 1fr;
-  gap: 20px;
-  min-height: 640px;
+  grid-template-columns: 390px 1fr;
+  gap: 1.25rem;
+  min-height: 680px;
+  align-items: start;
 }
 
-@media (max-width: 1100px) {
-  .inbox-workspace {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* LEFT COLUMN */
+/* Left Column */
 .inbox-list-column {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -1103,15 +1085,15 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .list-controls-bar {
-  padding: 16px;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .search-input-wrap {
@@ -1122,7 +1104,7 @@ onMounted(() => {
 
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 0.75rem;
   width: 16px;
   height: 16px;
   color: #94a3b8;
@@ -1130,14 +1112,13 @@ onMounted(() => {
 
 .search-input {
   width: 100%;
-  padding: 10px 36px 10px 36px;
-  background: #f8fafc;
+  padding: 0.55rem 2rem 0.55rem 2.25rem;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  font-size: 13px;
-  color: #0f172a;
+  font-size: 0.85rem;
+  background: #f8fafc;
   outline: none;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .search-input:focus {
@@ -1148,61 +1129,59 @@ onMounted(() => {
 
 .btn-clear-search {
   position: absolute;
-  right: 10px;
+  right: 0.75rem;
   background: none;
   border: none;
   color: #94a3b8;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .priority-select {
   width: 100%;
-  padding: 8px 12px;
-  background: #ffffff;
+  padding: 0.5rem 0.75rem;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: 10px;
+  font-size: 0.82rem;
   color: #334155;
+  background: #f8fafc;
   outline: none;
 }
 
 .status-tabs-row {
   display: flex;
-  gap: 6px;
-  padding: 10px 16px;
+  gap: 0.35rem;
+  padding: 0.65rem 1rem;
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
   overflow-x: auto;
 }
 
 .tab-pill {
-  padding: 6px 12px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  font-size: 12px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #64748b;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease;
 }
 
 .tab-pill:hover {
-  background: #e2e8f0;
   color: #0f172a;
 }
 
 .tab-pill.active {
-  background: #0f172a;
+  background: #061737;
   color: #ffffff;
 }
 
 .inquiries-scroll-container {
-  flex: 1;
   overflow-y: auto;
-  max-height: 720px;
+  max-height: 640px;
 }
 
 .list-loading-state,
@@ -1211,7 +1190,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 24px;
+  padding: 50px 20px;
   text-align: center;
   color: #64748b;
 }
@@ -1231,29 +1210,27 @@ onMounted(() => {
 }
 
 .empty-icon-box {
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 12px;
-  color: #94a3b8;
 }
 
-/* INQUIRY CARD */
+/* Inquiry Card */
 .inquiry-card {
-  position: relative;
   display: flex;
-  padding: 16px 18px;
+  padding: 1rem 1.15rem;
   border-bottom: 1px solid #f1f5f9;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .inquiry-card:hover {
-  background: #f8fafc;
+  background: #fbfcfe;
 }
 
 .inquiry-card.is-selected {
@@ -1261,20 +1238,10 @@ onMounted(() => {
   border-left: 4px solid #ff6500;
 }
 
-.inquiry-card.is-unread {
-  background: #ffffff;
-}
-
-.inquiry-card.is-unread .sender-name {
-  font-weight: 800;
-}
-
 .card-left-indicator {
   width: 14px;
   flex-shrink: 0;
-  display: flex;
-  align-items: flex-start;
-  padding-top: 6px;
+  padding-top: 4px;
 }
 
 .unread-dot {
@@ -1282,6 +1249,7 @@ onMounted(() => {
   height: 8px;
   background: #ff6500;
   border-radius: 50%;
+  display: inline-block;
 }
 
 .card-main {
@@ -1299,38 +1267,34 @@ onMounted(() => {
 .sender-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.avatar-circle {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #0f172a;
+.sender-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #061737;
   color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
   flex-shrink: 0;
 }
 
 .sender-name {
-  font-size: 14px;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #0f172a;
   margin: 0;
 }
 
 .school-name {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #64748b;
-  margin: 2px 0 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 180px;
+  margin: 0;
 }
 
 .meta-right {
@@ -1341,80 +1305,134 @@ onMounted(() => {
 }
 
 .time-ago {
-  font-size: 11px;
+  font-size: 0.7rem;
   color: #94a3b8;
 }
 
 .priority-chip {
-  padding: 2px 6px;
-  font-size: 10px;
+  font-size: 0.68rem;
   font-weight: 700;
-  border-radius: 6px;
-  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
-.priority-urgent { background: #fee2e2; color: #b91c1c; }
-.priority-high { background: #ffedd5; color: #c2410c; }
-.priority-normal { background: #eff6ff; color: #1d4ed8; }
-.priority-low { background: #f1f5f9; color: #64748b; }
+.priority-urgent {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.priority-high {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.priority-normal {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.priority-low {
+  background: #f1f5f9;
+  color: #64748b;
+}
 
 .message-preview {
-  font-size: 12px;
+  font-size: 0.78rem;
   color: #475569;
-  margin: 0 0 10px;
+  line-height: 1.4;
+  margin: 0.35rem 0 0.5rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  line-height: 1.4;
 }
 
 .card-bottom-tags {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .tag-plan {
-  padding: 2px 8px;
+  font-size: 0.7rem;
   background: #f1f5f9;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
   color: #334155;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .tag-status {
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 10px;
+  font-size: 0.7rem;
   font-weight: 700;
-  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: capitalize;
 }
 
-.status-unread { background: #fef3c7; color: #92400e; }
-.status-read { background: #f1f5f9; color: #64748b; }
-.status-in_review { background: #f3e8ff; color: #7e22ce; }
-.status-contacted { background: #e0e7ff; color: #4338ca; }
-.status-converted { background: #dcfce7; color: #15803d; }
-.status-archived { background: #e2e8f0; color: #475569; }
+.status-unread {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.status-in_review {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+.status-contacted {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.status-converted {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.status-closed {
+  background: #f1f5f9;
+  color: #64748b;
+}
 
 .tag-converted {
-  font-size: 10px;
+  font-size: 0.7rem;
   font-weight: 700;
-  color: #16a34a;
+  background: #ecfdf5;
+  color: #059669;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
-/* RIGHT COLUMN DETAIL */
+/* Right Column */
 .inbox-detail-column {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  gap: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  min-height: 640px;
+}
+
+.mobile-back-row {
+  display: none;
+  margin-bottom: 0.5rem;
+}
+
+.btn-mobile-back {
+  display: inline-flex;
+  align-items: center;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #061737;
+  cursor: pointer;
 }
 
 .detail-empty-state {
@@ -1422,52 +1440,53 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 100px 30px;
+  padding: 80px 20px;
   text-align: center;
   color: #64748b;
+  margin: auto;
 }
 
 .detail-empty-art {
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 
 .detail-content-scroll {
-  padding: 28px;
-  overflow-y: auto;
-  max-height: 820px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 1.25rem;
 }
 
-/* Lead Top Identity Card */
 .detail-top-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  padding-bottom: 1.15rem;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .detail-identity-header {
   display: flex;
-  align-items: center;
-  gap: 18px;
-  margin-bottom: 20px;
+  align-items: flex-start;
+  gap: 1rem;
 }
 
 .lead-avatar-large {
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #071f49, #1264e8);
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #061737 0%, #1e40af 100%);
   color: #ffffff;
-  font-size: 20px;
   font-weight: 800;
+  font-size: 1.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 10px rgba(18, 100, 232, 0.25);
   flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(6, 23, 55, 0.2);
+}
+
+.lead-title-box {
+  flex: 1;
 }
 
 .lead-tags-row {
@@ -1475,72 +1494,77 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   margin-bottom: 6px;
+  flex-wrap: wrap;
 }
 
 .lead-id-pill {
-  font-size: 11px;
+  font-size: 0.72rem;
   font-weight: 700;
-  background: #e2e8f0;
-  color: #334155;
-  padding: 2px 8px;
-  border-radius: 6px;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
-.priority-badge-select,
-.status-badge-lg {
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 700;
+.priority-badge-select {
+  padding: 2px 8px;
   border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
   border: 1px solid transparent;
-  text-transform: uppercase;
-  cursor: pointer;
   outline: none;
+  cursor: pointer;
+}
+
+.status-badge-lg {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  text-transform: capitalize;
 }
 
 .lead-person-name {
-  font-size: 22px;
+  font-size: 1.35rem;
   font-weight: 800;
-  color: #0f172a;
-  margin: 0 0 4px;
+  color: #061737;
+  margin: 0;
 }
 
 .lead-institution-title {
-  font-size: 15px;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: #475569;
-  margin: 0;
+  color: #64748b;
+  margin: 2px 0 0;
 }
 
 .detail-action-ribbon {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 16px;
-  border-top: 1px solid #e2e8f0;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 }
 
 .status-change-group {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .action-label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #64748b;
-  margin-right: 4px;
 }
 
 .btn-status-action {
-  padding: 6px 12px;
-  background: #ffffff;
+  padding: 5px 10px;
+  background: #f8fafc;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #334155;
   cursor: pointer;
@@ -1552,29 +1576,30 @@ onMounted(() => {
 }
 
 .btn-status-action.active {
-  background: #ff6500;
+  background: #061737;
   color: #ffffff;
-  border-color: #ff6500;
+  border-color: #061737;
 }
 
 .convert-btn-wrapper {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .btn-convert-institution {
   display: inline-flex;
   align-items: center;
-  padding: 8px 16px;
+  padding: 7px 14px;
   background: #16a34a;
   color: #ffffff;
   border: none;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.15s;
 }
 
 .btn-convert-institution:hover {
@@ -1584,19 +1609,19 @@ onMounted(() => {
 .btn-converted-link {
   display: inline-flex;
   align-items: center;
-  padding: 8px 16px;
+  padding: 7px 14px;
   background: #eff6ff;
   color: #2563eb;
   border: 1px solid #bfdbfe;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 0.8rem;
   font-weight: 700;
   text-decoration: none;
 }
 
 .btn-delete-inquiry {
-  padding: 8px;
-  background: #ffffff;
+  padding: 7px;
+  background: #fef2f2;
   border: 1px solid #fecaca;
   color: #ef4444;
   border-radius: 8px;
@@ -1605,101 +1630,96 @@ onMounted(() => {
 
 .btn-delete-inquiry:hover {
   background: #fee2e2;
+  color: #dc2626;
 }
 
-/* OUTREACH BAR */
+/* Outreach Bar */
 .direct-engagement-bar {
-  background: #ffffff;
+  background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 16px 20px;
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
 }
 
 .engagement-title {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
+  color: #475569;
   text-transform: uppercase;
-  color: #64748b;
-  margin: 0 0 10px;
+  letter-spacing: 0.04em;
+  margin: 0;
 }
 
-.channel-buttons-row {
+.engagement-buttons {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.btn-channel {
+.btn-engage {
   display: inline-flex;
   align-items: center;
-  padding: 10px 18px;
-  border-radius: 10px;
-  font-size: 13px;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
   font-weight: 700;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
+}
+
+.btn-call {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
 }
 
 .btn-whatsapp {
-  background: #25d366;
-  color: #ffffff;
-}
-
-.btn-whatsapp:hover {
-  background: #20bd5a;
-  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
 }
 
 .btn-email {
-  background: #0f172a;
-  color: #ffffff;
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
 }
 
-.btn-email:hover {
-  background: #1e293b;
-}
-
-.btn-phone {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1e40af;
-}
-
-.btn-phone:hover {
-  background: #dbeafe;
-}
-
-/* SPECS GRID */
+/* Specs */
 .lead-specs-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
 }
 
 .spec-card {
   background: #f8fafc;
-  border: 1px solid #f1f5f9;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 12px 16px;
+  padding: 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
 .spec-label {
-  font-size: 11px;
+  font-size: 0.7rem;
+  color: #94a3b8;
   font-weight: 600;
-  color: #64748b;
 }
 
-.spec-value-row {
+.spec-val-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .spec-value {
-  font-size: 14px;
+  font-size: 0.82rem;
   font-weight: 600;
   color: #0f172a;
 }
@@ -1708,10 +1728,10 @@ onMounted(() => {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.75rem;
 }
 
-/* MESSAGE CARD */
+/* Message Card */
 .inquiry-message-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -1720,207 +1740,209 @@ onMounted(() => {
 }
 
 .msg-card-header {
-  display: flex;
-  align-items: center;
-  padding: 14px 20px;
+  padding: 0.75rem 1rem;
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
 }
 
 .msg-card-header h4 {
-  font-size: 14px;
+  font-size: 0.85rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #061737;
   margin: 0;
 }
 
 .msg-body-box {
-  padding: 20px;
-  background: #ffffff;
+  padding: 1rem;
 }
 
 .msg-text {
-  font-size: 15px;
+  font-size: 0.88rem;
   line-height: 1.6;
-  color: #1e293b;
+  color: #334155;
   margin: 0;
   white-space: pre-wrap;
 }
 
-/* CRM NOTES CARD */
+/* CRM Notes Card */
 .crm-notes-card {
-  background: #ffffff;
+  background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 20px;
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .crm-header-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
 }
 
 .crm-title {
-  font-size: 15px;
+  font-size: 0.92rem;
   font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 2px;
-}
-
-.crm-subtitle {
-  font-size: 12px;
-  color: #64748b;
+  color: #061737;
   margin: 0;
 }
 
+.crm-subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 2px 0 0;
+}
+
 .toast-saved {
-  font-size: 12px;
+  font-size: 0.72rem;
   font-weight: 700;
   color: #16a34a;
   background: #dcfce7;
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: 6px;
 }
 
 .crm-form-fields {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 0.75rem;
 }
 
 .crm-input-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .crm-label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #334155;
+  color: #475569;
 }
 
-.crm-text-input,
-.crm-textarea {
-  width: 100%;
-  padding: 10px 14px;
+.crm-textarea,
+.crm-input {
+  padding: 0.55rem 0.75rem;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
-  font-size: 13px;
-  color: #0f172a;
+  font-size: 0.82rem;
+  background: #ffffff;
   outline: none;
-  font-family: inherit;
 }
 
-.crm-text-input:focus,
-.crm-textarea:focus {
+.crm-textarea:focus,
+.crm-input:focus {
   border-color: #ff6500;
-  box-shadow: 0 0 0 3px rgba(255, 101, 0, 0.12);
 }
 
-.crm-btn-row {
+.crm-bottom-row {
   display: flex;
-  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .btn-save-notes {
-  padding: 9px 20px;
-  background: #0f172a;
+  padding: 0.55rem 1.25rem;
+  background: #061737;
   color: #ffffff;
   border: none;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.15s;
+  height: 38px;
 }
 
 .btn-save-notes:hover:not(:disabled) {
   background: #ff6500;
 }
 
-/* MODAL STYLES */
-.modal-overlay {
+/* Modal */
+.modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(6, 23, 55, 0.65);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
-  padding: 20px;
+  padding: 1rem;
 }
 
-.modal-card {
+.modal-box {
   background: #ffffff;
   border-radius: 16px;
   width: 100%;
-  max-width: 580px;
-  padding: 28px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  max-width: 520px;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
 }
 
 .modal-header {
+  padding: 1.15rem 1.35rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
 }
 
 .modal-title {
-  font-size: 20px;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0 0 4px;
-}
-
-.modal-subtitle {
-  font-size: 13px;
-  color: #64748b;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #061737;
   margin: 0;
 }
 
 .modal-close-btn {
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: 1.2rem;
   color: #94a3b8;
   cursor: pointer;
 }
 
-.modal-form {
+.modal-body {
+  padding: 1.35rem;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
 }
 
-.form-row-2 {
+.modal-intro {
+  font-size: 0.82rem;
+  color: #475569;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.modal-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 0.75rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .form-label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #334155;
 }
 
 .form-input {
-  width: 100%;
-  padding: 9px 12px;
+  padding: 0.55rem 0.75rem;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 0.82rem;
   outline: none;
 }
 
@@ -1931,27 +1953,27 @@ onMounted(() => {
 .modal-actions-right {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 10px;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
 }
 
 .btn-cancel-modal {
-  padding: 9px 18px;
+  padding: 0.55rem 1rem;
   background: #f1f5f9;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 0.82rem;
   font-weight: 600;
   color: #475569;
   cursor: pointer;
 }
 
 .btn-primary-action {
-  padding: 9px 20px;
-  background: #ff6500;
+  padding: 0.55rem 1.25rem;
+  background: linear-gradient(135deg, #ff6500 0%, #ea580c 100%);
   border: none;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 0.82rem;
   font-weight: 700;
   color: #ffffff;
   cursor: pointer;
@@ -1960,38 +1982,39 @@ onMounted(() => {
 
 .modal-success-box {
   text-align: center;
-  padding: 10px 0;
+  padding: 1.5rem;
 }
 
 .success-icon-badge {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   background: #dcfce7;
   color: #16a34a;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
-  margin: 0 auto 16px;
+  margin: 0 auto 12px;
 }
 
 .cred-table {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 14px 18px;
-  margin: 20px 0;
+  padding: 0.85rem 1rem;
+  margin: 1rem 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  text-align: left;
 }
 
 .cred-row {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 0.8rem;
 }
 
 .cred-label {
@@ -2002,5 +2025,44 @@ onMounted(() => {
 .cred-val {
   font-weight: 700;
   color: #0f172a;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .inbox-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-hidden {
+    display: none !important;
+  }
+
+  .mobile-back-row {
+    display: block;
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .lead-specs-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

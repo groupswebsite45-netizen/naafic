@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from '../../../../i18n';
 
 interface Props {
   adminName?: string;
@@ -9,12 +10,14 @@ interface Props {
   schoolCode?: string;
 }
 
+const { locale } = useI18n();
+
 withDefaults(defineProps<Props>(), {
-  adminName: 'Abdikadir Ali Mire',
+  adminName: 'Administrator',
   academicYear: '2026/2027',
   academicYears: () => ['2026/2027', '2025/2026'],
-  schoolName: 'Garasale Primary School',
-  schoolCode: 'SOM-SCH-0001',
+  schoolName: 'Educational Institution',
+  schoolCode: 'EMS-001',
 });
 
 const emit = defineEmits<{
@@ -23,13 +26,18 @@ const emit = defineEmits<{
 
 const greeting = computed(() => {
   const hour = new Date().getHours();
+  if (locale.value === 'so') {
+    if (hour < 12) return 'Subax Wanaagsan,';
+    if (hour < 17) return 'Galab Wanaagsan,';
+    return 'Habeen Wanaagsan,';
+  }
   if (hour < 12) return 'Good Morning,';
   if (hour < 17) return 'Good Afternoon,';
   return 'Good Evening,';
 });
 
 const formattedDate = computed(() => {
-  return new Date().toLocaleDateString('en-US', {
+  return new Date().toLocaleDateString(locale.value === 'so' ? 'so-SO' : 'en-US', {
     weekday: 'long',
     month: 'short',
     day: 'numeric',
@@ -57,7 +65,7 @@ const formattedDate = computed(() => {
           <span class="wave-emoji" aria-label="Waving hand">👋</span>
         </h1>
         <p class="hero-subtext">
-          Here's what's happening across {{ schoolName }} today.
+          {{ locale === 'so' ? `Kani waa warbixinta guud ee maanta ka socota dugsiga ${schoolName}.` : `Here's what's happening across ${schoolName} today.` }}
         </p>
 
         <!-- School Code Badge & Academic Controls Row -->
@@ -387,6 +395,54 @@ const formattedDate = computed(() => {
   }
   .school-3d-image {
     width: 210px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-content-wrap {
+    padding: 1.25rem 1rem;
+    gap: 1.25rem;
+  }
+
+  .admin-headline {
+    font-size: 1.5rem;
+  }
+
+  .hero-pills-row {
+    gap: 0.5rem;
+  }
+
+  .school-glass-badge {
+    padding: 0.35rem 0.65rem;
+  }
+
+  .school-name-text {
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .school-3d-image {
+    width: 160px;
+    max-height: 95px;
+  }
+}
+
+@media (max-width: 380px) {
+  .hero-content-wrap {
+    padding: 1rem 0.75rem;
+  }
+
+  .admin-headline {
+    font-size: 1.3rem;
+  }
+
+  .school-glass-badge,
+  .date-pill,
+  .academic-year-box {
+    width: 100%;
+    justify-content: space-between;
   }
 }
 </style>

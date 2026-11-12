@@ -44,7 +44,7 @@ class AdminService:
         return SystemHealthResponse(
             status="healthy" if db_connected else "degraded",
             database_connected=db_connected,
-            database_name="hawlwadaag_school_db",
+            database_name="sms",
             server_time=datetime.now(timezone.utc),
             app_version="1.0.0-production",
             environment=settings.APP_ENV
@@ -169,15 +169,36 @@ class AdminService:
             for log in recent_logs
         ]
 
+        # Fetch school branding settings from this tenant's system_settings
+        from app.models.system_setting import SystemSetting
+        settings_rows = self.db.query(SystemSetting).all()
+        settings_map = {s.key: s.value for s in settings_rows}
+
+        current_db_name = "sms"
+        if self.db and hasattr(self.db, "bind") and self.db.bind:
+            current_db_name = self.db.bind.url.database or "sms"
+
+        school_info = {
+            "name": settings_map.get("school_name", "Educational Institution"),
+            "code": settings_map.get("school_code", "EMS-001"),
+            "type": settings_map.get("school_type", "School"),
+            "logo_url": settings_map.get("logo_url") or None,
+            "academic_year": settings_map.get("active_academic_year", "2026/2027"),
+            "city": settings_map.get("city", "Mogadishu"),
+            "email": settings_map.get("contact_email", ""),
+            "phone": settings_map.get("contact_phone", ""),
+        }
+
         return {
             "system_status": "ONLINE",
             "database_status": "CONNECTED",
-            "database_name": "hawlwadaag_school_db",
+            "database_name": current_db_name,
             "active_sessions_count": active_sessions,
             "system_uptime_seconds": uptime_seconds,
             "current_admin": current_admin,
             "modules": modules,
             "recent_activity": recent_activity,
+            "school": school_info,
             # Real metrics
             "metrics": {
                 "total_students": total_students,

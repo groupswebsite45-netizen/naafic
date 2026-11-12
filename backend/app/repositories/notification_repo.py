@@ -59,7 +59,12 @@ class NotificationRepository:
         )
 
         if status and status.upper() != "ALL":
-            query = query.filter(Notification.status == status.upper())
+            if status.upper() == "UNREAD":
+                query = query.filter(Notification.read_at.is_(None))
+            elif status.upper() == "READ":
+                query = query.filter(or_(Notification.status == "READ", Notification.read_at.isnot(None)))
+            else:
+                query = query.filter(Notification.status == status.upper())
 
         if notification_type and notification_type.upper() != "ALL":
             query = query.filter(Notification.notification_type == notification_type.upper())
@@ -200,3 +205,30 @@ class NotificationRepository:
         self.db.add(delivery)
         self.db.flush()
         return delivery
+
+    def mark_as_read(self, notification_id: int) -> Optional[Notification]:
+        notification = self.get_by_id(notification_id)
+        if notification:
+            now = datetime.now(timezone.utc)
+            notification.read_at = now
+            notification.status = "READ"
+            self.db.flush()
+        return notification
+
+    def mark_all_as_read(self) -> int:
+        now = datetime.now(timezone.utc)
+        count = self.db.query(Notification).filter(
+            Notification.read_at.is_(None)
+        ).update(
+            {"read_at": now, "status": "READ"},
+            synchronize_session="fetch"
+        )
+        self.db.flush()
+        return count
+
+    def get_unread_count(self) -> int:
+        return self.db.query(Notification).filter(
+            Notification.read_at.is_(None),
+            Notification.status != "FAILED"
+        ).count()
+

@@ -1,9 +1,11 @@
+import os
 import re
+import uuid
 from datetime import datetime, date, timedelta
 from typing import List, Optional
 import random
 import string
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_, desc, text
 
@@ -20,6 +22,8 @@ from app.core.tenant_provisioner import (
     generate_tenant_database_name,
     create_tenant_database,
     provision_tenant_schema_and_admin,
+    verify_tenant_provisioning,
+    update_tenant_settings,
     delete_tenant_database,
 )
 from app.core.tenant_context import get_tenant_engine, get_tenant_sessionmaker, get_default_database_name
@@ -337,6 +341,39 @@ def list_institutions(
     return [build_institution_response(inst) for inst in institutions]
 
 
+@router.post("/upload-logo")
+async def upload_institution_logo(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_super_admin)
+):
+    """Uploads an institution emblem / logo and saves it to /uploads/institution_logos/."""
+    allowed_types = ["image/png", "image/jpeg", "image/jpg", "image/svg+xml", "image/webp"]
+    if file.content_type and file.content_type.lower() not in allowed_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid image format. Allowed formats: PNG, JPEG, SVG, WebP."
+        )
+
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if not ext or ext not in [".png", ".jpg", ".jpeg", ".svg", ".webp"]:
+        ext = ".png"
+
+    safe_name = f"logo_{uuid.uuid4().hex[:12]}_{int(datetime.now().timestamp())}{ext}"
+    uploads_base = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), "uploads", "institution_logos")
+    os.makedirs(uploads_base, exist_ok=True)
+    full_path = os.path.join(uploads_base, safe_name)
+
+    content = await file.read()
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Logo file size exceeds maximum limit of 5MB.")
+
+    with open(full_path, "wb") as f:
+        f.write(content)
+
+    url = f"/uploads/institution_logos/{safe_name}"
+    return {"url": url, "filename": safe_name}
+
+
 @router.post("/institutions", response_model=InstitutionResponse, status_code=status.HTTP_201_CREATED)
 def register_institution(
     payload: InstitutionCreate,
@@ -405,7 +442,7 @@ def register_institution(
     db.add(new_inst)
     db.flush()
 
-    # 4. Create physical database on local MySQL server
+    # 4. Create physical database on local PostgreSQL / MySQL server
     try:
         create_tenant_database(db_name)
     except Exception as e:
@@ -414,7 +451,7 @@ def register_institution(
         db.commit()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create database '{db_name}' on local MySQL server: {str(e)}"
+            detail=f"Failed to create database '{db_name}': {str(e)}"
         )
 
     # 5. Populate SMS schema & create initial admin in the new database (0 students/teachers)
@@ -424,25 +461,35 @@ def register_institution(
             "name": new_inst.name,
             "code": new_inst.code,
             "type": new_inst.type,
+            "logo_url": new_inst.logo_url or "",
             "email": new_inst.email or "",
             "phone": new_inst.phone or "",
             "city": new_inst.city or "Mogadishu",
+            "address": new_inst.address or "",
         }
         res = provision_tenant_schema_and_admin(
             database_name=db_name,
             admin_data=admin_dict,
             institution_info=inst_info
         )
+        # Verify tenant provisioning (zero operational records, admin created, school name in system_settings)
+        verify_tenant_provisioning(db_name, admin_dict["email"])
+
         new_inst.admin_user_id = res.get("admin_user_id")
         new_inst.provisioning_status = "PROVISIONED"
         new_inst.provisioning_error = None
     except Exception as e:
+        # Auto-rollback physical database so no corrupt DB is left
+        try:
+            delete_tenant_database(db_name)
+        except Exception:
+            pass
         new_inst.provisioning_status = "FAILED"
-        new_inst.provisioning_error = f"Schema provisioning failed: {str(e)}"
+        new_inst.provisioning_error = f"Schema provisioning or verification failed: {str(e)}"
         db.commit()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to initialize schema or administrator for '{db_name}': {str(e)}"
+            detail=f"Failed to initialize schema or verify administrator for '{db_name}': {str(e)}"
         )
 
     # 6. Create initial subscription and payment records in central DB
@@ -606,6 +653,21 @@ def update_institution(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to update tenant credentials in '{target_db}': {str(e)}"
             )
+
+    # Synchronize branding & settings to the tenant's isolated system_settings table
+    if target_db and target_db.lower() not in ["sms"]:
+        try:
+            update_tenant_settings(target_db, {
+                "school_name": inst.name,
+                "school_type": inst.type,
+                "logo_url": inst.logo_url,
+                "contact_email": inst.email,
+                "contact_phone": inst.phone,
+                "city": inst.city,
+                "address": inst.address,
+            })
+        except Exception:
+            pass
 
     db.commit()
     db.refresh(inst)

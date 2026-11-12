@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 interface Props {
   totalStudents?: number;
@@ -9,15 +9,20 @@ interface Props {
   loading?: boolean;
 }
 
-withDefaults(defineProps<Props>(), {
-  totalStudents: 21,
-  primaryCount: 21,
+const props = withDefaults(defineProps<Props>(), {
+  totalStudents: 0,
+  primaryCount: 0,
   secondaryCount: 0,
   othersCount: 0,
   loading: false,
 });
 
 const selectedPeriod = ref('This Year');
+
+const primaryPct = computed(() => (props.totalStudents > 0 ? Math.round((props.primaryCount / props.totalStudents) * 100) : 0));
+const secondaryPct = computed(() => (props.totalStudents > 0 ? Math.round((props.secondaryCount / props.totalStudents) * 100) : 0));
+const othersPct = computed(() => (props.totalStudents > 0 ? Math.round((props.othersCount / props.totalStudents) * 100) : 0));
+const primaryDash = computed(() => (props.totalStudents > 0 ? `${(primaryPct.value / 100) * 339.29} 339.29` : '0 339.29'));
 </script>
 
 <template>
@@ -63,15 +68,16 @@ const selectedPeriod = ref('This Year');
             stroke="#E2E8F0"
             stroke-width="14"
           />
-          <!-- Primary Level (100% Blue Arc) -->
+          <!-- Primary Level (Blue Arc) -->
           <circle
+            v-if="totalStudents > 0"
             cx="70"
             cy="70"
             r="54"
             fill="none"
             stroke="#2563EB"
             stroke-width="14"
-            stroke-dasharray="339.29"
+            :stroke-dasharray="primaryDash"
             stroke-dashoffset="0"
             stroke-linecap="round"
             transform="rotate(-90 70 70)"
@@ -94,7 +100,7 @@ const selectedPeriod = ref('This Year');
           </div>
           <div class="legend-val">
             <span class="val-count">{{ primaryCount }}</span>
-            <span class="val-pct">(100%)</span>
+            <span class="val-pct">({{ primaryPct }}%)</span>
           </div>
         </div>
 
@@ -105,7 +111,7 @@ const selectedPeriod = ref('This Year');
           </div>
           <div class="legend-val">
             <span class="val-count">{{ secondaryCount }}</span>
-            <span class="val-pct">(0%)</span>
+            <span class="val-pct">({{ secondaryPct }}%)</span>
           </div>
         </div>
 
@@ -116,7 +122,7 @@ const selectedPeriod = ref('This Year');
           </div>
           <div class="legend-val">
             <span class="val-count">{{ othersCount }}</span>
-            <span class="val-pct">(0%)</span>
+            <span class="val-pct">({{ othersPct }}%)</span>
           </div>
         </div>
       </div>
@@ -331,5 +337,24 @@ const selectedPeriod = ref('This Year');
 .val-pct {
   color: #64748B;
   font-weight: 500;
+}
+
+@media (max-width: 480px) {
+  .analytics-card {
+    padding: 1rem 0.75rem;
+    gap: 0.85rem;
+  }
+  .card-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .chart-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .legend-list {
+    width: 100%;
+  }
 }
 </style>

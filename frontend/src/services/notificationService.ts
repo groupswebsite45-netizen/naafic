@@ -159,4 +159,19 @@ export const notificationService = {
     const response = await apiClient.get<HormuudBalanceResult>('/notifications/providers/hormuud/balance');
     return response.data;
   },
+
+  async getUnreadCount(): Promise<{ unread_count: number }> {
+    const response = await apiClient.get<{ unread_count: number }>('/notifications/unread-count');
+    return response.data;
+  },
+
+  async markAsRead(id: number): Promise<{ success: boolean; id: number; status: string; read_at: string }> {
+    const response = await apiClient.post<{ success: boolean; id: number; status: string; read_at: string }>(`/notifications/${id}/read`);
+    return response.data;
+  },
+
+  async markAllAsRead(): Promise<{ success: boolean; marked_count: number }> {
+    const response = await apiClient.post<{ success: boolean; marked_count: number }>('/notifications/mark-all-read');
+    return response.data;
+  },
 };

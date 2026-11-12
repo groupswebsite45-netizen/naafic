@@ -73,13 +73,11 @@ async function loadAssignments(isUserRefresh = false) {
   errorMessage.value = '';
   refreshSuccess.value = false;
   try {
-    // 1. Fetch available options scoped to authenticated teacher
     const opts = await teacherPortalService.getExamOptions({
       academic_year: form.academic_year || undefined
     });
     examOptions.value = opts;
 
-    // 2. Select teacher's active academic year
     if (opts.academic_years && opts.academic_years.length > 0) {
       if (!form.academic_year || !opts.academic_years.includes(form.academic_year)) {
         form.academic_year = (opts as any).selected_academic_year || opts.academic_years[0];
@@ -88,12 +86,10 @@ async function loadAssignments(isUserRefresh = false) {
       form.academic_year = '';
     }
 
-    // 3. Load cascading assigned subjects
     if (opts.subjects && opts.subjects.length > 0) {
       if (!form.subject_id || !opts.subjects.some((s) => s.id === form.subject_id)) {
         form.subject_id = opts.subjects[0].id;
       }
-      // 4. Load cascading classes for this subject and year
       const classOpts = await teacherPortalService.getExamOptions({
         academic_year: form.academic_year,
         subject_id: form.subject_id
@@ -130,7 +126,6 @@ const availableYears = computed(() => {
   return examOptions.value?.academic_years || [];
 });
 
-// Use examOptions for actual dropdown data
 const assignedSubjectsForYear = computed(() => {
   return (examOptions.value?.subjects || []).map(s => ({
     subject_id: s.id,
@@ -148,8 +143,7 @@ const assignedClassesForSubject = computed(() => {
   }));
 });
 
-
-// When subject changes, reload classes from backend (cascading dropdown)
+// Cascading subject change
 watch(
   () => form.subject_id,
   async (newSubId) => {
@@ -181,8 +175,7 @@ watch(
   }
 );
 
-
-// When academic year changes, reload all options from backend
+// Cascading academic year change
 watch(
   () => form.academic_year,
   async (newYear) => {
@@ -206,7 +199,6 @@ watch(
     } catch { /* keep existing values */ }
   }
 );
-
 
 watch(
   () => [form.exam_type, form.subject_id, form.class_id],
@@ -296,33 +288,35 @@ async function handleSubmit() {
 
 <template>
   <div v-if="isOpen" class="modal-backdrop" @click.self="emit('close')">
-    <div class="modal-card">
+    <div class="modal-card" @click.stop>
       <!-- Modal Header -->
       <div class="modal-header">
-        <div class="header-icon-wrap">
-          <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
+        <div class="header-left">
+          <div class="header-icon-wrap">
+            <svg class="header-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="modal-title">Create Class Quiz</h2>
+            <p class="modal-subtitle">Schedule a quiz assessment for your assigned class and subject</p>
+          </div>
         </div>
-        <div class="header-text">
-          <h2 class="modal-title">Create Class Quiz</h2>
-          <p class="modal-subtitle">Schedule a quiz for your assigned class and subject</p>
-        </div>
+
         <div class="header-right-actions">
           <button
             type="button"
-            class="refresh-assignments-btn"
+            class="btn-refresh-assignments"
             :disabled="isLoadingAssignments"
-            @click="loadAssignments(true)"
             title="Reload active assignments from Administration"
-            id="btn-refresh-assignments"
+            @click="loadAssignments(true)"
           >
-            <svg class="refresh-icon" :class="{ spinning: isLoadingAssignments }" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <svg class="refresh-icon" :class="{ spinning: isLoadingAssignments }" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
             </svg>
-            Refresh Assignments
+            <span>Sync Assignments</span>
           </button>
-          <button type="button" class="close-btn" @click="emit('close')" aria-label="Close modal">
+          <button type="button" class="close-btn" aria-label="Close modal" @click="emit('close')">
             &times;
           </button>
         </div>
@@ -334,33 +328,31 @@ async function handleSubmit() {
           <svg class="draft-icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v4.59L7.3 9.24a.75.75 0 00-1.1 1.02l3.25 3.5a.75.75 0 001.1 0l3.25-3.5a.75.75 0 10-1.1-1.02l-1.95 2.1V6.75z" clip-rule="evenodd" />
           </svg>
-          <span><strong>Draft Restored:</strong> Your previously entered quiz details have been saved and restored.</span>
+          <span><strong>Draft Restored:</strong> Your previously entered quiz details have been restored.</span>
         </div>
         <button type="button" class="btn-discard-draft" @click="discardDraft">
-          Reset / Discard
+          Discard Draft
         </button>
       </div>
 
       <!-- Modal Body -->
-      <form @submit.prevent="handleSubmit" class="modal-body">
-        <!-- Admin Examination Policy Notice -->
+      <form class="modal-body" @submit.prevent="handleSubmit">
+        <!-- Examination Policy Notice -->
         <div class="admin-notice-banner">
-          <div class="notice-icon">
-            <svg viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-            </svg>
-          </div>
+          <svg class="notice-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+          </svg>
           <div class="notice-text">
-            <strong>Examination Policy:</strong> Official examinations (<em>Final, Midterm, Monthly</em>) are scheduled exclusively by School Administration. Teachers can create quizzes for their assigned classes and subjects.
+            <strong>Institutional Policy:</strong> Official examinations (<em>Midterm, Final, Monthly</em>) are scheduled exclusively by School Administration. Teachers can create quizzes for their assigned classes.
           </div>
         </div>
 
         <!-- Success Refresh Banner -->
-        <div v-if="refreshSuccess" class="refresh-success-banner" id="banner-refresh-success">
+        <div v-if="refreshSuccess" class="refresh-success-banner">
           <svg class="success-icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
           </svg>
-          <span>Active assignments refreshed successfully!</span>
+          <span>Active teaching assignments refreshed successfully!</span>
         </div>
 
         <!-- Error Banner -->
@@ -372,7 +364,7 @@ async function handleSubmit() {
         </div>
 
         <div v-if="isLoadingAssignments" class="loading-state">
-          <div class="spinner"></div>
+          <div class="spinner-ring" />
           <p>Loading your assigned classes and subjects...</p>
         </div>
 
@@ -383,7 +375,7 @@ async function handleSubmit() {
               <label class="form-label">
                 Academic Year <span class="required">*</span>
               </label>
-              <select v-model="form.academic_year" class="form-select" required id="select-exam-academic-year">
+              <select v-model="form.academic_year" class="form-select" required>
                 <option v-for="y in availableYears" :key="y" :value="y">{{ y }}</option>
                 <option v-if="availableYears.length === 0" value="2026/2027">2026/2027</option>
               </select>
@@ -393,7 +385,7 @@ async function handleSubmit() {
               <label class="form-label">
                 Assigned Subject <span class="required">*</span>
               </label>
-              <select v-model="form.subject_id" class="form-select" required id="select-exam-subject">
+              <select v-model="form.subject_id" class="form-select" required>
                 <option :value="null" disabled>Select your assigned subject</option>
                 <option v-for="s in assignedSubjectsForYear" :key="s.subject_id" :value="s.subject_id">
                   {{ s.subject_name }} {{ s.subject_code ? `(${s.subject_code})` : '' }}
@@ -411,7 +403,7 @@ async function handleSubmit() {
               <label class="form-label">
                 Assigned Class <span class="required">*</span>
               </label>
-              <select v-model="form.class_id" class="form-select" required :disabled="!form.subject_id" id="select-exam-class">
+              <select v-model="form.class_id" class="form-select" required :disabled="!form.subject_id">
                 <option :value="null" disabled>
                   {{ form.subject_id ? 'Select assigned class' : 'Select a subject first' }}
                 </option>
@@ -432,7 +424,7 @@ async function handleSubmit() {
                 <svg class="quiz-check-icon" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
-                <span class="quiz-badge-label">Quiz Examination</span>
+                <span class="quiz-badge-label">Quiz Assessment</span>
               </div>
             </div>
           </div>
@@ -440,99 +432,70 @@ async function handleSubmit() {
           <!-- Exam Title -->
           <div class="form-group">
             <label class="form-label">
-              Exam Title <span class="required">*</span>
+              Quiz Title <span class="required">*</span>
             </label>
             <input
               v-model="form.name"
               type="text"
               class="form-input title-input"
-              placeholder="e.g. Mid-Term Mathematics Examination"
+              placeholder="e.g. Quiz: Mathematics (Grade 9-A)"
               required
             />
           </div>
 
           <!-- Date & Marks Row -->
-          <div class="form-row-3">
+          <div class="form-row">
             <div class="form-group">
               <label class="form-label">
-                Exam Date <span class="required">*</span>
+                Quiz Date <span class="required">*</span>
               </label>
-              <input
-                v-model="form.start_date"
-                type="date"
-                class="form-input"
-                required
-              />
+              <input v-model="form.start_date" type="date" class="form-input" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">End Date (Optional)</label>
+              <input v-model="form.end_date" type="date" class="form-input" :min="form.start_date" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">
+                Max Marks <span class="required">*</span>
+              </label>
+              <input v-model.number="form.max_marks" type="number" min="1" max="1000" class="form-input" required />
             </div>
 
             <div class="form-group">
               <label class="form-label">
-                Maximum Marks <span class="required">*</span>
+                Passing Marks <span class="required">*</span>
               </label>
-              <input
-                v-model.number="form.max_marks"
-                type="number"
-                min="1"
-                max="1000"
-                class="form-input"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">
-                Pass Marks <span class="required">*</span>
-              </label>
-              <input
-                v-model.number="form.pass_marks"
-                type="number"
-                min="0"
-                :max="form.max_marks"
-                class="form-input"
-                required
-              />
+              <input v-model.number="form.pass_marks" type="number" min="1" :max="form.max_marks" class="form-input" required />
             </div>
           </div>
 
           <!-- Instructions -->
           <div class="form-group">
-            <label class="form-label">
-              Instructions / Notes <span class="optional">(Optional)</span>
-            </label>
+            <label class="form-label">Instructions / Exam Notes</label>
             <textarea
               v-model="form.instructions"
-              rows="2"
               class="form-textarea"
-              placeholder="Add optional exam guidelines or teacher notes..."
-            ></textarea>
-          </div>
-
-          <!-- Summary Identity Card -->
-          <div class="identity-card">
-            <div class="identity-badge">EXAM IDENTITY PREVIEW</div>
-            <div class="identity-row">
-              <span class="id-item"><strong>Year:</strong> {{ form.academic_year }}</span>
-              <span class="id-item"><strong>Type:</strong> {{ form.exam_type }}</span>
-              <span class="id-item"><strong>Max Marks:</strong> {{ form.max_marks }} (Pass: {{ form.pass_marks }})</span>
-            </div>
+              rows="3"
+              placeholder="Add instructions for students or personal notes for this assessment..."
+            />
           </div>
         </div>
 
-        <!-- Footer -->
+        <!-- Footer Actions -->
         <div class="modal-footer">
           <button type="button" class="btn-cancel" @click="emit('close')">
             Cancel
           </button>
-          <button
-            type="submit"
-            class="btn-submit"
-            :disabled="isSubmitting || isLoadingAssignments || !form.class_id || !form.subject_id"
-          >
-            <svg v-if="isSubmitting" class="spinner-svg" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          <button type="submit" class="btn-create" :disabled="isSubmitting || isLoadingAssignments">
+            <svg v-if="!isSubmitting" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
             </svg>
-            <span>{{ isSubmitting ? 'Creating Exam...' : 'Create Exam' }}</span>
+            <span>{{ isSubmitting ? 'Creating Quiz...' : 'Create Quiz & Open Roster' }}</span>
           </button>
         </div>
       </form>
@@ -544,44 +507,52 @@ async function handleSubmit() {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(10, 25, 47, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 60;
   padding: 1rem;
 }
 
 .modal-card {
-  background: #ffffff;
-  border-radius: 16px;
+  background: #FFFFFF;
+  border-radius: 20px;
   width: 100%;
-  max-width: 620px;
-  max-height: 90vh;
+  max-width: 680px;
+  max-height: 92vh;
   overflow-y: auto;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
+  padding: 1.5rem 1.75rem;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  background: #F8FAFC;
+}
+
+.header-left {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
-  position: relative;
+  gap: 0.85rem;
 }
 
 .header-icon-wrap {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #ECFDF5;
+  color: #10B981;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
   flex-shrink: 0;
 }
 
@@ -590,52 +561,42 @@ async function handleSubmit() {
   height: 22px;
 }
 
-.header-text {
-  flex: 1;
-}
-
 .modal-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0A192F;
   margin: 0;
 }
 
 .modal-subtitle {
-  font-size: 0.8125rem;
-  color: #64748b;
-  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  color: #64748B;
+  margin-top: 0.2rem;
 }
 
 .header-right-actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
-.refresh-assignments-btn {
+.btn-refresh-assignments {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #4338ca;
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
-  border-radius: 6px;
+  gap: 0.35rem;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #0A192F;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.refresh-assignments-btn:hover:not(:disabled) {
-  background: #e0e7ff;
-  border-color: #a5b4fc;
-}
-
-.refresh-assignments-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.btn-refresh-assignments:hover {
+  background: #F1F5F9;
 }
 
 .refresh-icon {
@@ -647,106 +608,150 @@ async function handleSubmit() {
   animation: spin 0.8s linear infinite;
 }
 
+@keyframes spin { to { transform: rotate(360deg); } }
+
 .close-btn {
-  font-size: 1.5rem;
   background: none;
   border: none;
-  color: #94a3b8;
+  font-size: 1.75rem;
+  color: #94A3B8;
   cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 6px;
   line-height: 1;
 }
 
-.close-btn:hover {
-  color: #0f172a;
-  background: #f1f5f9;
+.close-btn:hover { color: #0A192F; }
+
+.draft-notice-banner {
+  background: #EFF6FF;
+  border-bottom: 1px solid #BFDBFE;
+  padding: 0.75rem 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.draft-notice-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #1E40AF;
+}
+
+.draft-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.btn-discard-draft {
+  background: none;
+  border: none;
+  color: #DC2626;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.modal-body {
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.admin-notice-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-left: 3px solid #2563EB;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.notice-icon {
+  width: 18px;
+  height: 18px;
+  color: #2563EB;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
 }
 
 .refresh-success-banner {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #15803d;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
   padding: 0.65rem 1rem;
   border-radius: 8px;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .success-icon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-}
-
-.modal-body {
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  width: 16px;
+  height: 16px;
+  color: #10B981;
 }
 
 .error-banner {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-  padding: 0.75rem 1rem;
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  color: #991B1B;
+  padding: 0.65rem 1rem;
   border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .err-icon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: #EF4444;
 }
 
 .loading-state {
+  padding: 3rem 1rem;
+  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 2.5rem 1rem;
-  color: #64748b;
   gap: 0.75rem;
+  color: #64748B;
+  font-size: 0.86rem;
 }
 
-.spinner {
+.spinner-ring {
   width: 32px;
   height: 32px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #4f46e5;
+  border: 3px solid #E2E8F0;
+  border-top-color: #10B981;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 .form-content {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.15rem;
 }
 
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
-}
-
-.form-row-3 {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.875rem;
 }
 
 .form-group {
@@ -756,243 +761,119 @@ async function handleSubmit() {
 }
 
 .form-label {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #334155;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #0A192F;
 }
 
-.required {
-  color: #ef4444;
-}
-
-.optional {
-  color: #94a3b8;
-  font-weight: 400;
-}
-
-.form-select,
-.form-input,
-.form-textarea {
-  padding: 0.55rem 0.75rem;
-  font-size: 0.875rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #0f172a;
-  outline: none;
-  transition: all 0.15s ease;
-}
-
-.form-select:focus,
-.form-input:focus,
-.form-textarea:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
-}
-
-.admin-notice-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.65rem;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1e40af;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-}
-
-.notice-icon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.notice-text em {
-  font-style: normal;
-  font-weight: 600;
-  color: #1d4ed8;
-}
+.required { color: #DC2626; }
 
 .badge-teacher-only {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  padding: 0.15rem 0.45rem;
-  background: #f1f5f9;
-  color: #475569;
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: #ECFDF5;
+  color: #059669;
+  padding: 0.1rem 0.4rem;
   border-radius: 4px;
   margin-left: 0.35rem;
 }
 
-.single-quiz-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.55rem 0.85rem;
-  background: #eef2ff;
-  border: 1.5px solid #6366f1;
-  color: #4338ca;
-  font-size: 0.875rem;
-  font-weight: 700;
+.form-select, .form-input, .form-textarea {
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  color: #0A192F;
+  padding: 0.55rem 0.75rem;
   border-radius: 8px;
-  width: fit-content;
+  font-size: 0.86rem;
+  font-weight: 600;
+  outline: none;
+}
+
+.form-textarea {
+  resize: vertical;
+  font-weight: 500;
+}
+
+.title-input {
+  font-weight: 700;
+}
+
+.hint-text {
+  font-size: 0.72rem;
+  margin-top: 0.2rem;
+}
+
+.text-amber { color: #D97706; }
+
+.single-quiz-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  color: #065F46;
+  font-size: 0.84rem;
+  font-weight: 700;
 }
 
 .quiz-check-icon {
   width: 16px;
   height: 16px;
-  color: #4f46e5;
-}
-
-.custom-type-input {
-  margin-top: 0.35rem;
-}
-
-.title-input {
-  font-weight: 600;
-}
-
-.hint-text {
-  font-size: 0.75rem;
-  margin-top: 0.2rem;
-}
-
-.text-amber {
-  color: #d97706;
-}
-
-.identity-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-}
-
-.identity-badge {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: #6366f1;
-  margin-bottom: 0.35rem;
-}
-
-.identity-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  font-size: 0.8125rem;
-  color: #475569;
+  color: #10B981;
 }
 
 .modal-footer {
+  padding-top: 1rem;
+  border-top: 1px solid #F1F5F9;
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-  margin-top: 0.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid #f1f5f9;
 }
 
 .btn-cancel {
-  padding: 0.55rem 1.15rem;
-  font-size: 0.875rem;
-  font-weight: 600;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
   color: #475569;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
+  padding: 0.55rem 1.15rem;
   border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
   cursor: pointer;
 }
 
-.btn-cancel:hover {
-  background: #f8fafc;
-}
-
-.btn-submit {
+.btn-create {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.55rem 1.35rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #ffffff;
-  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
-  border: 1px solid #4338ca;
+  gap: 0.4rem;
+  background: #10B981;
+  border: none;
+  color: #FFFFFF;
+  padding: 0.55rem 1.25rem;
   border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.25);
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
-.btn-submit:hover:not(:disabled) {
-  background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
-  transform: translateY(-1px);
+.btn-create:hover:not(:disabled) {
+  background: #059669;
 }
 
-.btn-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.spinner-svg {
-  width: 16px;
-  height: 16px;
-  animation: spin 0.8s linear infinite;
-}
-
-/* Draft Notice Banner */
-.draft-notice-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.625rem 1.25rem;
-  background: #eff6ff;
-  border-bottom: 1px solid #bfdbfe;
-  color: #1e40af;
-  font-size: 0.8125rem;
-  flex-shrink: 0;
-}
-
-.draft-notice-text {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-.draft-icon {
-  width: 1.125rem;
-  height: 1.125rem;
-  flex-shrink: 0;
-  color: #2563eb;
-}
-
-.btn-discard-draft {
-  background: white;
-  border: 1px solid #93c5fd;
-  color: #1d4ed8;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.25rem 0.625rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.btn-discard-draft:hover {
-  background: #dbeafe;
-  color: #1e3a8a;
-  border-color: #60a5fa;
-}
+.btn-create svg { width: 16px; height: 16px; }
 
 @media (max-width: 640px) {
-  .form-row,
-  .form-row-3 {
+  .form-row {
     grid-template-columns: 1fr;
+  }
+  .modal-header {
+    flex-direction: column;
+  }
+  .header-right-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 }
 </style>

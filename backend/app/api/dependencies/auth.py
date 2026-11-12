@@ -52,21 +52,26 @@ def get_current_user(
     user_repo = UserRepository(db)
     user = user_repo.get_by_id(int(user_id))
 
+    # Only fall back to central DB if the token is explicitly for a Super Admin / central user
     if not user:
-        try:
-            from app.core.tenant_context import get_central_sessionmaker
-            central_session = get_central_sessionmaker()()
+        is_super = bool(payload.get("is_superuser")) or any(
+            str(r).upper() in ["SUPER_ADMIN", "SUPERADMIN"] for r in (payload.get("roles") or [])
+        )
+        if is_super or not payload.get("database_name"):
             try:
-                user = UserRepository(central_session).get_by_id(int(user_id))
-            finally:
-                central_session.close()
-        except Exception:
-            user = None
+                from app.core.tenant_context import get_central_sessionmaker
+                central_session = get_central_sessionmaker()()
+                try:
+                    user = UserRepository(central_session).get_by_id(int(user_id))
+                finally:
+                    central_session.close()
+            except Exception:
+                user = None
 
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User associated with token no longer exists.",
+            detail="User associated with token does not exist in this institution.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

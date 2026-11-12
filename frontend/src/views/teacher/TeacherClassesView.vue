@@ -145,7 +145,6 @@ const totalUniqueSubjects = computed(() => {
   return new Set(assignments.value.map((a) => a.subject_id)).size;
 });
 const totalStudentsEnrolled = computed(() => {
-  // Sum of student_count for distinct classes in current year or total
   const mapByClass = new Map<number, number>();
   for (const a of assignments.value) {
     if (!mapByClass.has(a.class_id)) {
@@ -218,21 +217,21 @@ function getSubjectTheme(subjectName?: string, department?: string | null) {
   const dept = (department || '').toLowerCase();
 
   if (name.includes('math') || name.includes('algebra') || name.includes('geom')) {
-    return { icon: '📘', badgeClass: 'theme-blue', color: '#0284c7' };
+    return { icon: '📘', badgeClass: 'theme-blue', color: '#2563EB' };
   }
   if (name.includes('physic') || name.includes('chem') || name.includes('bio') || dept.includes('science')) {
-    return { icon: '🔬', badgeClass: 'theme-emerald', color: '#059669' };
+    return { icon: '🔬', badgeClass: 'theme-emerald', color: '#10B981' };
   }
   if (name.includes('social') || name.includes('geograph') || name.includes('history')) {
-    return { icon: '🌍', badgeClass: 'theme-teal', color: '#0d9488' };
+    return { icon: '🌍', badgeClass: 'theme-teal', color: '#0D9488' };
   }
   if (name.includes('ict') || name.includes('comput') || name.includes('tech')) {
-    return { icon: '💻', badgeClass: 'theme-indigo', color: '#4f46e5' };
+    return { icon: '💻', badgeClass: 'theme-indigo', color: '#4F46E5' };
   }
   if (name.includes('somali') || name.includes('english') || name.includes('arabic') || name.includes('islam') || dept.includes('language')) {
-    return { icon: '📖', badgeClass: 'theme-purple', color: '#7c3aed' };
+    return { icon: '📖', badgeClass: 'theme-purple', color: '#7C3AED' };
   }
-  return { icon: '📚', badgeClass: 'theme-amber', color: '#d97706' };
+  return { icon: '📚', badgeClass: 'theme-amber', color: '#D97706' };
 }
 
 onMounted(() => {
@@ -245,27 +244,24 @@ onMounted(() => {
     <!-- Header Section -->
     <div class="page-header">
       <div class="header-left">
-        <div class="badge-row">
-          <span class="role-chip">Teacher Portal</span>
-          <span class="auth-chip">
-            <svg class="chip-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-            Admin Assigned • Read-Only
-          </span>
+        <div class="somroyal-tag">
+          <svg class="crown-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+          </svg>
+          <span>TEACHING CURRICULUM &bull; ASSIGNED STREAMS</span>
         </div>
-        <h1 class="page-title">My Classes & Subjects</h1>
+        <h1 class="page-title">My Classes &amp; Subjects</h1>
         <p class="page-subtitle">
           Curriculum courses, student rosters, and schedules strictly assigned to your faculty account by School Administration.
         </p>
       </div>
 
       <div class="header-actions">
-        <button class="btn btn-outline btn-refresh" :disabled="isLoading" @click="loadData">
-          <svg class="btn-icon" :class="{ 'spin-active': isLoading }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        <button class="btn-refresh" :disabled="isLoading" @click="loadData">
+          <svg class="refresh-icon" :class="{ 'spin-active': isLoading }" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
           </svg>
-          <span>{{ isLoading ? 'Refreshing...' : 'Refresh Assignments' }}</span>
+          <span>{{ isLoading ? 'Syncing...' : 'Refresh Assignments' }}</span>
         </button>
       </div>
     </div>
@@ -279,7 +275,7 @@ onMounted(() => {
           </svg>
         </div>
         <div class="metric-content">
-          <span class="metric-label">Assigned Streams</span>
+          <span class="metric-label">ASSIGNED STREAMS</span>
           <span class="metric-value">{{ totalAssignedStreams }}</span>
           <span class="metric-sub">Active Subject-Class Pairings</span>
         </div>
@@ -292,8 +288,8 @@ onMounted(() => {
           </svg>
         </div>
         <div class="metric-content">
-          <span class="metric-label">Assigned Classes</span>
-          <span class="metric-value">{{ totalUniqueClasses }}</span>
+          <span class="metric-label">ASSIGNED CLASSES</span>
+          <span class="metric-value text-emerald">{{ totalUniqueClasses }}</span>
           <span class="metric-sub">Distinct Student Groups</span>
         </div>
       </div>
@@ -305,7 +301,7 @@ onMounted(() => {
           </svg>
         </div>
         <div class="metric-content">
-          <span class="metric-label">Teaching Subjects</span>
+          <span class="metric-label">TEACHING SUBJECTS</span>
           <span class="metric-value">{{ totalUniqueSubjects }}</span>
           <span class="metric-sub">Curriculum Disciplines</span>
         </div>
@@ -318,15 +314,15 @@ onMounted(() => {
           </svg>
         </div>
         <div class="metric-content">
-          <span class="metric-label">Total Enrolled Students</span>
-          <span class="metric-value">{{ totalStudentsEnrolled }}</span>
+          <span class="metric-label">ENROLLED STUDENTS</span>
+          <span class="metric-value text-amber">{{ totalStudentsEnrolled }}</span>
           <span class="metric-sub">Under Your Instruction</span>
         </div>
       </div>
     </div>
 
     <!-- Filters & Search Toolbar -->
-    <div class="filters-card card">
+    <div class="filters-card">
       <div class="toolbar-top">
         <div class="search-input-wrap">
           <svg class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -342,11 +338,11 @@ onMounted(() => {
         </div>
 
         <div v-if="isFiltered" class="filter-reset-wrap">
-          <button class="btn btn-sm btn-ghost reset-btn" @click="resetFilters">
+          <button class="reset-btn" @click="resetFilters">
             <svg class="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
-            Clear All Filters
+            Clear Filters
           </button>
         </div>
       </div>
@@ -400,61 +396,45 @@ onMounted(() => {
     </div>
 
     <!-- Error State -->
-    <div v-if="errorMessage" class="alert-box error card">
-      <div class="alert-content">
-        <svg class="alert-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    <div v-if="errorMessage" class="error-banner">
+      <div class="error-icon-box">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
         </svg>
-        <div>
-          <h4 class="alert-title">Unable to Load Assigned Classes</h4>
-          <p class="alert-desc">{{ errorMessage }}</p>
-        </div>
       </div>
-      <button class="btn btn-sm btn-outline-danger" @click="loadData">
+      <div class="error-details">
+        <h4 class="error-title">Unable to Load Assigned Classes</h4>
+        <p class="error-desc">{{ errorMessage }}</p>
+      </div>
+      <button class="btn-retry" @click="loadData">
         Retry Request
       </button>
     </div>
 
-    <!-- Loading Skeleton State -->
-    <div v-if="isLoading" class="skeleton-grid">
-      <div v-for="i in 6" :key="i" class="card skeleton-card">
-        <div class="skeleton-header">
-          <div class="skeleton-box skeleton-icon" />
-          <div class="skeleton-text-group">
-            <div class="skeleton-box skeleton-line lg" />
-            <div class="skeleton-box skeleton-line sm" />
-          </div>
-        </div>
-        <div class="skeleton-body">
-          <div class="skeleton-box skeleton-line md" />
-          <div class="skeleton-box skeleton-line md" />
-          <div class="skeleton-box skeleton-line sm" />
-        </div>
-        <div class="skeleton-footer">
-          <div class="skeleton-box skeleton-btn" />
-          <div class="skeleton-box skeleton-btn sm" />
-        </div>
-      </div>
+    <!-- Loading State -->
+    <div v-if="isLoading" class="state-card loading">
+      <div class="spinner-ring" />
+      <span class="loading-label">Loading assigned teaching streams from database...</span>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="filteredAssignments.length === 0" class="card empty-state-box">
+    <div v-else-if="filteredAssignments.length === 0" class="state-card empty">
       <div class="empty-icon-circle">
-        <svg class="empty-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
         </svg>
       </div>
-      <h3 class="empty-heading">
+      <h3 class="state-title">
         {{ assignments.length === 0 ? 'No Classes or Subjects Assigned Yet' : 'No Matching Assignments Found' }}
       </h3>
-      <p class="empty-text">
+      <p class="state-desc">
         {{
           assignments.length === 0
             ? 'No curriculum classes or subjects have been assigned to your faculty account yet. Please contact the School Administrator.'
             : 'No assigned courses match your current search query and filter selections.'
         }}
       </p>
-      <button v-if="assignments.length > 0" class="btn btn-primary btn-sm" @click="resetFilters">
+      <button v-if="assignments.length > 0" class="btn-reset-filters" @click="resetFilters">
         Reset Filter Criteria
       </button>
     </div>
@@ -464,7 +444,7 @@ onMounted(() => {
       <div
         v-for="a in filteredAssignments"
         :key="a.id"
-        class="assignment-card card"
+        class="assignment-card"
         :style="{ borderTopColor: getSubjectTheme(a.subject_name || a.subject?.name, a.department || a.subject?.department).color }"
       >
         <!-- Card Top Bar -->
@@ -495,22 +475,22 @@ onMounted(() => {
           <div class="status-wrap">
             <span
               v-if="a.display_status === 'ACTIVE' || (a.is_current_academic_year && a.status === 'ACTIVE')"
-              class="status-badge active"
+              class="status-badge-stream active"
               title="Active teaching stream for current academic year"
             >
-              <span class="status-dot green" />
+              <span class="pulse-dot green" />
               ACTIVE
             </span>
             <span
               v-else-if="a.display_status === 'HISTORICAL' || (!a.is_current_academic_year && a.status === 'ACTIVE')"
-              class="status-badge historical"
-              title="Historical assignment from previous academic year (Read-Only)"
+              class="status-badge-stream historical"
+              title="Historical assignment from previous academic year"
             >
-              <span class="status-dot amber" />
+              <span class="pulse-dot amber" />
               HISTORICAL
             </span>
-            <span v-else class="status-badge inactive" title="Assignment deactivated by administrator">
-              <span class="status-dot gray" />
+            <span v-else class="status-badge-stream inactive" title="Assignment deactivated by administrator">
+              <span class="pulse-dot gray" />
               INACTIVE
             </span>
           </div>
@@ -526,7 +506,7 @@ onMounted(() => {
                 {{ a.class_name || a.school_class?.name || `Class ${a.class_id}` }}
               </span>
               <span v-if="a.section || a.school_class?.section" class="section-tag">
-                {{ a.section || a.school_class?.section }}
+                Sec {{ a.section || a.school_class?.section }}
               </span>
               <span v-if="a.class_code || a.school_class?.code" class="class-code-tag">
                 {{ a.class_code || a.school_class?.code }}
@@ -552,7 +532,7 @@ onMounted(() => {
               <svg class="item-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
-              <span class="detail-value font-bold text-primary">
+              <span class="detail-value font-bold text-navy">
                 {{ a.student_count ?? a.school_class?.students_count ?? 0 }} students
               </span>
               <span v-if="a.school_class?.capacity" class="capacity-ratio">
@@ -576,7 +556,7 @@ onMounted(() => {
         <!-- Action Buttons -->
         <div class="card-footer-actions">
           <button
-            class="btn btn-primary btn-action-main"
+            class="btn-view-class"
             title="View student roster and comprehensive class profile"
             @click="openClassDetail(a)"
           >
@@ -589,7 +569,7 @@ onMounted(() => {
 
           <div class="quick-nav-group">
             <button
-              class="btn btn-outline btn-action-sub"
+              class="btn-quick-action"
               title="Record or review student attendance for this assignment"
               @click="navigateToAttendance(a)"
             >
@@ -600,7 +580,7 @@ onMounted(() => {
             </button>
 
             <button
-              class="btn btn-outline btn-action-sub"
+              class="btn-quick-action"
               title="Enter marks and manage assessments for this course"
               @click="navigateToExams(a)"
             >
@@ -614,15 +594,13 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- =================================================================== -->
-    <!-- CLASS DETAIL MODAL                                                  -->
-    <!-- =================================================================== -->
+    <!-- CLASS DETAIL MODAL -->
     <div v-if="isDetailModalOpen" class="modal-backdrop" @click="isDetailModalOpen = false">
-      <div class="modal-card card large" @click.stop>
+      <div class="modal-card" @click.stop>
         <!-- Modal Loading State -->
         <div v-if="isLoadingDetail" class="modal-loading-box">
-          <div class="spinner" />
-          <span>Retrieving class roster and schedule from PostgreSQL...</span>
+          <div class="spinner-ring" />
+          <span>Retrieving class roster and schedule from database...</span>
         </div>
 
         <div v-else-if="classDetail" class="modal-content-wrap">
@@ -637,10 +615,10 @@ onMounted(() => {
                 <span v-if="classDetail.section" class="section-tag">{{ classDetail.section }}</span>
               </div>
               <h2 class="modal-class-title">
-                {{ selectedAssignment?.subject_name || selectedAssignment?.subject?.name || 'Class' }} — {{ classDetail.name }}
+                {{ selectedAssignment?.subject_name || selectedAssignment?.subject?.name || 'Class' }} &mdash; {{ classDetail.name }}
               </h2>
               <p class="modal-subtitle">
-                Assigned to: <strong>{{ selectedAssignment?.teacher_name || 'Faculty Account' }}</strong> •
+                Assigned to: <strong>{{ selectedAssignment?.teacher_name || 'Faculty Account' }}</strong> &bull;
                 Academic Year: <strong>{{ classDetail.academic_year }}</strong>
               </p>
             </div>
@@ -650,25 +628,25 @@ onMounted(() => {
           <!-- Class Stats KPI Strip -->
           <div class="modal-kpi-grid">
             <div class="modal-kpi-box">
-              <span class="modal-kpi-label">Enrolled Students</span>
-              <span class="modal-kpi-val text-primary">{{ classDetail.enrolled_students_count }}</span>
+              <span class="modal-kpi-label">ENROLLED STUDENTS</span>
+              <span class="modal-kpi-val text-navy">{{ classDetail.enrolled_students_count }}</span>
               <span class="modal-kpi-sub">Capacity: {{ classDetail.capacity }}</span>
             </div>
 
             <div class="modal-kpi-box">
-              <span class="modal-kpi-label">Class Attendance</span>
+              <span class="modal-kpi-label">CLASS ATTENDANCE</span>
               <span class="modal-kpi-val text-emerald">{{ classDetail.attendance_rate }}%</span>
               <span class="modal-kpi-sub">Overall Average</span>
             </div>
 
             <div class="modal-kpi-box">
-              <span class="modal-kpi-label">Assigned Subjects</span>
+              <span class="modal-kpi-label">ASSIGNED SUBJECTS</span>
               <span class="modal-kpi-val text-purple">{{ classDetail.my_subjects.length }}</span>
               <span class="modal-kpi-sub">Taught By You</span>
             </div>
 
             <div class="modal-kpi-box">
-              <span class="modal-kpi-label">Weekly Periods</span>
+              <span class="modal-kpi-label">WEEKLY PERIODS</span>
               <span class="modal-kpi-val text-amber">{{ classDetail.timetables.length }}</span>
               <span class="modal-kpi-sub">Scheduled Slots</span>
             </div>
@@ -679,23 +657,23 @@ onMounted(() => {
             <button
               class="modal-tab-btn"
               :class="{ active: activeDetailTab === 'students' }"
-              @click="activeDetailTab = 'students'"
+              @click="activeDetailTab === 'students'"
             >
               Enrolled Students ({{ classDetail.students.length }})
             </button>
             <button
               class="modal-tab-btn"
               :class="{ active: activeDetailTab === 'timetable' }"
-              @click="activeDetailTab = 'timetable'"
+              @click="activeDetailTab === 'timetable'"
             >
               Class Timetable ({{ classDetail.timetables.length }})
             </button>
             <button
               class="modal-tab-btn"
               :class="{ active: activeDetailTab === 'exams' }"
-              @click="activeDetailTab = 'exams'"
+              @click="activeDetailTab === 'exams'"
             >
-              Assessments & Exams ({{ classDetail.exams.length }})
+              Assessments &amp; Exams ({{ classDetail.exams.length }})
             </button>
           </div>
 
@@ -722,8 +700,8 @@ onMounted(() => {
               No enrolled students match your search filter.
             </div>
 
-            <div v-else class="table-responsive modal-table-wrap">
-              <table class="portal-table">
+            <div v-else class="table-responsive-wrapper">
+              <table class="somroyal-table">
                 <thead>
                   <tr>
                     <th style="width: 45px;">#</th>
@@ -740,7 +718,7 @@ onMounted(() => {
                     <td>
                       <code class="adm-code">{{ std.admission_number }}</code>
                     </td>
-                    <td class="font-bold student-name-cell">
+                    <td class="font-bold text-navy">
                       {{ std.first_name }} {{ std.middle_name || '' }} {{ std.last_name }}
                     </td>
                     <td>
@@ -750,7 +728,7 @@ onMounted(() => {
                     </td>
                     <td>
                       <span v-if="std.has_portal_access" class="portal-pill active">
-                        ✓ Registered
+                        &check; Registered
                       </span>
                       <span v-else class="portal-pill inactive">
                         Unregistered
@@ -770,8 +748,8 @@ onMounted(() => {
             <div v-if="classDetail.timetables.length === 0" class="empty-inline">
               No weekly class timetable slots scheduled yet for your subjects.
             </div>
-            <div v-else class="table-responsive modal-table-wrap">
-              <table class="portal-table">
+            <div v-else class="table-responsive-wrapper">
+              <table class="somroyal-table">
                 <thead>
                   <tr>
                     <th>Day of Week</th>
@@ -783,14 +761,14 @@ onMounted(() => {
                 </thead>
                 <tbody>
                   <tr v-for="t in classDetail.timetables" :key="t.id">
-                    <td class="font-bold text-primary">{{ t.day_of_week }}</td>
-                    <td class="font-mono">{{ t.start_time }} — {{ t.end_time }}</td>
+                    <td class="font-bold text-navy">{{ t.day_of_week }}</td>
+                    <td class="font-mono">{{ t.start_time }} &ndash; {{ t.end_time }}</td>
                     <td>{{ t.subject_name || selectedAssignment?.subject_name }}</td>
                     <td>
                       <span class="room-pill">{{ t.room_number || t.room || 'Room TBD' }}</span>
                     </td>
                     <td>
-                      <span class="status-badge active sm">Active</span>
+                      <span class="status-pill active-tag">Active</span>
                     </td>
                   </tr>
                 </tbody>
@@ -803,8 +781,8 @@ onMounted(() => {
             <div v-if="classDetail.exams.length === 0" class="empty-inline">
               No examination records found for your assigned subjects in this class.
             </div>
-            <div v-else class="table-responsive modal-table-wrap">
-              <table class="portal-table">
+            <div v-else class="table-responsive-wrapper">
+              <table class="somroyal-table">
                 <thead>
                   <tr>
                     <th>Exam Name</th>
@@ -816,7 +794,7 @@ onMounted(() => {
                 </thead>
                 <tbody>
                   <tr v-for="ex in classDetail.exams" :key="ex.id">
-                    <td class="font-bold">{{ ex.name }}</td>
+                    <td class="font-bold text-navy">{{ ex.name }}</td>
                     <td>{{ ex.subject_name || selectedAssignment?.subject_name }}</td>
                     <td>{{ ex.max_marks || 100 }} Marks</td>
                     <td>{{ ex.term || 'Term 1' }}</td>
@@ -831,13 +809,13 @@ onMounted(() => {
 
           <!-- Modal Footer Actions -->
           <div class="modal-footer">
-            <button class="btn btn-outline" @click="isDetailModalOpen = false">
+            <button class="btn-modal-close" @click="isDetailModalOpen = false">
               Close
             </button>
 
             <button
               v-if="selectedAssignment"
-              class="btn btn-outline"
+              class="btn-modal-sec"
               @click="navigateToAttendance(selectedAssignment)"
             >
               Take Attendance
@@ -845,7 +823,7 @@ onMounted(() => {
 
             <button
               v-if="selectedAssignment"
-              class="btn btn-primary"
+              class="btn-modal-prim"
               @click="navigateToExams(selectedAssignment)"
             >
               Enter Exam Marks
@@ -865,7 +843,6 @@ onMounted(() => {
   max-width: 1360px;
   margin: 0 auto;
   width: 100%;
-  padding: 0.5rem;
 }
 
 /* Header */
@@ -876,104 +853,170 @@ onMounted(() => {
   gap: 1.25rem;
   flex-wrap: wrap;
 }
-.header-left { display: flex; flex-direction: column; gap: 0.35rem; }
-.badge-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.2rem; }
-.role-chip {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: #e0e7ff;
-  color: #4338ca;
-  padding: 0.2rem 0.6rem;
-  border-radius: 9999px;
-}
-.auth-chip {
+
+.somroyal-tag {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   font-size: 0.72rem;
-  font-weight: 700;
-  background: #f0fdf4;
-  color: #15803d;
-  border: 1px solid #bbf7d0;
-  padding: 0.2rem 0.6rem;
-  border-radius: 9999px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #10B981;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
 }
-.chip-icon { width: 14px; height: 14px; }
+
+.crown-icon {
+  width: 14px;
+  height: 14px;
+  color: #F59E0B;
+}
+
 .page-title {
   font-size: 1.75rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: #0A192F;
   margin: 0;
   letter-spacing: -0.02em;
 }
+
 .page-subtitle {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin: 0;
+  font-size: 0.88rem;
+  color: #64748B;
+  margin-top: 0.25rem;
+  line-height: 1.5;
   max-width: 780px;
-  line-height: 1.45;
 }
 
-.header-actions { display: flex; align-items: center; gap: 0.75rem; }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .btn-refresh {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.55rem 0.95rem;
-  font-size: 0.85rem;
+  gap: 0.4rem;
+  background: #FFFFFF;
+  color: #0A192F;
+  border: 1px solid #E2E8F0;
+  padding: 0.5rem 0.95rem;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
-.spin-active { animation: spin 0.8s linear infinite; }
+
+.btn-refresh:hover:not(:disabled) {
+  border-color: #10B981;
+  color: #10B981;
+  background: #ECFDF5;
+}
+
+.refresh-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.spin-active {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
 /* Metric KPIs */
 .summary-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.15rem;
 }
+
 .metric-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-medium);
-  border-radius: 10px;
-  padding: 1.15rem;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 2px 6px rgba(10, 25, 47, 0.03);
+  transition: all 0.2s ease;
 }
+
 .metric-card:hover {
+  border-color: #CBD5E1;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 6px 16px rgba(10, 25, 47, 0.06);
 }
+
 .metric-icon-wrap {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-.metric-icon-wrap svg { width: 24px; height: 24px; }
-.icon-blue { background: #e0f2fe; color: #0284c7; }
-.icon-emerald { background: #dcfce7; color: #059669; }
-.icon-purple { background: #f3e8ff; color: #7c3aed; }
-.icon-amber { background: #fef3c7; color: #d97706; }
 
-.metric-content { display: flex; flex-direction: column; gap: 0.15rem; }
-.metric-label { font-size: 0.74rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em; }
-.metric-value { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); line-height: 1.1; }
-.metric-sub { font-size: 0.72rem; color: var(--text-muted); }
+.metric-icon-wrap svg {
+  width: 22px;
+  height: 22px;
+}
+
+.icon-blue { background: #EFF6FF; color: #2563EB; }
+.icon-emerald { background: #ECFDF5; color: #059669; }
+.icon-purple { background: #F5F3FF; color: #7C3AED; }
+.icon-amber { background: #FEF3C7; color: #D97706; }
+
+.metric-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.metric-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #64748B;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.metric-value {
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: #0A192F;
+  line-height: 1.2;
+}
+
+.metric-sub {
+  font-size: 0.72rem;
+  color: #94A3B8;
+}
+
+.text-emerald { color: #059669 !important; }
+.text-amber { color: #D97706 !important; }
+.text-purple { color: #7C3AED !important; }
+.text-navy { color: #0A192F !important; }
 
 /* Filters Toolbar */
 .filters-card {
-  padding: 1.25rem;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  box-shadow: 0 2px 6px rgba(10, 25, 47, 0.03);
 }
+
 .toolbar-top {
   display: flex;
   justify-content: space-between;
@@ -981,120 +1024,136 @@ onMounted(() => {
   gap: 1rem;
   flex-wrap: wrap;
 }
+
 .search-input-wrap {
-  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  padding: 0.45rem 0.85rem;
   flex: 1;
   min-width: 260px;
 }
+
 .search-icon {
-  position: absolute;
-  left: 0.85rem;
-  top: 50%;
-  transform: translateY(-50%);
   width: 18px;
   height: 18px;
-  color: var(--text-muted);
+  color: #94A3B8;
+  flex-shrink: 0;
 }
+
 .search-input {
+  background: transparent;
+  border: none;
+  font-size: 0.86rem;
+  color: #0A192F;
   width: 100%;
-  padding: 0.65rem 2.25rem 0.65rem 2.5rem;
-  border: 1px solid var(--border-medium);
-  border-radius: 8px;
-  background: var(--bg-surface);
-  font-size: 0.88rem;
-  color: var(--text-primary);
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.search-input:focus {
-  border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
-}
+
 .clear-search-btn {
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
   background: none;
   border: none;
-  color: var(--text-muted);
-  font-size: 1.2rem;
+  color: #94A3B8;
+  font-size: 1.1rem;
   cursor: pointer;
 }
+
 .reset-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: #dc2626;
-  font-weight: 600;
-  font-size: 0.82rem;
-  padding: 0.4rem 0.75rem;
-  border-radius: 6px;
-  background: #fef2f2;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
-.reset-btn:hover { background: #fee2e2; }
+
+.reset-btn:hover {
+  background: #E2E8F0;
+  color: #0A192F;
+}
 
 .filters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 0.85rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
 }
-.form-group { display: flex; flex-direction: column; gap: 0.35rem; }
-.form-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.03em; }
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .form-select {
-  padding: 0.6rem 0.75rem;
-  border: 1px solid var(--border-medium);
-  border-radius: 6px;
-  background: var(--bg-surface);
-  font-size: 0.88rem;
-  color: var(--text-primary);
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  color: #0A192F;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
   outline: none;
-}
-.form-select:focus {
-  border-color: #0284c7;
+  cursor: pointer;
 }
 
 .filter-results-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 0.65rem;
-  border-top: 1px solid var(--border-subtle);
-  font-size: 0.82rem;
-  color: var(--text-muted);
+  padding-top: 0.5rem;
+  border-top: 1px solid #F1F5F9;
+  font-size: 0.8rem;
+  color: #64748B;
 }
+
 .active-filter-tag {
-  background: #e0f2fe;
-  color: #0369a1;
-  padding: 0.15rem 0.55rem;
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 0.75rem;
+  background: #EFF6FF;
+  color: #1E40AF;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 700;
 }
 
 /* Assignments Cards Grid */
 .assignments-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 1.25rem;
 }
 
 .assignment-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-medium);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   border-top-width: 4px;
-  border-radius: 10px;
+  border-radius: 14px;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   gap: 1.15rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 6px rgba(10, 25, 47, 0.03);
+  transition: all 0.2s ease;
 }
+
 .assignment-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  border-color: #CBD5E1;
+  box-shadow: 0 8px 20px rgba(10, 25, 47, 0.06);
 }
 
 .card-top-bar {
@@ -1103,247 +1162,414 @@ onMounted(() => {
   align-items: flex-start;
   gap: 0.75rem;
 }
+
 .subject-header-group {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  flex: 1;
+  gap: 0.75rem;
+  min-width: 0;
 }
+
 .subject-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   flex-shrink: 0;
 }
-.theme-blue { background: #e0f2fe; }
-.theme-emerald { background: #dcfce7; }
-.theme-teal { background: #ccfbf1; }
-.theme-indigo { background: #e0e7ff; }
-.theme-purple { background: #f3e8ff; }
-.theme-amber { background: #fef3c7; }
 
-.subject-title-area { display: flex; flex-direction: column; gap: 0.25rem; }
+.theme-blue { background: #EFF6FF; }
+.theme-emerald { background: #ECFDF5; }
+.theme-teal { background: #CCFBF1; }
+.theme-indigo { background: #EEF2FF; }
+.theme-purple { background: #F5F3FF; }
+.theme-amber { background: #FEF3C7; }
+
+.subject-title-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
 .subject-name {
-  font-size: 1.18rem;
+  font-size: 1.05rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: #0A192F;
   margin: 0;
-  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.code-dept-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+
+.code-dept-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
 .code-pill {
-  font-family: monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
-  background: #f1f5f9;
-  color: #334155;
-  padding: 0.12rem 0.45rem;
-  border-radius: 4px;
-  border: 1px solid #e2e8f0;
-}
-.code-pill.muted { color: #94a3b8; font-style: italic; }
-.dept-pill {
   font-size: 0.7rem;
-  background: #f8fafc;
-  color: #64748b;
-  padding: 0.1rem 0.4rem;
+  font-family: monospace;
+  font-weight: 800;
+  color: #2563EB;
+  background: #EFF6FF;
+  padding: 0.15rem 0.45rem;
   border-radius: 4px;
 }
 
-/* Status Badges */
-.status-badge {
+.code-pill.muted {
+  color: #94A3B8;
+  background: #F1F5F9;
+}
+
+.dept-pill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #475569;
+  background: #F1F5F9;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.status-badge-stream {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  padding: 0.2rem 0.55rem;
-  border-radius: 9999px;
-  flex-shrink: 0;
-}
-.status-badge.active { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
-.status-badge.historical { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
-.status-badge.inactive { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-.status-badge.sm { font-size: 0.68rem; padding: 0.15rem 0.45rem; }
-
-.status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
-.status-dot.green { background: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
-.status-dot.amber { background: #f59e0b; }
-.status-dot.gray { background: #94a3b8; }
-
-/* Card Details Key-Values */
-.card-details-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.85rem;
-  background: var(--bg-surface-secondary);
-  padding: 0.95rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-subtle);
-}
-.detail-item { display: flex; flex-direction: column; gap: 0.2rem; }
-.detail-label {
   font-size: 0.68rem;
   font-weight: 800;
-  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
+  white-space: nowrap;
 }
-.class-val-row { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
-.class-badge-pill {
-  font-size: 0.88rem;
-  font-weight: 800;
-  color: #0369a1;
-  background: #e0f2fe;
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
+
+.status-badge-stream.active {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
 }
-.section-tag { font-size: 0.72rem; color: #475569; background: #f1f5f9; padding: 0.1rem 0.35rem; border-radius: 3px; }
-.class-code-tag { font-size: 0.7rem; font-family: monospace; color: #64748b; }
 
-.year-val-row, .students-val-row { display: flex; align-items: center; gap: 0.35rem; }
-.item-icon { width: 15px; height: 15px; color: var(--text-muted); flex-shrink: 0; }
-.detail-value { font-size: 0.88rem; color: var(--text-primary); }
-.capacity-ratio { font-size: 0.72rem; color: var(--text-muted); }
+.status-badge-stream.historical {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
 
-.teacher-val-row { display: flex; flex-direction: column; gap: 0.1rem; }
-.teacher-name-tag { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); }
-.role-subtag { font-size: 0.7rem; color: var(--text-muted); }
+.status-badge-stream.inactive {
+  background: #F1F5F9;
+  color: #64748B;
+  border: 1px solid #E2E8F0;
+}
 
-/* Card Actions */
-.card-footer-actions {
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.pulse-dot.green { background: #10B981; }
+.pulse-dot.amber { background: #F59E0B; }
+.pulse-dot.gray { background: #94A3B8; }
+
+/* Details grid */
+.card-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  background: #F8FAFC;
+  padding: 0.85rem;
+  border-radius: 10px;
+  border: 1px solid #E2E8F0;
+}
+
+.detail-item {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.detail-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #94A3B8;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.class-val-row, .year-val-row, .students-val-row, .teacher-val-row {
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border-subtle);
+  gap: 0.35rem;
   flex-wrap: wrap;
 }
-.btn-action-main {
-  flex: 1;
-  min-width: 110px;
-}
-.quick-nav-group { display: flex; gap: 0.4rem; }
-.btn-action-sub {
-  padding: 0.45rem 0.65rem;
-  font-size: 0.78rem;
+
+.class-badge-pill {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0A192F;
 }
 
-/* Modal */
+.section-tag {
+  font-size: 0.7rem;
+  background: #E2E8F0;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  color: #475569;
+}
+
+.class-code-tag {
+  font-size: 0.7rem;
+  color: #64748B;
+}
+
+.item-icon {
+  width: 14px;
+  height: 14px;
+  color: #64748B;
+}
+
+.detail-value {
+  font-size: 0.84rem;
+  color: #1E293B;
+}
+
+.capacity-ratio {
+  font-size: 0.72rem;
+  color: #94A3B8;
+}
+
+.teacher-name-tag {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.role-subtag {
+  font-size: 0.68rem;
+  color: #64748B;
+}
+
+/* Card Footer Actions */
+.card-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid #F1F5F9;
+}
+
+.btn-view-class {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #0A192F;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-view-class:hover {
+  background: #10B981;
+}
+
+.btn-view-class .btn-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.quick-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-quick-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #0A192F;
+  padding: 0.4rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-quick-action:hover {
+  background: #F1F5F9;
+  border-color: #94A3B8;
+}
+
+.btn-quick-action .btn-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Modal Styling */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(10, 25, 47, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 60;
   padding: 1rem;
 }
-.modal-card.large {
+
+.modal-card {
+  background: #FFFFFF;
+  border-radius: 20px;
   width: 100%;
-  max-width: 860px;
+  max-width: 900px;
   max-height: 90vh;
   overflow-y: auto;
-  background: var(--bg-surface);
-  border-radius: 12px;
-  padding: 1.75rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
 }
+
 .modal-loading-box {
-  padding: 3.5rem;
+  padding: 4rem 2rem;
+  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 1rem;
-  color: var(--text-muted);
+  color: #64748B;
 }
+
 .modal-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #E2E8F0;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
-  margin-bottom: 1.25rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-medium);
+  background: #F8FAFC;
 }
-.modal-badge-line { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; flex-wrap: wrap; }
+
+.modal-badge-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
 .year-badge-pill {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  background: #f1f5f9;
+  background: #E2E8F0;
   color: #475569;
   padding: 0.15rem 0.5rem;
   border-radius: 4px;
 }
+
 .modal-class-title {
-  font-size: 1.45rem;
+  font-size: 1.35rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: #0A192F;
   margin: 0;
 }
-.modal-subtitle { font-size: 0.85rem; color: var(--text-muted); margin: 0.2rem 0 0 0; }
+
+.modal-subtitle {
+  font-size: 0.84rem;
+  color: #64748B;
+  margin-top: 0.25rem;
+}
+
 .modal-close {
   background: none;
   border: none;
-  font-size: 1.8rem;
-  line-height: 1;
-  color: var(--text-muted);
+  font-size: 1.75rem;
+  color: #94A3B8;
   cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 6px;
+  line-height: 1;
 }
-.modal-close:hover { color: var(--text-primary); background: #f1f5f9; }
+
+.modal-close:hover {
+  color: #0A192F;
+}
 
 .modal-kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  gap: 1rem;
+  padding: 1.25rem 2rem;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
 }
+
 .modal-kpi-box {
-  background: var(--bg-surface-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  padding: 0.85rem 0.75rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  gap: 0.15rem;
 }
-.modal-kpi-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em; }
-.modal-kpi-val { font-size: 1.4rem; font-weight: 800; margin: 0.15rem 0; line-height: 1.1; }
-.modal-kpi-sub { font-size: 0.68rem; color: var(--text-muted); }
+
+.modal-kpi-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #64748B;
+  text-transform: uppercase;
+}
+
+.modal-kpi-val {
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+
+.modal-kpi-sub {
+  font-size: 0.72rem;
+  color: #94A3B8;
+}
 
 .modal-tabs {
   display: flex;
-  border-bottom: 1px solid var(--border-medium);
-  margin-bottom: 1.15rem;
   gap: 0.5rem;
+  padding: 0.75rem 2rem 0;
+  border-bottom: 2px solid #E2E8F0;
+  background: #F8FAFC;
 }
+
 .modal-tab-btn {
-  padding: 0.65rem 1rem;
-  font-size: 0.85rem;
-  font-weight: 700;
   background: none;
   border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--text-muted);
+  border-bottom: 3px solid transparent;
+  padding: 0.65rem 1rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #64748B;
   cursor: pointer;
-  transition: all 0.2s;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
 }
-.modal-tab-btn:hover { color: var(--text-primary); }
+
 .modal-tab-btn.active {
-  color: #0284c7;
-  border-bottom-color: #0284c7;
+  color: #0A192F;
+  border-bottom-color: #10B981;
+}
+
+.modal-tab-pane {
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .modal-toolbar-row {
@@ -1351,259 +1577,332 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 0.85rem;
-  flex-wrap: wrap;
 }
+
 .modal-search-box {
-  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
   flex: 1;
-  min-width: 220px;
+  max-width: 400px;
 }
-.search-icon.sm { width: 15px; height: 15px; }
+
 .modal-search-input {
+  background: transparent;
+  border: none;
+  font-size: 0.84rem;
+  color: #0A192F;
   width: 100%;
-  padding: 0.45rem 0.75rem 0.45rem 2.2rem;
-  border: 1px solid var(--border-medium);
-  border-radius: 6px;
-  font-size: 0.82rem;
-  background: var(--bg-surface);
-  color: var(--text-primary);
   outline: none;
 }
-.roster-count-text { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
 
-.modal-table-wrap {
-  max-height: 360px;
-  overflow-y: auto;
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
+.roster-count-text {
+  font-size: 0.78rem;
+  color: #64748B;
+  font-weight: 600;
 }
-.portal-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  font-size: 0.85rem;
-}
-.portal-table th {
-  background: var(--bg-surface-secondary);
-  padding: 0.75rem 0.95rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-medium);
-  position: sticky;
-  top: 0;
-  z-index: 2;
-}
-.portal-table td {
-  padding: 0.7rem 0.95rem;
-  border-bottom: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-}
+
 .adm-code {
   font-family: monospace;
-  font-size: 0.78rem;
-  background: #f1f5f9;
+  font-weight: 700;
+  color: #2563EB;
+  background: #EFF6FF;
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
 }
+
 .gender-tag {
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 0.1rem 0.4rem;
-  border-radius: 4px;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  background: #F1F5F9;
+  color: #475569;
 }
-.gender-tag.male { background: #e0f2fe; color: #0369a1; }
-.gender-tag.female { background: #fce7f3; color: #be185d; }
 
 .portal-pill {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  padding: 0.1rem 0.45rem;
-  border-radius: 4px;
-}
-.portal-pill.active { background: #dcfce7; color: #15803d; }
-.portal-pill.inactive { background: #f1f5f9; color: #64748b; }
-
-.room-pill {
-  background: #f1f5f9;
-  color: #334155;
-  font-weight: 700;
-  font-size: 0.75rem;
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
+}
+
+.portal-pill.active {
+  background: #ECFDF5;
+  color: #059669;
+}
+
+.portal-pill.inactive {
+  background: #F1F5F9;
+  color: #94A3B8;
 }
 
 .modal-footer {
+  padding: 1rem 2rem;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-  margin-top: 1.25rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-subtle);
-  flex-wrap: wrap;
 }
 
-/* Skeleton loader */
-.skeleton-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.25rem;
-}
-.skeleton-card {
-  padding: 1.25rem;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-.skeleton-box {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 6px;
-}
-.skeleton-icon { width: 44px; height: 44px; border-radius: 10px; }
-.skeleton-header { display: flex; gap: 0.75rem; align-items: center; }
-.skeleton-text-group { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; }
-.skeleton-line.lg { height: 16px; width: 70%; }
-.skeleton-line.md { height: 12px; width: 90%; }
-.skeleton-line.sm { height: 10px; width: 50%; }
-.skeleton-body { display: flex; flex-direction: column; gap: 0.5rem; }
-.skeleton-footer { display: flex; justify-content: space-between; gap: 0.5rem; }
-.skeleton-btn { height: 32px; width: 45%; }
-.skeleton-btn.sm { width: 25%; }
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+.btn-modal-close {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-/* Empty State */
-.empty-state-box {
-  padding: 3.5rem 1.5rem;
+.btn-modal-sec {
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-modal-prim {
+  background: #0A192F;
+  border: none;
+  color: #FFFFFF;
+  padding: 0.5rem 1.15rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-modal-prim:hover {
+  background: #10B981;
+}
+
+/* Common State Styles */
+.state-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  padding: 4rem 1.5rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.85rem;
 }
-.empty-icon-circle {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: #f1f5f9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #94a3b8;
-}
-.empty-svg { width: 32px; height: 32px; }
-.empty-heading { font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin: 0; }
-.empty-text { font-size: 0.88rem; color: var(--text-muted); max-width: 500px; margin: 0; line-height: 1.45; }
-.empty-inline { padding: 2rem; text-align: center; color: var(--text-muted); font-style: italic; font-size: 0.88rem; }
 
-/* Alert Box */
-.alert-box.error {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #991b1b;
-  padding: 1.25rem;
-  border-radius: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-.alert-content { display: flex; align-items: center; gap: 0.85rem; }
-.alert-icon { width: 28px; height: 28px; color: #dc2626; flex-shrink: 0; }
-.alert-title { font-size: 0.95rem; font-weight: 800; margin: 0; color: #991b1b; }
-.alert-desc { font-size: 0.82rem; margin: 0.15rem 0 0 0; color: #b91c1c; }
-.btn-outline-danger {
-  background: #fff;
-  border: 1px solid #f87171;
-  color: #dc2626;
-  font-weight: 600;
-}
-.btn-outline-danger:hover { background: #fee2e2; }
-
-/* General Buttons & Typography */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.85rem;
-  border-radius: 7px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.15s ease-in-out;
-}
-.btn-primary { background: #0284c7; color: #fff; }
-.btn-primary:hover { background: #0369a1; }
-.btn-outline { background: var(--bg-surface); border-color: var(--border-medium); color: var(--text-primary); }
-.btn-outline:hover { background: var(--bg-surface-secondary); border-color: var(--border-strong); }
-.btn-ghost { background: transparent; border: none; }
-.btn-sm { padding: 0.4rem 0.75rem; font-size: 0.8rem; }
-.btn-icon { width: 16px; height: 16px; flex-shrink: 0; }
-
-.font-bold { font-weight: 700; }
-.font-semibold { font-weight: 600; }
-.font-mono { font-family: monospace; }
-.text-primary { color: #0284c7; }
-.text-emerald { color: #059669; }
-.text-purple { color: #7c3aed; }
-.text-amber { color: #d97706; }
-.text-muted { color: var(--text-muted); }
-
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--border-subtle);
-  border-top-color: #0284c7;
+.spinner-ring {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #E2E8F0;
+  border-top-color: #10B981;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
 
-/* =================================================================== */
-/* RESPONSIVE MEDIA QUERIES (320px to 1920px)                          */
-/* =================================================================== */
-@media (max-width: 1100px) {
-  .assignments-grid, .skeleton-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.loading-label {
+  font-size: 0.88rem;
+  color: #64748B;
+  font-weight: 600;
 }
 
-@media (max-width: 768px) {
-  .assignments-grid, .skeleton-grid {
-    grid-template-columns: 1fr;
-  }
+.empty-icon-circle {
+  width: 56px;
+  height: 56px;
+  background: #F1F5F9;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94A3B8;
+}
+
+.empty-icon-circle svg {
+  width: 28px;
+  height: 28px;
+}
+
+.state-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0A192F;
+  margin: 0;
+}
+
+.state-desc {
+  font-size: 0.86rem;
+  color: #64748B;
+  max-width: 500px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.btn-reset-filters {
+  background: #0A192F;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.error-banner {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.error-icon-box {
+  width: 36px;
+  height: 36px;
+  background: #EF4444;
+  color: #FFFFFF;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.error-icon-box svg {
+  width: 20px;
+  height: 20px;
+}
+
+.error-details { flex: 1; }
+.error-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #991B1B;
+  margin: 0;
+}
+
+.error-desc {
+  font-size: 0.82rem;
+  color: #B91C1C;
+  margin: 0.15rem 0 0 0;
+}
+
+.btn-retry {
+  background: #991B1B;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.empty-inline {
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: 0.86rem;
+  color: #64748B;
+  background: #F8FAFC;
+  border-radius: 10px;
+  border: 1px dashed #CBD5E1;
+}
+
+.table-responsive-wrapper {
+  overflow-x: auto;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+}
+
+.somroyal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  text-align: left;
+}
+
+.somroyal-table thead {
+  background: #0A192F;
+  color: #FFFFFF;
+}
+
+.somroyal-table th {
+  padding: 0.85rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #1E293B;
+}
+
+.somroyal-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #F1F5F9;
+  color: #1E293B;
+  vertical-align: middle;
+}
+
+.somroyal-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.room-pill {
+  font-size: 0.74rem;
+  font-weight: 700;
+  background: #F1F5F9;
+  color: #475569;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+.status-pill.active-tag {
+  background: #ECFDF5;
+  color: #059669;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 20px;
+}
+
+/* Responsive Rules */
+@media (max-width: 1024px) {
   .summary-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .filters-grid {
     grid-template-columns: repeat(2, 1fr);
   }
   .modal-kpi-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+@media (max-width: 640px) {
   .page-header {
     flex-direction: column;
     align-items: stretch;
   }
-  .header-actions {
-    justify-content: flex-start;
+  .btn-refresh {
+    width: 100%;
+    justify-content: center;
   }
-  .card-details-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
   .summary-metrics-grid {
     grid-template-columns: 1fr;
   }
-  .modal-kpi-grid {
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+  .assignments-grid {
     grid-template-columns: 1fr;
   }
   .card-footer-actions {
@@ -1611,11 +1910,22 @@ onMounted(() => {
     align-items: stretch;
   }
   .quick-nav-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-  .btn-action-main {
     width: 100%;
+  }
+  .btn-quick-action, .btn-view-class {
+    flex: 1;
+    justify-content: center;
+  }
+  .modal-card {
+    border-radius: 14px;
+    padding: 0;
+  }
+  .modal-header, .modal-kpi-grid, .modal-tabs, .modal-tab-pane, .modal-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .modal-kpi-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

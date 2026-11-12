@@ -178,18 +178,18 @@ class AuthService:
 
         # Generate tokens
         role_names = [r.name for r in user.roles]
-        default_db = "hawlwadaag_school_db"
-        try:
-            from app.core.tenant_context import get_default_database_name
-            default_db = get_default_database_name()
-        except Exception:
-            pass
-        db_name = default_db
-        try:
-            if self.db and hasattr(self.db, "bind") and self.db.bind:
-                db_name = self.db.bind.url.database or default_db
-        except Exception:
+        from app.core.tenant_context import get_default_database_name
+        default_db = get_default_database_name()
+
+        if matched_institution and matched_institution.database_name:
+            db_name = matched_institution.database_name
+        else:
             db_name = default_db
+            try:
+                if self.db and hasattr(self.db, "bind") and self.db.bind:
+                    db_name = self.db.bind.url.database or default_db
+            except Exception:
+                db_name = default_db
 
         token_claims = {
             "email": user.email,
@@ -199,6 +199,8 @@ class AuthService:
             "database_name": db_name,
             "institution_code": matched_institution.code if matched_institution else None,
             "institution_id": matched_institution.id if matched_institution else None,
+            "institution_name": matched_institution.name if matched_institution else None,
+            "institution_logo_url": matched_institution.logo_url if matched_institution else None,
         }
 
         access_token_expires = timedelta(
@@ -245,7 +247,14 @@ class AuthService:
             inst_info = {
                 "id": matched_institution.id,
                 "code": matched_institution.code,
-                "name": matched_institution.name
+                "name": matched_institution.name,
+                "type": matched_institution.type or "School",
+                "logo_url": matched_institution.logo_url,
+                "email": matched_institution.email,
+                "phone": matched_institution.phone,
+                "city": matched_institution.city,
+                "address": matched_institution.address,
+                "database_name": matched_institution.database_name or db_name,
             }
 
         return TokenResponse(

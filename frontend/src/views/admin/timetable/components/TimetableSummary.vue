@@ -223,12 +223,71 @@ const hasConflicts = computed(() => {
 @media (max-width: 1024px) {
   .summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .summary-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .summary-card {
+    padding: 0.75rem 0.65rem;
+    gap: 0.5rem;
+    border-radius: 12px;
+  }
+
+  .card-icon-wrap {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 8px;
+  }
+
+  .card-icon-wrap svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .card-label {
+    font-size: 0.6875rem;
+  }
+
+  .card-value {
+    font-size: 1.25rem;
+  }
+
+  .conflict-warning-pill {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .summary-grid {
+    gap: 0.5rem;
+  }
+
+  .summary-card {
+    padding: 0.65rem 0.5rem;
+  }
+
+  .card-icon-wrap {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .card-icon-wrap svg {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  .card-label {
+    font-size: 0.625rem;
+  }
+
+  .card-value {
+    font-size: 1.1rem;
   }
 }
 </style>

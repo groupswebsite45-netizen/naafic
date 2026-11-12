@@ -687,6 +687,7 @@ function selectPlan(planName: string) {
   top: -100px;
   left: -80px;
   width: 420px;
+  max-width: 100vw;
   height: 420px;
   background: radial-gradient(circle, rgba(18, 70, 197, 0.07) 0%, rgba(245, 248, 253, 0) 70%);
   border-radius: 50%;
@@ -698,6 +699,7 @@ function selectPlan(planName: string) {
   top: -80px;
   right: -60px;
   width: 450px;
+  max-width: 100vw;
   height: 450px;
   background: radial-gradient(circle, rgba(255, 105, 0, 0.05) 0%, rgba(245, 248, 253, 0) 70%);
   border-radius: 50%;
@@ -1484,13 +1486,21 @@ function selectPlan(planName: string) {
 }
 
 @media (max-width: 768px) {
+  .pricing-section {
+    padding: 55px 0 75px;
+  }
+
+  .pricing-container {
+    padding: 0 clamp(0.85rem, 3vw, 1.5rem);
+  }
+
   .section-title {
-    font-size: 2.15rem;
+    font-size: clamp(1.85rem, 5vw, 2.35rem);
   }
 
   .pricing-grid {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1.75rem;
   }
 
   .card-enterprise {
@@ -1503,23 +1513,41 @@ function selectPlan(planName: string) {
     gap: 1.25rem;
   }
 
+  .btn-plan {
+    min-height: 48px;
+    width: 100%;
+    justify-content: center;
+  }
+
   .wave-left,
   .wave-right {
-    opacity: 0.5;
+    opacity: 0.35;
+    max-width: 40vw;
   }
 }
 
 @media (max-width: 480px) {
+  .section-badge {
+    font-size: 0.72rem;
+    padding: 0.35rem 0.85rem;
+  }
+
   .section-title {
-    font-size: 1.85rem;
+    font-size: clamp(1.65rem, 5.5vw, 2.05rem);
   }
 
   .pricing-card {
-    padding: 1.75rem 1.25rem 1.5rem;
+    padding: 1.5rem 1.15rem 1.35rem;
+    border-radius: 16px;
+  }
+
+  .tier-name {
+    font-size: 1.25rem;
   }
 
   .dual-price-row {
     grid-template-columns: 1fr;
+    gap: 0.5rem;
   }
 
   .billing-toggle {
@@ -1527,9 +1555,14 @@ function selectPlan(planName: string) {
     justify-content: center;
   }
 
+  .currency-switch-box {
+    margin-top: 0.5rem;
+  }
+
   .cycle-btn {
     padding: 0.5rem 0.85rem;
     font-size: 0.82rem;
+    min-height: 42px;
   }
 }
 </style>

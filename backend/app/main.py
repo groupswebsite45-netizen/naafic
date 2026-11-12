@@ -1,4 +1,6 @@
+import os
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from app.core.config import settings
 from app.core.database import Base, engine
 from app.api.v1.api import api_v1_router
@@ -22,6 +24,13 @@ def create_application() -> FastAPI:
 
     # Setup uniform error handlers
     setup_exception_handlers(app)
+
+    # Static file directory for tenant logos, student photos, and document assets
+    uploads_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads")
+    os.makedirs(uploads_dir, exist_ok=True)
+    os.makedirs(os.path.join(uploads_dir, "institution_logos"), exist_ok=True)
+    os.makedirs(os.path.join(uploads_dir, "student_photos"), exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
     # Include Versioned API Routers
     app.include_router(api_v1_router)

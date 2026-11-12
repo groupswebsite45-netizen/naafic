@@ -410,3 +410,53 @@ def test_somali_templates_and_dynamic_personalization(client, admin_token):
     assert "{{student_name}}" not in fee_data["message"]
     assert student_name in fee_data["message"]
 
+
+def test_unread_count_and_mark_as_read(client, admin_token):
+    # 1. Check unread count endpoint
+    resp = client.get(
+        "/api/v1/notifications/unread-count",
+        headers={"Authorization": f"Bearer {admin_token}"}
+    )
+    assert resp.status_code == 200
+    initial_unread = resp.json()["unread_count"]
+    assert initial_unread >= 0
+
+    # 2. Get list of notifications
+    list_resp = client.get(
+        "/api/v1/notifications?limit=5",
+        headers={"Authorization": f"Bearer {admin_token}"}
+    )
+    assert list_resp.status_code == 200
+    items = list_resp.json()["items"]
+    assert len(items) > 0
+    target_notif = items[0]
+
+    # 3. Mark individual notification as read
+    mark_resp = client.post(
+        f"/api/v1/notifications/{target_notif['id']}/read",
+        headers={"Authorization": f"Bearer {admin_token}"}
+    )
+    assert mark_resp.status_code == 200
+    mark_data = mark_resp.json()
+    assert mark_data["success"] is True
+    assert mark_data["id"] == target_notif["id"]
+    assert mark_data["status"] == "READ"
+    assert mark_data["read_at"] is not None
+
+    # 4. Mark all as read
+    mark_all_resp = client.post(
+        "/api/v1/notifications/mark-all-read",
+        headers={"Authorization": f"Bearer {admin_token}"}
+    )
+    assert mark_all_resp.status_code == 200
+    assert mark_all_resp.json()["success"] is True
+
+    # 5. Check unread count is now 0
+    after_resp = client.get(
+        "/api/v1/notifications/unread-count",
+        headers={"Authorization": f"Bearer {admin_token}"}
+    )
+    assert after_resp.status_code == 200
+    assert after_resp.json()["unread_count"] == 0
+
+

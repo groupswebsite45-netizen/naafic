@@ -39,6 +39,14 @@ export const useNotificationStore = defineStore('notification', () => {
   const channelConfigs = ref<ChannelConfigItem[]>([]);
   const missingContacts = ref<MissingContactsResponse | null>(null);
 
+  // In-App Header Notifications State
+  const unreadCount = ref<number>(0);
+  const headerNotifications = ref<NotificationItem[]>([]);
+  const isHeaderLoading = ref<boolean>(false);
+
+  // Polling Interval Reference
+  let pollingTimer: any = null;
+
   const isLoading = ref<boolean>(false);
   const isActionLoading = ref<boolean>(false);
   const error = ref<string | null>(null);
@@ -265,6 +273,101 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
+  async function fetchUnreadCount() {
+    try {
+      const data = await notificationService.getUnreadCount();
+      unreadCount.value = data.unread_count;
+      return data.unread_count;
+    } catch (err) {
+      console.error('Failed to fetch unread notification count', err);
+      return unreadCount.value;
+    }
+  }
+
+  async function fetchHeaderNotifications() {
+    isHeaderLoading.value = true;
+    try {
+      const data = await notificationService.getNotifications({
+        page: 1,
+        limit: 10,
+      });
+      headerNotifications.value = data.items;
+      await fetchUnreadCount();
+      return data.items;
+    } catch (err) {
+      console.error('Failed to fetch header notifications', err);
+      return [];
+    } finally {
+      isHeaderLoading.value = false;
+    }
+  }
+
+  async function markNotificationRead(id: number) {
+    try {
+      const res = await notificationService.markAsRead(id);
+      // Immediately update local state
+      const notif = headerNotifications.value.find(n => n.id === id);
+      if (notif) {
+        notif.status = 'READ';
+        notif.read_at = res.read_at || new Date().toISOString();
+      }
+      const pageNotif = notifications.value.find(n => n.id === id);
+      if (pageNotif) {
+        pageNotif.status = 'READ';
+        pageNotif.read_at = res.read_at || new Date().toISOString();
+      }
+      if (unreadCount.value > 0) {
+        unreadCount.value--;
+      }
+      // Sync stats in background
+      fetchStats();
+      return res;
+    } catch (err) {
+      console.error(`Failed to mark notification ${id} as read`, err);
+      throw err;
+    }
+  }
+
+  async function markAllNotificationsRead() {
+    isActionLoading.value = true;
+    try {
+      const res = await notificationService.markAllAsRead();
+      const now = new Date().toISOString();
+      headerNotifications.value.forEach(n => {
+        n.status = 'READ';
+        n.read_at = now;
+      });
+      notifications.value.forEach(n => {
+        n.status = 'READ';
+        n.read_at = now;
+      });
+      unreadCount.value = 0;
+      fetchStats();
+      return res;
+    } catch (err) {
+      console.error('Failed to mark all notifications as read', err);
+      throw err;
+    } finally {
+      isActionLoading.value = false;
+    }
+  }
+
+  function startNotificationPolling(intervalMs = 30000) {
+    if (pollingTimer) return;
+    fetchUnreadCount();
+    pollingTimer = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      fetchUnreadCount();
+    }, intervalMs);
+  }
+
+  function stopNotificationPolling() {
+    if (pollingTimer) {
+      clearInterval(pollingTimer);
+      pollingTimer = null;
+    }
+  }
+
   return {
     notifications,
     totalNotifications,
@@ -279,6 +382,9 @@ export const useNotificationStore = defineStore('notification', () => {
     settings,
     channelConfigs,
     missingContacts,
+    unreadCount,
+    headerNotifications,
+    isHeaderLoading,
     isLoading,
     isActionLoading,
     error,
@@ -300,6 +406,12 @@ export const useNotificationStore = defineStore('notification', () => {
     updateSettings,
     fetchChannelConfigs,
     fetchMissingContacts,
+    fetchUnreadCount,
+    fetchHeaderNotifications,
+    markNotificationRead,
+    markAllNotificationsRead,
+    startNotificationPolling,
+    stopNotificationPolling,
     sendSingleNotification,
     sendBulkNotifications,
     retryNotification,

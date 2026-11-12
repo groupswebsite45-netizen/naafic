@@ -3763,7 +3763,30 @@ onMounted(async () => {
   .header-main { flex-direction: column; }
   .quick-actions { width: 100%; }
   .quick-actions .btn { flex: 1 1 calc(50% - 0.5rem); }
-  .kpi-grid { grid-template-columns: 1fr; }
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+  .kpi-card {
+    padding: 0.75rem 0.65rem;
+    gap: 0.5rem;
+    border-radius: 12px;
+  }
+  .kpi-icon-wrap {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+  }
+  .kpi-label {
+    font-size: 0.68rem;
+  }
+  .kpi-value {
+    font-size: 1.25rem;
+  }
+  .kpi-foot {
+    display: none;
+  }
   .form-row { grid-template-columns: 1fr; }
   .receipt-details-grid { grid-template-columns: 1fr; }
   .level-hierarchy-bar { flex-direction: column; align-items: stretch; }
@@ -3772,13 +3795,15 @@ onMounted(async () => {
   .level-btn { flex: 1; justify-content: center; font-size: 0.78rem; padding: 0.5rem 0.5rem; }
   .tabs-nav-bar { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
   .tab-nav-btn { flex-shrink: 0; font-size: 0.8rem; padding: 0.6rem 0.85rem; }
-  .outstanding-kpi-bar { grid-template-columns: repeat(2, 1fr); }
+  .outstanding-kpi-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
   .table-responsive { overflow-x: auto; }
 }
 
 @media (max-width: 430px) {
   .quick-actions .btn { flex: 1 1 100%; }
-  .outstanding-kpi-bar { grid-template-columns: 1fr; }
+  .kpi-card { padding: 0.65rem 0.5rem; gap: 0.4rem; }
+  .kpi-icon-wrap { width: 30px; height: 30px; font-size: 0.95rem; }
+  .kpi-value { font-size: 1.15rem; }
   .level-btn { font-size: 0.75rem; }
 }
 

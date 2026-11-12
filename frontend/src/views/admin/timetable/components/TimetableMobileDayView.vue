@@ -105,11 +105,15 @@ function getDayCount(day: string) {
   flex-direction: column;
   gap: 1rem;
   width: 100%;
+  max-width: 100%;
+  overflow: hidden;
   box-sizing: border-box;
 }
 
 .day-segments-container {
   width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   border-bottom: 1px solid var(--border-color, #e2e8f0);
   padding-bottom: 0.5rem;
 }
@@ -119,8 +123,11 @@ function getDayCount(day: string) {
   align-items: center;
   gap: 0.375rem;
   overflow-x: auto;
+  max-width: 100%;
+  width: 100%;
   -webkit-overflow-scrolling: touch;
   padding: 0.25rem 0.125rem;
+  box-sizing: border-box;
 }
 
 .day-pill-btn {

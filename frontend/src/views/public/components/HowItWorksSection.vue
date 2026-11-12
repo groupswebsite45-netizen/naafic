@@ -97,7 +97,7 @@ defineProps<{
 
 .section-title {
   font-family: 'Outfit', sans-serif;
-  font-size: 2.35rem;
+  font-size: clamp(1.85rem, 5vw, 2.35rem);
   font-weight: 800;
   color: #071735;
   line-height: 1.25;
@@ -105,7 +105,7 @@ defineProps<{
 }
 
 .section-subtitle {
-  font-size: 1.05rem;
+  font-size: clamp(0.925rem, 2.5vw, 1.05rem);
   color: #586983;
   line-height: 1.6;
 }
@@ -121,7 +121,7 @@ defineProps<{
   background: #F7F9FC;
   border: 1px solid #EAF0F8;
   border-radius: 14px;
-  padding: 2rem 1.5rem;
+  padding: clamp(1.35rem, 3vw, 2rem) clamp(1.15rem, 2.5vw, 1.5rem);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -190,14 +190,31 @@ defineProps<{
 }
 
 @media (max-width: 1024px) {
+  .how-it-works-section {
+    padding: 65px 0;
+  }
   .steps-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .how-it-works-section {
+    padding: 55px 0 65px;
+  }
+  .how-it-works-container {
+    padding: 0 clamp(0.85rem, 3vw, 1.5rem);
+  }
+  .section-header {
+    margin-bottom: 2.25rem;
   }
 }
 
 @media (max-width: 640px) {
   .steps-grid {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
 }
 </style>

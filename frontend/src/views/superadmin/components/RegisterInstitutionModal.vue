@@ -11,6 +11,33 @@ const emit = defineEmits<{
 const isSubmitting = ref(false);
 const errorMessage = ref('');
 
+const logoFileInput = ref<HTMLInputElement | null>(null);
+const logoPreview = ref<string | null>(null);
+const selectedLogoFile = ref<File | null>(null);
+
+function handleLogoFileChange(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    errorMessage.value = 'Logo file size exceeds 5MB limit.';
+    return;
+  }
+
+  selectedLogoFile.value = file;
+  logoPreview.value = URL.createObjectURL(file);
+}
+
+function clearLogo() {
+  selectedLogoFile.value = null;
+  logoPreview.value = null;
+  formData.logo_url = '';
+  if (logoFileInput.value) {
+    logoFileInput.value.value = '';
+  }
+}
+
 const formData = reactive({
   name: '',
   type: 'Primary & Secondary School',
@@ -85,6 +112,17 @@ async function handleSubmit() {
 
   isSubmitting.value = true;
   try {
+    if (selectedLogoFile.value) {
+      try {
+        const uploadRes = await superAdminService.uploadLogo(selectedLogoFile.value);
+        formData.logo_url = uploadRes.url;
+      } catch (uploadErr: any) {
+        errorMessage.value = 'Failed to upload institution logo file: ' + (uploadErr.response?.data?.detail || uploadErr.message);
+        isSubmitting.value = false;
+        return;
+      }
+    }
+
     const payload: any = {
       name: formData.name.trim(),
       type: formData.type,
@@ -126,15 +164,19 @@ async function handleSubmit() {
     <div class="rim-modal">
       <!-- Modal Header -->
       <div class="rim-header">
-        <div>
-          <h2 class="rim-title">Register New Institution</h2>
-          <p class="rim-subtitle">Onboard a school, academy, or college into Somroyal Technology Solutions.</p>
+        <div class="flex items-center gap-3">
+          <div class="rim-emblem-box">
+            <svg class="w-6 h-6" viewBox="0 0 36 40" fill="none">
+              <path d="M18 2L4 7V18C4 28 10 36 18 39C26 36 32 28 32 18V7L18 2Z" fill="#0A2558" stroke="#1E40AF" stroke-width="1.5"/>
+              <path d="M22.5 12C20.5 10.8 17.5 10.5 15 11.8C13 12.8 12 14.5 12 16.5C12 20 23.5 19 23.5 24C23.5 27.5 19.5 29 16 28C13.5 27.2 12 25.5 11.5 24.5" stroke="#FF6500" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="rim-title">Register New Institution</h2>
+            <p class="rim-subtitle">Onboard a school, academy, or college into Somroyal Technology Solutions.</p>
+          </div>
         </div>
-        <button class="rim-close-btn" @click="emit('close')" aria-label="Close modal">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        <button class="rim-close-btn" @click="emit('close')" aria-label="Close modal">✕</button>
       </div>
 
       <!-- Alert Error -->
@@ -173,6 +215,56 @@ async function handleSubmit() {
           </div>
         </div>
 
+        <!-- School Logo Upload & URL Field -->
+        <div class="rim-field mb-3">
+          <label class="rim-label">School Logo / Emblem</label>
+          <div class="flex items-center gap-3.5 p-3 rounded-xl border border-slate-200 bg-slate-50/70">
+            <div class="w-14 h-14 rounded-lg bg-white border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
+              <img
+                v-if="logoPreview || formData.logo_url"
+                :src="logoPreview || formData.logo_url"
+                alt="Logo Preview"
+                class="w-full h-full object-contain p-1"
+              />
+              <svg v-else class="w-7 h-7 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div class="flex-1 flex flex-col gap-1.5">
+              <div class="flex items-center gap-2">
+                <input
+                  type="file"
+                  ref="logoFileInput"
+                  accept="image/png, image/jpeg, image/svg+xml, image/webp"
+                  class="hidden"
+                  @change="handleLogoFileChange"
+                />
+                <button
+                  type="button"
+                  class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 shadow-sm transition"
+                  @click="logoFileInput?.click()"
+                >
+                  Choose Logo Image (PNG, JPG, SVG, WebP)
+                </button>
+                <button
+                  v-if="logoPreview || formData.logo_url"
+                  type="button"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 transition"
+                  @click="clearLogo"
+                >
+                  Clear
+                </button>
+              </div>
+              <input
+                v-model="formData.logo_url"
+                type="text"
+                class="rim-input text-xs"
+                placeholder="Or paste external logo image URL (optional)"
+              />
+            </div>
+          </div>
+        </div>
+
         <div class="rim-grid rim-grid-3">
           <div class="rim-field">
             <label class="rim-label">Contact Person</label>
@@ -190,25 +282,25 @@ async function handleSubmit() {
               v-model="formData.email"
               type="email"
               class="rim-input"
-              placeholder="info@institution.edu.so"
+              placeholder="contact@institution.edu.so"
             />
           </div>
 
           <div class="rim-field">
-            <label class="rim-label">Phone (+252 Somalia)</label>
+            <label class="rim-label">Official Phone</label>
             <input
               v-model="formData.phone"
-              type="text"
+              type="tel"
               class="rim-input"
-              placeholder="+252 61 5000000"
+              placeholder="+252 61 0000000"
             />
           </div>
         </div>
 
         <div class="rim-grid rim-grid-3">
           <div class="rim-field">
-            <label class="rim-label">Region</label>
-            <select v-model="formData.region" class="rim-select">
+            <label class="rim-label">Region / State <span class="text-red-500">*</span></label>
+            <select v-model="formData.region" class="rim-select" required>
               <option v-for="r in regions" :key="r" :value="r">{{ r }}</option>
             </select>
           </div>
@@ -219,17 +311,17 @@ async function handleSubmit() {
               v-model="formData.city"
               type="text"
               class="rim-input"
-              placeholder="Mogadishu"
+              placeholder="e.g. Mogadishu"
             />
           </div>
 
           <div class="rim-field">
-            <label class="rim-label">Street / Campus Address</label>
+            <label class="rim-label">Physical Address</label>
             <input
               v-model="formData.address"
               type="text"
               class="rim-input"
-              placeholder="KM4, Hodan District"
+              placeholder="e.g. Maka Al Mukarama Rd"
             />
           </div>
         </div>
@@ -237,58 +329,64 @@ async function handleSubmit() {
         <!-- Section 2: Subscription & Licensing -->
         <div class="rim-section-header">
           <span class="rim-section-number">2</span>
-          <h3 class="rim-section-title">Subscription & Licensing Plan</h3>
+          <h3 class="rim-section-title">Subscription & Licensing Tier</h3>
         </div>
 
         <div class="rim-grid rim-grid-3">
           <div class="rim-field">
-            <label class="rim-label">Plan Tier</label>
-            <select v-model="formData.subscription_plan" class="rim-select">
+            <label class="rim-label">Licensing Plan <span class="text-red-500">*</span></label>
+            <select v-model="formData.subscription_plan" class="rim-select" required>
               <option v-for="p in subscriptionPlans" :key="p" :value="p">{{ p }}</option>
             </select>
           </div>
 
           <div class="rim-field">
-            <label class="rim-label">Start Date</label>
+            <label class="rim-label">License Start Date</label>
             <input
               v-model="formData.subscription_start_date"
               type="date"
               class="rim-input"
+              required
             />
           </div>
 
           <div class="rim-field">
-            <label class="rim-label">Expiry Date</label>
+            <label class="rim-label">License Expiry Date</label>
             <input
               v-model="formData.subscription_expiry_date"
               type="date"
               class="rim-input"
+              required
             />
           </div>
         </div>
 
-        <!-- Section 3: Initial Institution Administrator -->
+        <!-- Section 3: Initial Administrator Account Setup -->
         <div class="rim-section-header">
           <span class="rim-section-number">3</span>
-          <h3 class="rim-section-title">Initial School Administrator Account</h3>
+          <h3 class="rim-section-title">Initial Administrator Account</h3>
         </div>
 
         <div class="rim-checkbox-wrap">
           <label class="rim-checkbox-label">
-            <input type="checkbox" v-model="formData.create_admin" class="rim-checkbox" />
-            <span>Create school-level administrative login for this institution</span>
+            <input
+              v-model="formData.create_admin"
+              type="checkbox"
+              class="rim-checkbox"
+            />
+            <span>Create initial School Administrator account for this tenant</span>
           </label>
         </div>
 
         <div v-if="formData.create_admin" class="rim-admin-box">
           <div class="rim-grid rim-grid-2">
             <div class="rim-field">
-              <label class="rim-label">Admin Full Name <span class="text-red-500">*</span></label>
+              <label class="rim-label">Administrator Full Name <span class="text-red-500">*</span></label>
               <input
                 v-model="formData.admin_full_name"
                 type="text"
                 class="rim-input"
-                placeholder="Mohamed Ali Nuur"
+                placeholder="e.g. Ali Ahmed Mohamed"
                 :required="formData.create_admin"
               />
             </div>
@@ -349,12 +447,12 @@ async function handleSubmit() {
 .rim-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(6, 23, 55, 0.7);
+  background-color: rgba(6, 23, 55, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
-  padding: 1.5rem;
+  padding: 1rem;
   backdrop-filter: blur(4px);
   overflow-y: auto;
 }
@@ -367,7 +465,7 @@ async function handleSubmit() {
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
   overflow: hidden;
 }
 
@@ -375,14 +473,25 @@ async function handleSubmit() {
   padding: 1.25rem 1.75rem;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   background: #f8fafc;
 }
 
+.rim-emblem-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #061737;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .rim-title {
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #061737;
   margin: 0;
 }
@@ -390,21 +499,20 @@ async function handleSubmit() {
 .rim-subtitle {
   font-size: 0.8rem;
   color: #64748b;
-  margin: 0.25rem 0 0;
+  margin: 0.2rem 0 0;
 }
 
 .rim-close-btn {
   background: transparent;
   border: none;
+  font-size: 1.25rem;
   color: #94a3b8;
   cursor: pointer;
   padding: 0.25rem;
-  border-radius: 6px;
-  transition: color 0.2s;
 }
 
 .rim-close-btn:hover {
-  color: #1e293b;
+  color: #0f172a;
 }
 
 .rim-error-alert {
@@ -412,11 +520,12 @@ async function handleSubmit() {
   padding: 0.75rem 1rem;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 0.85rem;
   color: #b91c1c;
   display: flex;
   align-items: center;
+  font-weight: 600;
 }
 
 .rim-form {
@@ -431,7 +540,7 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .rim-section-number {
@@ -441,7 +550,7 @@ async function handleSubmit() {
   color: #ffffff;
   border-radius: 50%;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -450,7 +559,7 @@ async function handleSubmit() {
 .rim-section-title {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #061737;
   margin: 0;
 }
 
@@ -481,20 +590,20 @@ async function handleSubmit() {
 
 .rim-input,
 .rim-select {
-  padding: 0.55rem 0.85rem;
+  padding: 0.6rem 0.85rem;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 0.875rem;
   color: #0f172a;
   background: #ffffff;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.15s ease;
 }
 
 .rim-input:focus,
 .rim-select:focus {
   border-color: #ff6500;
-  box-shadow: 0 0 0 3px rgba(255, 101, 0, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 101, 0, 0.12);
 }
 
 .rim-checkbox-wrap {
@@ -512,16 +621,16 @@ async function handleSubmit() {
 }
 
 .rim-checkbox {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   accent-color: #ff6500;
 }
 
 .rim-admin-box {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 1rem;
+  border-radius: 12px;
+  padding: 1.15rem;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
@@ -546,7 +655,7 @@ async function handleSubmit() {
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.15s;
 }
 
 .rim-btn-cancel:hover {
@@ -557,17 +666,18 @@ async function handleSubmit() {
   padding: 0.6rem 1.5rem;
   border: none;
   border-radius: 8px;
-  background: #ff6500;
+  background: linear-gradient(135deg, #ff6500 0%, #ea580c 100%);
   color: #ffffff;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(255, 101, 0, 0.35);
-  transition: background 0.2s;
+  transition: all 0.15s;
 }
 
 .rim-btn-submit:hover:not(:disabled) {
-  background: #e55a00;
+  background: #ea580c;
+  transform: translateY(-1px);
 }
 
 .rim-btn-submit:disabled {
@@ -579,6 +689,14 @@ async function handleSubmit() {
   .rim-grid-2,
   .rim-grid-3 {
     grid-template-columns: 1fr;
+  }
+
+  .rim-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .rim-form {
+    padding: 1rem 1.25rem;
   }
 }
 </style>

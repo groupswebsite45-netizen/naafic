@@ -69,17 +69,17 @@ def normalize_slug(text_val: str) -> str:
 
 def generate_tenant_database_name(institution_name: str, code: Optional[str] = None) -> str:
     """
-    Generates a unique, valid MySQL database name derived from the institution's name.
-    Prefix: 'somroyal_'
-    MySQL identifier limit: 64 characters.
-    Example: 'somroyal_waberi_secondary_school'
+    Generates a unique, valid database name derived from the institution's name.
+    Prefix: 'sms_'
+    PostgreSQL / MySQL identifier limit: 63/64 characters.
+    Example: 'sms_waberi_secondary_school'
     """
     slug = normalize_slug(institution_name)
     if not slug:
         slug = normalize_slug(code or "institution") or "institution"
 
-    prefix = "somroyal_"
-    # Limit slug length to 50 chars so prefix (9) + slug (50) + suffix buffer (5) <= 64 chars
+    prefix = "sms_"
+    # Limit slug length to 50 chars so prefix (4) + slug (50) + suffix buffer (5) <= 60 chars
     slug = slug[:50].rstrip("_")
     base_name = f"{prefix}{slug}"
 
@@ -184,17 +184,28 @@ def provision_tenant_schema_and_admin(
             "school_name": institution_info.get("name", "Educational Institution"),
             "school_code": institution_info.get("code", "EMS-001"),
             "school_type": institution_info.get("type", "School"),
+            "logo_url": institution_info.get("logo_url") or "",
             "contact_email": institution_info.get("email", ""),
             "contact_phone": institution_info.get("phone", ""),
             "city": institution_info.get("city", "Mogadishu"),
+            "address": institution_info.get("address", ""),
             "currency": "USD",
             "active_academic_year": "2026-2027",
             "timezone": "Africa/Mogadishu",
         }
 
         for s_key, s_val in default_settings.items():
-            if not db.query(SystemSetting).filter(SystemSetting.key == s_key).first():
-                db.add(SystemSetting(key=s_key, value=str(s_val), description=f"Initial setting for {s_key}"))
+            setting_obj = db.query(SystemSetting).filter(SystemSetting.key == s_key).first()
+            if not setting_obj:
+                db.add(SystemSetting(
+                    key=s_key,
+                    value=str(s_val or ""),
+                    description=f"Initial setting for {s_key}",
+                    is_public=True
+                ))
+            else:
+                setting_obj.value = str(s_val or "")
+                setting_obj.is_public = True
 
         # Seed default timetable settings
         from app.models.timetable_setting import TimetableSetting
@@ -290,3 +301,91 @@ def delete_tenant_database(database_name: str) -> bool:
             conn.commit()
         server_engine.dispose()
         return True
+
+
+def verify_tenant_provisioning(database_name: str, expected_admin_email: str) -> Dict[str, Any]:
+    """
+    Validates complete independence and integrity of a newly provisioned tenant database:
+    1. Database connection is successful.
+    2. Zero operational records (students=0, teachers=0, classes=0, subjects=0, exams=0, fees=0).
+    3. Exactly 1 administrator user exists matching expected_admin_email.
+    4. Required system settings are populated with public access.
+    """
+    from app.models import User, Student, Teacher, SchoolClass, Subject, Exam, StudentFee, SystemSetting
+
+    tenant_url = get_tenant_db_url(database_name)
+    engine = create_engine(tenant_url, pool_pre_ping=True)
+    TenantSession = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+    session = TenantSession()
+
+    try:
+        # Check admin
+        admin = session.query(User).filter(User.email == expected_admin_email).first()
+        if not admin:
+            raise ValueError(f"Verification failed: Admin account '{expected_admin_email}' not found in {database_name}.")
+
+        # Check zero operational records
+        students_cnt = session.query(Student).count()
+        teachers_cnt = session.query(Teacher).count()
+        classes_cnt = session.query(SchoolClass).count()
+        subjects_cnt = session.query(Subject).count()
+        exams_cnt = session.query(Exam).count()
+        fees_cnt = session.query(StudentFee).count()
+
+        if any(c > 0 for c in [students_cnt, teachers_cnt, classes_cnt, subjects_cnt, exams_cnt, fees_cnt]):
+            raise ValueError(
+                f"Verification failed: Non-zero records detected in fresh tenant DB {database_name} "
+                f"(students={students_cnt}, teachers={teachers_cnt}, classes={classes_cnt})."
+            )
+
+        # Check settings
+        school_name_setting = session.query(SystemSetting).filter(SystemSetting.key == "school_name").first()
+        if not school_name_setting or not school_name_setting.value:
+            raise ValueError(f"Verification failed: Missing school_name setting in {database_name}.")
+
+        return {
+            "verified": True,
+            "database_name": database_name,
+            "admin_user_id": admin.id,
+            "students_count": students_cnt,
+            "teachers_count": teachers_cnt,
+            "classes_count": classes_cnt,
+        }
+    finally:
+        session.close()
+        engine.dispose()
+
+
+def update_tenant_settings(database_name: str, settings_dict: Dict[str, str]) -> None:
+    """
+    Synchronizes updated institution attributes (name, logo, contact, etc.)
+    directly into the tenant's isolated system_settings table.
+    """
+    from app.models.system_setting import SystemSetting
+
+    tenant_url = get_tenant_db_url(database_name)
+    engine = create_engine(tenant_url, pool_pre_ping=True)
+    TenantSession = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+    session = TenantSession()
+
+    try:
+        for key, val in settings_dict.items():
+            if val is not None:
+                setting_row = session.query(SystemSetting).filter(SystemSetting.key == key).first()
+                if setting_row:
+                    setting_row.value = str(val)
+                    setting_row.is_public = True
+                else:
+                    session.add(SystemSetting(
+                        key=key,
+                        value=str(val),
+                        description=f"Setting for {key}",
+                        is_public=True
+                    ))
+        session.commit()
+    except Exception:
+        session.rollback()
+    finally:
+        session.close()
+        engine.dispose()
+

@@ -82,7 +82,8 @@ async function handleLoginSubmit(credentials: {
 .login-view-container {
   height: 100vh;
   max-height: 100vh;
-  width: 100vw;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   background-color: #f7f9fc;
   color: var(--text-primary, #0f172a);
@@ -98,6 +99,9 @@ async function handleLoginSubmit(credentials: {
     min-height: 100vh;
     max-height: none;
     overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
   }
 }
 </style>

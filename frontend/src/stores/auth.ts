@@ -126,6 +126,9 @@ export const useAuthStore = defineStore('auth', () => {
       const data = await authService.getCurrentUser();
       user.value = data.user;
       localStorage.setItem('sms_user', JSON.stringify(data.user));
+      if ((data as any).institution) {
+        setActiveInstitution((data as any).institution as Institution);
+      }
       return data.user;
     } catch {
       logout();

@@ -1,14 +1,38 @@
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
-import { SCHOOL_BRANDING } from '../constants/branding';
+import { useSchoolBrandingStore } from '../stores/schoolBranding';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const brandingStore = useSchoolBrandingStore();
 
 const isSidebarOpen = ref(false);
+
+const teacherDisplayName = computed(() => {
+  return authStore.user?.full_name || authStore.user?.username || 'Teacher';
+});
+
+const teacherInitials = computed(() => {
+  const name = teacherDisplayName.value.trim();
+  const parts = name.split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+});
+
+const currentPageTitle = computed(() => {
+  if (route.path === '/teacher/dashboard') return 'Dashboard';
+  if (route.path.startsWith('/teacher/classes')) return 'My Classes & Subjects';
+  if (route.path.startsWith('/teacher/students')) return 'Assigned Students';
+  if (route.path.startsWith('/teacher/attendance')) return 'Class Attendance';
+  if (route.path.startsWith('/teacher/timetable')) return 'My Timetable';
+  if (route.path.startsWith('/teacher/exams')) return 'Exams & Marks Entry';
+  return (route.meta.title as string) || 'Teacher Portal';
+});
 
 // Lock body scroll when mobile drawer is open
 watch(isSidebarOpen, (open) => {
@@ -18,9 +42,12 @@ watch(isSidebarOpen, (open) => {
 });
 
 // Auto-close drawer on route navigation
-watch(() => route.fullPath, () => {
-  isSidebarOpen.value = false;
-});
+watch(
+  () => route.fullPath,
+  () => {
+    isSidebarOpen.value = false;
+  }
+);
 
 onUnmounted(() => {
   if (typeof document !== 'undefined') {
@@ -33,6 +60,10 @@ async function handleLogout() {
   await authStore.logout();
   router.push('/login');
 }
+
+function closeMobileSidebar() {
+  isSidebarOpen.value = false;
+}
 </script>
 
 <template>
@@ -43,122 +74,170 @@ async function handleLogout() {
         v-if="isSidebarOpen"
         class="sidebar-backdrop"
         aria-hidden="true"
-        @click="isSidebarOpen = false"
+        @click="closeMobileSidebar"
       />
     </transition>
 
-    <!-- Sidebar Drawer -->
+    <!-- Somroyal Teacher Sidebar Drawer -->
     <aside
       class="portal-sidebar"
       :class="{ 'open': isSidebarOpen }"
-      :aria-hidden="!isSidebarOpen"
-      aria-label="Teacher Navigation"
+      aria-label="Teacher Portal Navigation"
     >
+      <!-- Sidebar Header Branding -->
       <div class="sidebar-header">
         <div class="brand-logo-wrap">
-          <img :src="SCHOOL_BRANDING.logoUrl" alt="Education Management System Emblem" class="brand-logo" />
+          <img
+            v-if="brandingStore.schoolLogo"
+            :src="brandingStore.schoolLogo"
+            :alt="brandingStore.schoolName"
+            class="school-header-img"
+            style="width: 36px; height: 36px; object-fit: contain; border-radius: 8px; background: white; padding: 2px;"
+          />
+          <div v-else class="somroyal-s" style="background: linear-gradient(135deg, #FF6500 0%, #FF8A00 100%);">
+            <span style="font-weight: 800; color: white;">{{ brandingStore.schoolInitials }}</span>
+          </div>
         </div>
         <div class="brand-details">
-          <h2 class="brand-title">{{ SCHOOL_BRANDING.shortName }}</h2>
-          <span class="portal-tag">Teacher Portal</span>
+          <h2 class="brand-title" :title="brandingStore.schoolName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">{{ brandingStore.schoolName }}</h2>
+          <span class="portal-tag">TEACHER PORTAL</span>
         </div>
         <button
+          type="button"
           class="close-btn"
-          aria-label="Close Navigation Menu"
-          @click="isSidebarOpen = false"
+          aria-label="Close navigation sidebar"
+          @click="closeMobileSidebar"
         >
-          &times;
+          <svg class="close-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       </div>
 
+      <!-- Navigation Links -->
       <div class="sidebar-scrollable">
+        <div class="nav-section-label">TEACHER SUITE</div>
         <nav class="nav-links">
+          <!-- 1. Dashboard -->
           <router-link
             to="/teacher/dashboard"
             class="nav-item"
             :class="{ active: route.path === '/teacher/dashboard' }"
-            @click="isSidebarOpen = false"
+            @click="closeMobileSidebar"
           >
-            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-            <span>Dashboard</span>
+            <div class="nav-icon-wrap">
+              <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+            </div>
+            <span class="nav-label">Dashboard</span>
+            <div v-if="route.path === '/teacher/dashboard'" class="active-indicator" />
           </router-link>
 
+          <!-- 2. My Classes & Subjects -->
           <router-link
             to="/teacher/classes"
             class="nav-item"
             :class="{ active: route.path.startsWith('/teacher/classes') }"
-            @click="isSidebarOpen = false"
+            @click="closeMobileSidebar"
           >
-            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-            <span>My Classes & Subjects</span>
+            <div class="nav-icon-wrap">
+              <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <span class="nav-label">My Classes &amp; Subjects</span>
+            <div v-if="route.path.startsWith('/teacher/classes')" class="active-indicator" />
           </router-link>
 
+          <!-- 3. Assigned Students -->
           <router-link
             to="/teacher/students"
             class="nav-item"
             :class="{ active: route.path.startsWith('/teacher/students') }"
-            @click="isSidebarOpen = false"
+            @click="closeMobileSidebar"
           >
-            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-            <span>Assigned Students</span>
+            <div class="nav-icon-wrap">
+              <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+            <span class="nav-label">Assigned Students</span>
+            <div v-if="route.path.startsWith('/teacher/students')" class="active-indicator" />
           </router-link>
 
+          <!-- 4. Class Attendance -->
           <router-link
             to="/teacher/attendance"
             class="nav-item"
             :class="{ active: route.path.startsWith('/teacher/attendance') }"
-            @click="isSidebarOpen = false"
+            @click="closeMobileSidebar"
           >
-            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Class Attendance</span>
+            <div class="nav-icon-wrap">
+              <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span class="nav-label">Class Attendance</span>
+            <div v-if="route.path.startsWith('/teacher/attendance')" class="active-indicator" />
           </router-link>
 
+          <!-- 5. My Timetable -->
           <router-link
             to="/teacher/timetable"
             class="nav-item"
             :class="{ active: route.path.startsWith('/teacher/timetable') }"
-            @click="isSidebarOpen = false"
+            @click="closeMobileSidebar"
           >
-            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span>My Timetable</span>
+            <div class="nav-icon-wrap">
+              <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <span class="nav-label">My Timetable</span>
+            <div v-if="route.path.startsWith('/teacher/timetable')" class="active-indicator" />
           </router-link>
 
+          <!-- 6. Exams & Marks Entry -->
           <router-link
             to="/teacher/exams"
             class="nav-item"
             :class="{ active: route.path.startsWith('/teacher/exams') }"
-            @click="isSidebarOpen = false"
+            @click="closeMobileSidebar"
           >
-            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-            </svg>
-            <span>Exams & Marks Entry</span>
+            <div class="nav-icon-wrap">
+              <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+            </div>
+            <span class="nav-label">Exams &amp; Marks Entry</span>
+            <div v-if="route.path.startsWith('/teacher/exams')" class="active-indicator" />
           </router-link>
         </nav>
       </div>
 
+      <!-- User Profile Card in Sidebar Footer -->
       <div class="sidebar-footer">
         <div class="user-card">
-          <div class="user-avatar-circle">
-            {{ (authStore.user?.full_name || authStore.user?.username || 'T').charAt(0).toUpperCase() }}
+          <div class="user-avatar-wrap">
+            <div class="user-avatar-circle">
+              {{ teacherInitials }}
+            </div>
+            <span class="online-indicator" title="Connected" />
           </div>
           <div class="user-info">
-            <span class="user-name">{{ authStore.user?.full_name || authStore.user?.username }}</span>
+            <span class="user-name" :title="teacherDisplayName">{{ teacherDisplayName }}</span>
             <span class="user-role">Teaching Faculty</span>
           </div>
         </div>
-        <button class="logout-btn" aria-label="Sign Out" @click="handleLogout">
-          <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+        <button
+          type="button"
+          class="logout-btn"
+          aria-label="Sign Out"
+          @click="handleLogout"
+        >
+          <svg class="logout-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
           <span>Sign Out</span>
@@ -168,31 +247,47 @@ async function handleLogout() {
 
     <!-- Main Content Area -->
     <div class="portal-main">
+      <!-- Top Sticky Header -->
       <header class="portal-header">
         <div class="header-left">
           <button
+            type="button"
             class="menu-btn"
-            aria-label="Open Navigation Menu"
+            aria-label="Toggle navigation menu"
             @click="isSidebarOpen = true"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="menu-svg">
+            <svg class="menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <div class="brand-mobile-heading">
-            <span class="header-school-name">{{ SCHOOL_BRANDING.shortName }}</span>
-            <span class="header-portal-name">Teacher Portal</span>
+          <div class="header-breadcrumb">
+            <span class="header-school-name">Somroyal EMS</span>
+            <span class="crumb-sep">/</span>
+            <span class="header-page-title">{{ currentPageTitle }}</span>
           </div>
         </div>
 
         <div class="header-right">
-          <span class="faculty-badge">Faculty Account</span>
-          <div class="header-user-avatar" :title="authStore.user?.full_name || authStore.user?.username">
-            {{ (authStore.user?.full_name || authStore.user?.username || 'T').charAt(0).toUpperCase() }}
+          <!-- Institutional Faculty Badge -->
+          <div class="portal-badge-faculty">
+            <span class="status-dot green" />
+            <span>FACULTY PORTAL</span>
+          </div>
+
+          <!-- User Quick Menu -->
+          <div class="header-user-wrap">
+            <div class="header-avatar" :title="teacherDisplayName">
+              {{ teacherInitials }}
+            </div>
+            <div class="header-user-info">
+              <span class="header-user-name">{{ teacherDisplayName }}</span>
+              <span class="header-user-role">Teacher</span>
+            </div>
           </div>
         </div>
       </header>
 
+      <!-- Page View Render -->
       <main class="portal-content">
         <router-view />
       </main>
@@ -204,52 +299,84 @@ async function handleLogout() {
 .portal-layout {
   display: flex;
   min-height: 100vh;
-  background-color: var(--bg-app);
+  background-color: #F8FAFC;
   width: 100%;
   overflow-x: clip;
 }
 
+/* Sidebar Backdrop */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 25, 47, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 45;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+/* Sidebar Drawer */
 .portal-sidebar {
-  width: 260px;
+  width: 270px;
   height: 100vh;
-  background-color: #0f172a;
-  color: #f8fafc;
+  background-color: #0A192F;
+  color: #F8FAFC;
   display: flex;
   flex-direction: column;
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 40;
-  border-right: 1px solid #1e293b;
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+  z-index: 50;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.25);
 }
 
+/* Sidebar Header */
 .sidebar-header {
-  height: 68px;
+  height: 72px;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
   padding: 0 1.25rem;
-  border-bottom: 1px solid #1e293b;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
+  background: #071224;
 }
 
 .brand-logo-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: #1e293b;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0F2A4A 0%, #0A192F 100%);
+  border: 1px solid rgba(245, 158, 11, 0.35);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   flex-shrink: 0;
 }
 
-.brand-logo {
-  width: 26px;
-  height: 26px;
-  object-fit: contain;
+.somroyal-crown {
+  width: 20px;
+  height: 12px;
+  margin-top: -2px;
+}
+
+.somroyal-s {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #FFFFFF;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  margin-top: -1px;
 }
 
 .brand-details {
@@ -259,51 +386,63 @@ async function handleLogout() {
 }
 
 .brand-title {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #FFFFFF;
+  letter-spacing: 0.08em;
   margin: 0;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .portal-tag {
-  font-size: 0.68rem;
-  color: #38bdf8;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: 0.65rem;
+  color: #10B981;
+  font-weight: 800;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .close-btn {
   display: none;
   margin-left: auto;
-  font-size: 1.6rem;
-  line-height: 1;
-  color: #94a3b8;
-  background: transparent;
-  border: none;
+  color: #94A3B8;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
   padding: 0.4rem;
-  min-width: 44px;
-  min-height: 44px;
+  width: 36px;
+  height: 36px;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  transition: color 0.2s, background-color 0.2s;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
 .close-btn:hover {
-  color: #ffffff;
-  background-color: #1e293b;
+  color: #FFFFFF;
+  background-color: rgba(239, 68, 68, 0.2);
+  border-color: #EF4444;
 }
 
+.close-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Nav Section */
 .sidebar-scrollable {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem 0.75rem;
+  padding: 1.25rem 0.85rem;
   -webkit-overflow-scrolling: touch;
+}
+
+.nav-section-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #64748B;
+  letter-spacing: 0.08em;
+  padding: 0 0.75rem 0.6rem 0.75rem;
 }
 
 .nav-links {
@@ -315,89 +454,139 @@ async function handleLogout() {
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 0.85rem;
+  gap: 0.85rem;
+  padding: 0.75rem 0.9rem;
   font-size: 0.88rem;
-  font-weight: 500;
-  color: #cbd5e1;
-  border-radius: 8px;
+  font-weight: 600;
+  color: #94A3B8;
+  border-radius: 10px;
   text-decoration: none;
   min-height: 44px;
-  transition: background-color 0.2s, color 0.2s;
+  position: relative;
+  transition: all 0.2s ease;
 }
 
 .nav-item:hover {
-  background-color: #1e293b;
-  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #FFFFFF;
 }
 
 .nav-item.active {
-  background: linear-gradient(90deg, #0284c7, #0369a1);
-  color: #ffffff;
-  font-weight: 600;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
-}
-
-.nav-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  flex-shrink: 0;
-}
-
-.sidebar-footer {
-  padding: 0.85rem 1rem;
-  background-color: #0b1120;
-  border-top: 1px solid #1e293b;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  flex-shrink: 0;
-}
-
-.user-card {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.5rem 0.65rem;
-  background: #1e293b;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.user-avatar-circle {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #0284c7;
-  color: #ffffff;
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.06) 100%);
+  color: #FFFFFF;
   font-weight: 700;
-  font-size: 0.85rem;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.nav-icon-wrap {
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  color: #94A3B8;
+  transition: color 0.2s;
+}
+
+.nav-item:hover .nav-icon {
+  color: #FFFFFF;
+}
+
+.nav-item.active .nav-icon {
+  color: #10B981;
+}
+
+.nav-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.active-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px #10B981;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+  padding: 1rem;
+  background-color: #071224;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+}
+
+.user-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.user-avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.online-indicator {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  background: #10B981;
+  border: 2px solid #071224;
+  border-radius: 50%;
+}
+
 .user-info {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   min-width: 0;
+  overflow: hidden;
 }
 
 .user-name {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #ffffff;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #FFFFFF;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .user-role {
-  font-size: 0.68rem;
-  color: #94a3b8;
-  display: block;
+  font-size: 0.7rem;
+  color: #94A3B8;
 }
 
 .logout-btn {
@@ -406,157 +595,191 @@ async function handleLogout() {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.6rem;
-  min-height: 44px;
+  min-height: 40px;
   border-radius: 8px;
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.1);
-  font-size: 0.84rem;
-  font-weight: 600;
+  color: #F87171;
+  background: rgba(239, 68, 68, 0.08);
+  font-size: 0.82rem;
+  font-weight: 700;
   cursor: pointer;
   border: 1px solid rgba(239, 68, 68, 0.2);
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .logout-btn:hover {
-  background: #ef4444;
-  color: #ffffff;
-  border-color: #ef4444;
+  background: #EF4444;
+  color: #FFFFFF;
+  border-color: #EF4444;
 }
 
+.logout-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Main Content Wrapper */
 .portal-main {
   flex: 1;
-  margin-left: 260px;
+  margin-left: 270px;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   min-width: 0;
-  width: calc(100% - 260px);
+  width: calc(100% - 270px);
 }
 
+/* Top Sticky Header */
 .portal-header {
-  height: 68px;
-  background: var(--bg-surface, #ffffff);
-  border-bottom: 1px solid var(--border-subtle, #e2e8f0);
+  height: 72px;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.5rem;
+  padding: 0 1.75rem;
   position: sticky;
   top: 0;
   z-index: 30;
   gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   min-width: 0;
 }
 
 .menu-btn {
   display: none;
-  background: none;
-  border: none;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
   cursor: pointer;
-  color: var(--text-primary, #0f172a);
-  padding: 0.4rem;
-  min-width: 44px;
-  min-height: 44px;
+  color: #0A192F;
+  padding: 0.45rem;
+  width: 42px;
+  height: 42px;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  transition: background-color 0.2s;
+  border-radius: 10px;
+  transition: all 0.2s;
 }
 
 .menu-btn:hover {
-  background-color: var(--bg-surface-secondary, #f8fafc);
+  background-color: #E2E8F0;
 }
 
-.menu-svg {
-  width: 24px;
-  height: 24px;
+.menu-icon {
+  width: 22px;
+  height: 22px;
 }
 
-.brand-mobile-heading {
+.header-breadcrumb {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
   min-width: 0;
 }
 
 .header-school-name {
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 800;
-  color: var(--brand-primary, #0284c7);
+  color: #0A192F;
+  white-space: nowrap;
+}
+
+.crumb-sep {
+  color: #CBD5E1;
+  font-weight: 600;
+}
+
+.header-page-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #10B981;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.2;
-}
-
-.header-portal-name {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-muted, #64748b);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   flex-shrink: 0;
 }
 
-.faculty-badge {
-  background: #e0f2fe;
-  color: #0369a1;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.3rem 0.65rem;
-  border-radius: 12px;
-  white-space: nowrap;
+.portal-badge-faculty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
 }
 
-.header-user-avatar {
-  width: 34px;
-  height: 34px;
+.status-dot.green {
+  width: 7px;
+  height: 7px;
+  background: #10B981;
   border-radius: 50%;
-  background: #0284c7;
-  color: #ffffff;
-  font-weight: 700;
+}
+
+.header-user-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.header-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #0A192F;
+  color: #FFFFFF;
+  font-weight: 800;
   font-size: 0.88rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 2px solid #E2E8F0;
   flex-shrink: 0;
 }
 
+.header-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-user-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0A192F;
+  line-height: 1.2;
+}
+
+.header-user-role {
+  font-size: 0.68rem;
+  color: #64748B;
+}
+
+/* Page Content */
 .portal-content {
   flex: 1;
-  padding: 1.5rem;
+  padding: 1.75rem;
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
-.sidebar-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(2px);
-  z-index: 35;
-}
-
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.25s ease;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
-
+/* Responsive Rules */
 @media (max-width: 1024px) {
   .portal-sidebar {
     transform: translateX(-100%);
@@ -579,19 +802,22 @@ async function handleLogout() {
     height: 64px;
   }
   .portal-content {
-    padding: 1rem;
+    padding: 1.25rem 1rem;
   }
 }
 
-@media (max-width: 480px) {
-  .faculty-badge {
+@media (max-width: 640px) {
+  .header-user-info {
     display: none;
   }
-  .header-school-name {
-    font-size: 0.95rem;
+  .portal-badge-faculty {
+    display: none;
+  }
+  .crumb-sep, .header-page-title {
+    display: none;
   }
   .portal-content {
-    padding: 0.75rem;
+    padding: 1rem 0.75rem;
   }
 }
 </style>

@@ -106,30 +106,45 @@ onMounted(() => {
 
 <template>
   <div class="portal-page">
+    <!-- Page Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Students in Assigned Classes</h1>
+        <div class="somroyal-tag">
+          <svg class="crown-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+          </svg>
+          <span>STUDENT ROSTERS &bull; ENROLLED COHORTS</span>
+        </div>
+        <h1 class="page-title">Assigned Students</h1>
         <p class="page-subtitle">
           View enrolled students strictly in classes and grade streams assigned to your teaching faculty account.
         </p>
       </div>
-      <div class="header-count-badge">
-        Total Students: <strong>{{ students.length }}</strong>
+
+      <div class="header-count-pill">
+        <span class="count-lbl">Total Students:</span>
+        <strong class="count-val">{{ students.length }}</strong>
       </div>
     </div>
 
     <!-- Filters Bar -->
-    <div class="filters-card card">
+    <div class="filters-card">
       <div class="filters-grid">
         <div class="form-group flex-2">
           <label class="form-label">Search Student</label>
-          <input
-            v-model="searchQuery"
-            type="text"
-            class="form-input"
-            placeholder="Search by first name, last name, or admission #..."
-            @input="onSearchInput"
-          />
+          <div class="search-input-wrap">
+            <svg class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              v-model="searchQuery"
+              type="text"
+              class="search-input"
+              placeholder="Search by first name, last name, or admission number..."
+              @input="onSearchInput"
+            />
+            <button v-if="searchQuery" class="clear-search-btn" @click="searchQuery = ''; filterStudents()">&times;</button>
+          </div>
         </div>
 
         <div class="form-group flex-1">
@@ -144,28 +159,41 @@ onMounted(() => {
       </div>
     </div>
 
-    <div v-if="errorMessage" class="alert-box error">
-      {{ errorMessage }}
+    <!-- Error State -->
+    <div v-if="errorMessage" class="error-banner">
+      <div class="error-icon-box">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+      </div>
+      <div class="error-details">
+        <h4 class="error-title">Unable to Load Assigned Students</h4>
+        <p class="error-desc">{{ errorMessage }}</p>
+      </div>
+      <button class="btn-retry" @click="loadData">Try Again</button>
     </div>
 
-    <div class="table-card card">
-      <div v-if="isLoading" class="loading-box">
-        <div class="spinner" />
-        <span>Loading assigned student rosters from PostgreSQL...</span>
+    <!-- Table & List Wrapper Card -->
+    <div class="table-card">
+      <div v-if="isLoading" class="state-container loading">
+        <div class="spinner-ring" />
+        <span class="loading-label">Retrieving student records from database...</span>
       </div>
 
-      <div v-else-if="students.length === 0" class="empty-box">
-        <svg class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-        <p class="empty-title">No Students Found</p>
-        <p class="empty-desc">No active students match your search or class filter.</p>
+      <div v-else-if="students.length === 0" class="state-container empty">
+        <div class="empty-icon-circle">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+        </div>
+        <h3 class="state-title">No Students Found</h3>
+        <p class="state-desc">No active student records matched your search query or class filter.</p>
       </div>
 
       <!-- Desktop Table -->
       <div v-else class="desktop-view">
-        <div class="table-responsive">
-          <table class="portal-table">
+        <div class="table-responsive-wrapper">
+          <table class="somroyal-table">
             <thead>
               <tr>
                 <th style="width: 50px;">#</th>
@@ -180,16 +208,25 @@ onMounted(() => {
             <tbody>
               <tr v-for="(s, idx) in students" :key="s.student_id">
                 <td class="text-muted">{{ idx + 1 }}</td>
-                <td class="font-bold">
+                <td class="font-bold text-navy">
                   {{ s.first_name }} {{ s.middle_name || '' }} {{ s.last_name }}
                 </td>
-                <td><code>{{ s.admission_number }}</code></td>
-                <td><span class="class-badge">{{ s.class_name }}</span></td>
-                <td>{{ s.gender }}</td>
-                <td>{{ s.academic_year }}</td>
+                <td>
+                  <code class="adm-code">{{ s.admission_number }}</code>
+                </td>
+                <td>
+                  <span class="class-badge-pill">{{ s.class_name }}</span>
+                </td>
+                <td>
+                  <span class="gender-pill">{{ s.gender }}</span>
+                </td>
+                <td class="text-slate-600 font-semibold">{{ s.academic_year }}</td>
                 <td style="text-align: right;">
-                  <button class="btn btn-xs btn-outline" @click="openStudentHistory(s)">
-                    Attendance History
+                  <button class="btn-history-action" @click="openStudentHistory(s)">
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Attendance Logs</span>
                   </button>
                 </td>
               </tr>
@@ -201,92 +238,105 @@ onMounted(() => {
       <!-- Mobile Student Cards -->
       <div v-if="students.length > 0" class="mobile-view">
         <div v-for="(s, idx) in students" :key="s.student_id" class="mobile-student-card">
-          <div class="mobile-card-top">
-            <span class="mobile-num">#{{ idx + 1 }}</span>
-            <span class="class-badge">{{ s.class_name }}</span>
+          <div class="m-card-top">
+            <span class="m-student-idx">#{{ idx + 1 }}</span>
+            <span class="class-badge-pill">{{ s.class_name }}</span>
           </div>
-          <h4 class="mobile-name">{{ s.first_name }} {{ s.middle_name || '' }} {{ s.last_name }}</h4>
-          <div class="mobile-meta-grid">
-            <div class="meta-row">
-              <span class="meta-label">Admission:</span>
-              <code>{{ s.admission_number }}</code>
+
+          <h4 class="m-student-name">{{ s.first_name }} {{ s.middle_name || '' }} {{ s.last_name }}</h4>
+
+          <div class="m-meta-grid">
+            <div class="m-meta-item">
+              <span class="m-meta-lbl">Admission:</span>
+              <code class="adm-code">{{ s.admission_number }}</code>
             </div>
-            <div class="meta-row">
-              <span class="meta-label">Gender:</span>
-              <span>{{ s.gender }}</span>
+            <div class="m-meta-item">
+              <span class="m-meta-lbl">Gender:</span>
+              <span class="gender-pill">{{ s.gender }}</span>
             </div>
-            <div class="meta-row">
-              <span class="meta-label">Academic Year:</span>
-              <span>{{ s.academic_year }}</span>
+            <div class="m-meta-item full">
+              <span class="m-meta-lbl">Academic Year:</span>
+              <span class="m-meta-val">{{ s.academic_year }}</span>
             </div>
           </div>
-          <div class="mobile-card-actions">
-            <button class="btn btn-outline btn-touch btn-block" @click="openStudentHistory(s)">
-              Attendance History
-            </button>
-          </div>
+
+          <button class="btn-mobile-history" @click="openStudentHistory(s)">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+            </svg>
+            <span>View Attendance History</span>
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Student Attendance History Modal -->
     <div v-if="isHistoryModalOpen" class="modal-backdrop" @click="isHistoryModalOpen = false">
-      <div class="modal-card card large" @click.stop>
-        <div v-if="isLoadingStudentHistory" class="loading-box">
-          <div class="spinner" />
-          <span>Retrieving student attendance record...</span>
+      <div class="modal-card" @click.stop>
+        <div v-if="isLoadingStudentHistory" class="modal-loading-box">
+          <div class="spinner-ring" />
+          <span>Retrieving student attendance records...</span>
         </div>
+
         <div v-else-if="selectedStudentHistory" class="modal-content-wrap">
           <div class="modal-header">
             <div>
+              <div class="modal-badge-line">
+                <span class="class-badge-pill">{{ selectedStudentHistory.class_name }}</span>
+                <code class="adm-code">{{ selectedStudentHistory.admission_number }}</code>
+              </div>
               <h3 class="modal-title">{{ selectedStudentHistory.student_name }}</h3>
-              <span class="adm-code">{{ selectedStudentHistory.admission_number }} • {{ selectedStudentHistory.class_name }}</span>
+              <p class="modal-subtitle">Official Student Attendance Ledger &amp; Absence Timeline</p>
             </div>
             <button class="modal-close" aria-label="Close dialog" @click="isHistoryModalOpen = false">&times;</button>
           </div>
 
           <div class="modal-body">
+            <!-- 4-Stat KPI Grid -->
             <div class="modal-stats-grid">
               <div class="stat-box">
-                <span class="stat-title">Total Sessions</span>
-                <span class="stat-num">{{ selectedStudentHistory.total_sessions }}</span>
+                <span class="stat-title">TOTAL SESSIONS</span>
+                <span class="stat-num text-navy">{{ selectedStudentHistory.total_sessions }}</span>
               </div>
               <div class="stat-box">
-                <span class="stat-title">Present Count</span>
+                <span class="stat-title">PRESENT COUNT</span>
                 <span class="stat-num text-emerald">{{ selectedStudentHistory.present_count }}</span>
               </div>
               <div class="stat-box">
-                <span class="stat-title">Absent Count</span>
+                <span class="stat-title">ABSENT COUNT</span>
                 <span class="stat-num text-rose">{{ selectedStudentHistory.absent_count }}</span>
               </div>
               <div class="stat-box">
-                <span class="stat-title">Attendance Rate</span>
-                <span class="stat-num text-primary">{{ selectedStudentHistory.attendance_percentage }}%</span>
+                <span class="stat-title">ATTENDANCE RATE</span>
+                <span class="stat-num text-navy">{{ selectedStudentHistory.attendance_percentage }}%</span>
               </div>
             </div>
 
-            <h4 class="sub-heading">Absence Timeline & Justifications</h4>
-            <div v-if="selectedStudentHistory.absent_history.length === 0" class="empty-inline">
-              Perfect attendance record! No absences recorded in this class stream.
+            <h4 class="sub-heading">Absence Timeline &amp; Justifications</h4>
+            <div v-if="selectedStudentHistory.absent_history.length === 0" class="empty-inline-success">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+              </svg>
+              <span>Perfect attendance record! Zero absences recorded for this student in this class stream.</span>
             </div>
-            <div v-else class="table-responsive modal-table-wrap">
-              <table class="portal-table">
+            <div v-else class="table-responsive-wrapper">
+              <table class="somroyal-table">
                 <thead>
                   <tr>
                     <th>Date</th>
                     <th>Subject</th>
                     <th>Status</th>
-                    <th>Reason / Remarks</th>
+                    <th>Reason / Justification</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(h, i) in selectedStudentHistory.absent_history" :key="i">
-                    <td>{{ h.date }}</td>
+                    <td class="font-bold text-navy">{{ h.date }}</td>
                     <td>{{ h.subject_name || 'Class Period' }}</td>
                     <td>
-                      <span class="status-pill absent">{{ h.status }}</span>
+                      <span class="status-pill-absent">{{ h.status }}</span>
                     </td>
-                    <td>{{ h.remarks || 'No reason specified' }}</td>
+                    <td class="font-normal text-slate-600">{{ h.remarks || 'No reason specified' }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -294,7 +344,7 @@ onMounted(() => {
           </div>
 
           <div class="modal-footer">
-            <button class="btn btn-primary btn-touch btn-block-mobile" @click="isHistoryModalOpen = false">Close</button>
+            <button class="btn-modal-close" @click="isHistoryModalOpen = false">Close Window</button>
           </div>
         </div>
       </div>
@@ -310,194 +360,628 @@ onMounted(() => {
   max-width: 1300px;
   margin: 0 auto;
   width: 100%;
-  box-sizing: border-box;
 }
 
+/* Header */
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 1.25rem;
   flex-wrap: wrap;
-  gap: 1rem;
-}
-.page-title { font-size: 1.5rem; font-weight: 800; color: var(--text-primary, #0f172a); margin: 0; word-break: break-word; }
-.page-subtitle { font-size: 0.85rem; color: var(--text-muted, #64748b); margin-top: 0.2rem; }
-.header-count-badge {
-  background: #f1f5f9;
-  color: #334155;
-  padding: 0.4rem 0.85rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  white-space: nowrap;
 }
 
-.filters-card { padding: 1.25rem; width: 100%; box-sizing: border-box; }
+.somroyal-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #10B981;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.crown-icon {
+  width: 14px;
+  height: 14px;
+  color: #F59E0B;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0A192F;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+  font-size: 0.88rem;
+  color: #64748B;
+  margin-top: 0.25rem;
+  line-height: 1.5;
+  max-width: 780px;
+}
+
+.header-count-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.count-lbl {
+  font-size: 0.78rem;
+  color: #64748B;
+  font-weight: 700;
+}
+
+.count-val {
+  font-size: 1.15rem;
+  color: #0A192F;
+  font-weight: 900;
+}
+
+/* Filters */
+.filters-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 6px rgba(10, 25, 47, 0.03);
+}
+
 .filters-grid {
   display: flex;
-  flex-wrap: wrap;
   gap: 1rem;
-}
-.flex-2 { flex: 2; min-width: 240px; }
-.flex-1 { flex: 1; min-width: 180px; }
-.form-group { display: flex; flex-direction: column; gap: 0.35rem; }
-.form-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted, #64748b); }
-.form-input, .form-select {
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--border-medium, #cbd5e1);
-  border-radius: 6px;
-  background: var(--bg-surface, #ffffff);
-  font-size: 0.88rem;
-  color: var(--text-primary, #0f172a);
-  width: 100%;
-  box-sizing: border-box;
+  flex-wrap: wrap;
 }
 
-.table-card { padding: 0; overflow: hidden; width: 100%; box-sizing: border-box; }
-.table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.portal-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; min-width: 580px; }
-.portal-table th { background: var(--bg-surface-secondary, #f8fafc); padding: 0.85rem 1.25rem; font-weight: 700; color: var(--text-secondary, #475569); border-bottom: 1px solid var(--border-subtle, #e2e8f0); }
-.portal-table td { padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--border-subtle, #e2e8f0); color: var(--text-primary, #0f172a); }
-.font-bold { font-weight: 700; }
-.class-badge { background: #e0f2fe; color: #0369a1; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.78rem; font-weight: 700; display: inline-block; }
-
-.desktop-view { display: block; }
-.mobile-view { display: none; padding: 0.75rem; flex-direction: column; gap: 0.75rem; }
-.mobile-student-card {
-  padding: 1rem;
-  border: 1px solid var(--border-subtle, #e2e8f0);
-  border-radius: 8px;
-  background: var(--bg-surface, #ffffff);
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  box-sizing: border-box;
-}
-.mobile-card-top { display: flex; justify-content: space-between; align-items: center; }
-.mobile-num { font-size: 0.75rem; color: var(--text-muted, #64748b); font-weight: 700; }
-.mobile-name { margin: 0; font-size: 0.98rem; font-weight: 700; color: var(--text-primary, #0f172a); word-break: break-word; }
-.mobile-meta-grid {
+.form-group {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  font-size: 0.82rem;
-  color: var(--text-secondary, #475569);
-  background: var(--bg-surface-secondary, #f8fafc);
-  padding: 0.6rem;
-  border-radius: 6px;
 }
-.meta-row {
+
+.form-group.flex-2 { flex: 2; min-width: 280px; }
+.form-group.flex-1 { flex: 1; min-width: 220px; }
+
+.form-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  padding: 0.5rem 0.85rem;
+}
+
+.search-icon {
+  width: 18px;
+  height: 18px;
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+.search-input {
+  background: transparent;
+  border: none;
+  font-size: 0.86rem;
+  color: #0A192F;
+  width: 100%;
+  outline: none;
+}
+
+.clear-search-btn {
+  background: none;
+  border: none;
+  color: #94A3B8;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.form-select {
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  color: #0A192F;
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Table Card */
+.table-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(10, 25, 47, 0.03);
+}
+
+.table-responsive-wrapper {
+  overflow-x: auto;
+}
+
+.somroyal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  text-align: left;
+}
+
+.somroyal-table thead {
+  background: #0A192F;
+  color: #FFFFFF;
+}
+
+.somroyal-table th {
+  padding: 0.85rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #1E293B;
+}
+
+.somroyal-table td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #F1F5F9;
+  color: #1E293B;
+  vertical-align: middle;
+}
+
+.somroyal-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.text-navy { color: #0A192F !important; }
+.text-emerald { color: #059669 !important; }
+.text-rose { color: #DC2626 !important; }
+
+.adm-code {
+  font-family: monospace;
+  font-weight: 700;
+  color: #2563EB;
+  background: #EFF6FF;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.class-badge-pill {
+  font-size: 0.76rem;
+  font-weight: 800;
+  background: #F1F5F9;
+  color: #0A192F;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+}
+
+.gender-pill {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #475569;
+  background: #F8FAFC;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.btn-history-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #0A192F;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-history-action:hover {
+  background: #0A192F;
+  color: #FFFFFF;
+  border-color: #0A192F;
+}
+
+.btn-history-action svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Mobile Cards View */
+.mobile-view {
+  display: none;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.mobile-student-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.m-card-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.meta-label {
+
+.m-student-idx {
   font-size: 0.75rem;
-  color: var(--text-muted, #64748b);
-  font-weight: 600;
+  font-weight: 700;
+  color: #94A3B8;
 }
-.mobile-card-actions { padding-top: 0.4rem; border-top: 1px solid var(--border-subtle, #e2e8f0); }
+
+.m-student-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0A192F;
+  margin: 0;
+}
+
+.m-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  background: #FFFFFF;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+}
+
+.m-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.m-meta-item.full {
+  grid-column: span 2;
+}
+
+.m-meta-lbl {
+  font-size: 0.65rem;
+  color: #94A3B8;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.m-meta-val {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.btn-mobile-history {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  background: #0A192F;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.55rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-mobile-history svg {
+  width: 15px;
+  height: 15px;
+}
 
 /* Modal */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(10, 25, 47, 0.7);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
-  padding: 0.75rem;
-  box-sizing: border-box;
+  z-index: 60;
+  padding: 1rem;
 }
-.modal-card.large {
-  width: calc(100% - 24px);
-  max-width: 650px;
+
+.modal-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 800px;
   max-height: 90vh;
-  background: #ffffff;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  border-radius: 8px;
   overflow-y: auto;
-}
-.modal-content-wrap {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
 }
-.modal-header { display: flex; justify-content: space-between; align-items: flex-start; }
-.modal-title { margin: 0; font-size: 1.2rem; font-weight: 800; word-break: break-word; }
-.adm-code { font-size: 0.8rem; color: var(--text-muted, #64748b); display: block; margin-top: 0.2rem; }
+
+.modal-loading-box {
+  padding: 4rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #64748B;
+}
+
+.modal-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  background: #F8FAFC;
+}
+
+.modal-badge-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.modal-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0A192F;
+  margin: 0;
+}
+
+.modal-subtitle {
+  font-size: 0.82rem;
+  color: #64748B;
+  margin-top: 0.2rem;
+}
+
 .modal-close {
   background: none;
   border: none;
-  font-size: 1.6rem;
-  line-height: 1;
+  font-size: 1.75rem;
+  color: #94A3B8;
   cursor: pointer;
-  color: var(--text-muted, #64748b);
-  min-width: 40px;
-  min-height: 40px;
+  line-height: 1;
+}
+
+.modal-close:hover { color: #0A192F; }
+
+.modal-body {
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.modal-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.stat-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.stat-title {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #64748B;
+  text-transform: uppercase;
+}
+
+.stat-num {
+  font-size: 1.45rem;
+  font-weight: 900;
+}
+
+.sub-heading {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0A192F;
+  margin: 0.5rem 0 0 0;
+}
+
+.empty-inline-success {
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-
-.modal-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 0.75rem; }
-.stat-box { background: var(--bg-surface-secondary, #f8fafc); padding: 0.65rem; border-radius: 6px; text-align: center; }
-.stat-title { font-size: 0.68rem; color: var(--text-muted, #64748b); font-weight: 700; text-transform: uppercase; display: block; }
-.stat-num { font-size: 1.15rem; font-weight: 800; display: block; margin-top: 0.15rem; }
-.sub-heading { font-size: 0.95rem; font-weight: 700; margin: 0.75rem 0 0.5rem 0; }
-.status-pill.absent { background: #fee2e2; color: #b91c1c; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 4px; display: inline-block; }
-
-.modal-footer { display: flex; justify-content: flex-end; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle, #e2e8f0); }
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 0.9rem;
-  border-radius: 6px;
-  font-size: 0.84rem;
+  gap: 0.65rem;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.86rem;
   font-weight: 600;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.2s;
 }
-.btn-touch { min-height: 44px; }
-.btn-primary { background: #0284c7; color: #ffffff; }
-.btn-primary:hover { background: #0369a1; }
-.btn-outline { background: #ffffff; border-color: var(--border-medium, #cbd5e1); color: var(--text-primary, #0f172a); }
-.btn-outline:hover { background: #f8fafc; }
-.btn-xs { padding: 0.3rem 0.6rem; font-size: 0.78rem; }
-.btn-block { width: 100%; }
 
-.loading-box, .empty-box {
-  padding: 3rem 1rem;
+.empty-inline-success svg {
+  width: 20px;
+  height: 20px;
+  color: #10B981;
+  flex-shrink: 0;
+}
+
+.status-pill-absent {
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.modal-footer {
+  padding: 1rem 2rem;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-modal-close {
+  background: #0A192F;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-modal-close:hover { background: #10B981; }
+
+/* Common States */
+.state-container {
+  padding: 4rem 1.5rem;
   text-align: center;
-  color: var(--text-muted, #64748b);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
-.empty-icon { width: 48px; height: 48px; color: #94a3b8; }
-.empty-title { font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-primary, #0f172a); }
-.empty-desc { font-size: 0.85rem; margin: 0; }
-.empty-inline { font-size: 0.85rem; color: var(--text-muted, #64748b); font-style: italic; padding: 0.75rem 0; }
-.spinner { width: 32px; height: 32px; border: 3px solid var(--border-subtle, #e2e8f0); border-top-color: #0284c7; border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.alert-box.error { background: #fef2f2; color: #991b1b; padding: 1rem; border-radius: 6px; }
 
+.spinner-ring {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #E2E8F0;
+  border-top-color: #10B981;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-label {
+  font-size: 0.88rem;
+  color: #64748B;
+  font-weight: 600;
+}
+
+.empty-icon-circle {
+  width: 56px;
+  height: 56px;
+  background: #F1F5F9;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94A3B8;
+}
+
+.empty-icon-circle svg { width: 28px; height: 28px; }
+
+.state-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0A192F;
+  margin: 0;
+}
+
+.state-desc {
+  font-size: 0.86rem;
+  color: #64748B;
+  max-width: 500px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.error-banner {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.error-icon-box {
+  width: 36px;
+  height: 36px;
+  background: #EF4444;
+  color: #FFFFFF;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.error-icon-box svg { width: 20px; height: 20px; }
+.error-details { flex: 1; }
+.error-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #991B1B;
+  margin: 0;
+}
+.error-desc {
+  font-size: 0.82rem;
+  color: #B91C1C;
+  margin: 0.15rem 0 0 0;
+}
+.btn-retry {
+  background: #991B1B;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Responsive Rules */
 @media (max-width: 768px) {
   .desktop-view { display: none; }
   .mobile-view { display: flex; }
+  .filters-grid { flex-direction: column; }
   .modal-stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .btn-block-mobile { width: 100%; }
+  .modal-header, .modal-body, .modal-footer { padding: 1rem; }
 }
 
 @media (max-width: 480px) {
-  .flex-2, .flex-1 { min-width: 100%; }
-  .modal-stats-grid { grid-template-columns: 1fr 1fr; }
+  .modal-stats-grid { grid-template-columns: 1fr; }
+  .page-header { flex-direction: column; align-items: stretch; }
+  .header-count-pill { justify-content: space-between; }
 }
 </style>

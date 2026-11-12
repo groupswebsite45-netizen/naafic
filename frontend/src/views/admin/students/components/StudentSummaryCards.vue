@@ -79,13 +79,67 @@ const cards = computed(() => [
 @media (max-width: 1024px) {
   .summary-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .summary-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+  }
+
+  .summary-card {
+    padding: 0.75rem 0.65rem;
+    gap: 0.5rem;
+    border-radius: 10px;
+  }
+
+  .summary-icon-wrap {
+    width: 36px;
+    height: 36px;
+  }
+
+  .summary-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .summary-label {
+    font-size: 0.6875rem;
+  }
+
+  .summary-value {
+    font-size: 1.25rem;
+  }
+
+  .summary-sub {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .summary-grid {
+    gap: 0.5rem;
+  }
+
+  .summary-card {
+    padding: 0.65rem 0.5rem;
+  }
+
+  .summary-icon-wrap {
+    width: 30px;
+    height: 30px;
+  }
+
+  .summary-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .summary-value {
+    font-size: 1.15rem;
   }
 }
 

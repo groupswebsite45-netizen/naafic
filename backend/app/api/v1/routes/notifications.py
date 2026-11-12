@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User
 from app.api.dependencies.auth import get_current_active_admin, get_current_user
+from app.repositories.notification_repo import NotificationRepository
 from app.services.notification_service import NotificationService
 from app.schemas.notification import (
     NotificationResponse,
@@ -310,6 +311,58 @@ def send_bulk_notifications(
 ):
     service = NotificationService(db)
     return service.send_bulk_notifications(admin_user, payload)
+
+
+@router.get(
+    "/unread-count",
+    summary="Get count of unread in-app notifications"
+)
+def get_unread_count(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_active_admin),
+):
+    repo = NotificationRepository(db)
+    count = repo.get_unread_count()
+    return {"unread_count": count}
+
+
+@router.post(
+    "/mark-all-read",
+    summary="Mark all in-app notifications as read"
+)
+def mark_all_notifications_as_read(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_active_admin),
+):
+    repo = NotificationRepository(db)
+    count = repo.mark_all_as_read()
+    db.commit()
+    return {"success": True, "marked_count": count}
+
+
+@router.post(
+    "/{notification_id}/read",
+    summary="Mark an individual notification as read"
+)
+def mark_notification_as_read(
+    notification_id: int,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_active_admin),
+):
+    repo = NotificationRepository(db)
+    notif = repo.mark_as_read(notification_id)
+    if not notif:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Notification ID {notification_id} not found."
+        )
+    db.commit()
+    return {
+        "success": True,
+        "id": notification_id,
+        "status": notif.status,
+        "read_at": notif.read_at
+    }
 
 
 @router.get(

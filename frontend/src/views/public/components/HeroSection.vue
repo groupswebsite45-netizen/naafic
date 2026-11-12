@@ -462,17 +462,21 @@ function emitScroll(target: string) {
   top: -100px;
   right: -80px;
   width: 520px;
+  max-width: 100vw;
   height: 520px;
   background: #0B1F4B;
+  pointer-events: none;
 }
 
 .glow-orange {
   top: 20%;
   left: -120px;
   width: 420px;
+  max-width: 100vw;
   height: 420px;
   background: #FF6B00;
   opacity: 0.18;
+  pointer-events: none;
 }
 
 .grid-overlay {
@@ -742,6 +746,14 @@ function emitScroll(target: string) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.mockup-search-bar span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: inline-block;
 }
 
 .mockup-badge {
@@ -1417,18 +1429,25 @@ function emitScroll(target: string) {
 
 /* Responsive Media Queries */
 @media (max-width: 1100px) {
+  .hero-section {
+    padding-top: 100px;
+    padding-bottom: 30px;
+  }
+
   .hero-container {
     grid-template-columns: 1fr;
     text-align: center;
-    gap: 3rem;
+    gap: 2.5rem;
   }
 
   .hero-copy {
     align-items: center;
+    max-width: 760px;
+    margin: 0 auto;
   }
 
   .hero-title {
-    font-size: 2.6rem;
+    font-size: clamp(2.1rem, 4.2vw, 2.75rem);
   }
 
   .hero-cta-group {
@@ -1437,58 +1456,241 @@ function emitScroll(target: string) {
 
   .hero-benefits-grid {
     justify-content: center;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  .hero-visual {
+    max-width: 700px;
+    margin: 0 auto;
   }
 
   .feature-highlights-container {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .floating-badge {
-    display: none;
-  }
-
   .smartphone-mockup {
-    right: 10px;
-    bottom: -20px;
+    right: 12px;
+    bottom: -18px;
+    width: 180px;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  .hero-section {
+    padding-top: 86px;
+    padding-bottom: 24px;
+  }
+
   .hero-title {
-    font-size: 2.15rem;
+    font-size: clamp(1.85rem, 5.2vw, 2.35rem);
+    letter-spacing: -0.02em;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  .hero-cta-group {
+    width: 100%;
+    max-width: 440px;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .btn-hero-primary,
+  .btn-hero-secondary {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
   }
 
   .hero-benefits-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .feature-highlights-container {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-container {
     grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 440px;
   }
 
-  .smartphone-mockup {
-    display: none;
+  .benefit-chip {
+    font-size: 0.8rem;
+    gap: 0.4rem;
+  }
+
+  .benefit-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .hero-visual {
+    max-width: 100%;
+    margin: 0.5rem auto 0;
   }
 
   .mini-app-layout {
     grid-template-columns: 1fr;
+    height: auto;
+    min-height: 300px;
   }
 
   .mini-sidebar {
     display: none;
   }
 
-  .mini-kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .mini-search-bar {
+    width: 180px;
   }
 
   .mini-split-grid {
     grid-template-columns: 1fr;
+  }
+
+  .mini-activity-box {
+    display: none;
+  }
+
+  .smartphone-mockup {
+    display: block !important;
+    right: 4px;
+    bottom: -14px;
+    width: clamp(135px, 36vw, 175px);
+  }
+
+  .phone-outer-frame {
+    border-radius: 20px;
+    padding: 5px;
+  }
+
+  .phone-screen {
+    border-radius: 16px;
+    padding: 6px 8px 8px;
+  }
+
+  .phone-schedule-item:last-child {
+    display: none;
+  }
+
+  .floating-badge {
+    top: -10px;
+    right: 6px;
+    padding: 0.4rem 0.65rem;
+    transform: scale(0.85);
+    transform-origin: top right;
+  }
+
+  .feature-highlights-wrapper {
+    margin-top: 2.5rem;
+  }
+
+  .stats-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+    padding: 1.5rem 1rem;
+  }
+
+  .stat-num {
+    font-size: 1.5rem;
+  }
+
+  .stat-desc {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-container {
+    padding: 0 0.85rem;
+    gap: 2rem;
+  }
+
+  .hero-badge {
+    font-size: 0.72rem;
+    padding: 0.35rem 0.75rem;
+  }
+
+  .hero-title {
+    font-size: clamp(1.75rem, 6vw, 2.15rem);
+    line-height: 1.2;
+  }
+
+  .feature-highlights-container {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .highlight-card {
+    padding: 1.1rem 1rem;
+    border-radius: 12px;
+  }
+
+  .mockup-header {
+    height: 32px;
+    padding: 0 0.6rem;
+  }
+
+  .mockup-search-bar {
+    width: 140px;
+    font-size: 0.62rem;
+    padding: 1px 8px;
+  }
+
+  .mockup-badge {
+    display: none;
+  }
+
+  .mini-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .mini-year-selector {
+    display: none;
+  }
+
+  .mini-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+  }
+
+  .mini-kpi-card {
+    padding: 0.4rem 0.5rem;
+  }
+
+  .kpi-label {
+    font-size: 0.58rem;
+  }
+
+  .kpi-value {
+    font-size: 0.85rem;
+  }
+
+  .kpi-trend {
+    font-size: 0.52rem;
+  }
+
+  .mini-chart-box {
+    padding: 0.5rem;
+  }
+
+  .smartphone-mockup {
+    width: clamp(130px, 42vw, 160px);
+    right: 0px;
+    bottom: -10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .hero-benefits-grid {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+
+  .stats-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    text-align: center;
   }
 }
 </style>

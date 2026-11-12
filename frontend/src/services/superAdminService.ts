@@ -58,6 +58,17 @@ export const superAdminService = {
     return response.data;
   },
 
+  async uploadLogo(file: File): Promise<{ url: string; filename: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiClient.post<{ url: string; filename: string }>(
+      '/super-admin/upload-logo',
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    return response.data;
+  },
+
   // Subscriptions
   async getSubscriptions(params?: { institution_id?: number; status?: string }): Promise<Subscription[]> {
     const response = await apiClient.get<Subscription[]>('/super-admin/subscriptions', { params });

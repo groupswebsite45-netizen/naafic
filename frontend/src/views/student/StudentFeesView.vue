@@ -29,8 +29,8 @@ async function initPage() {
       selectedYear.value = academicYears.value[0];
     }
   } catch {
-    academicYears.value = ['2025-2026'];
-    selectedYear.value = '2025-2026';
+    academicYears.value = ['2026/2027'];
+    selectedYear.value = '2026/2027';
   }
   await loadFees();
 }
@@ -51,58 +51,85 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="portal-page">
+  <div class="portal-page student-fees-view">
     <!-- Header -->
     <div class="page-header">
       <div class="header-content-row">
         <div>
           <h1 class="page-title">My Fees & Financial Ledger</h1>
-          <p class="page-subtitle">Your official tuition invoices, verified payment receipts, and outstanding institutional account balance.</p>
+          <p class="page-subtitle">Your official tuition invoices, verified payment receipts, and institutional account balance.</p>
         </div>
 
         <!-- Academic Year Selector -->
         <div v-if="academicYears.length > 0" class="year-selector-wrap">
           <label for="fee-year-select" class="selector-lbl">Academic Year:</label>
-          <select
-            id="fee-year-select"
-            v-model="selectedYear"
-            class="year-select"
-            @change="loadFees"
-          >
-            <option v-for="y in academicYears" :key="y" :value="y">{{ y }}</option>
-          </select>
+          <div class="select-container">
+            <select
+              id="fee-year-select"
+              v-model="selectedYear"
+              class="year-select"
+              @change="loadFees"
+            >
+              <option v-for="y in academicYears" :key="y" :value="y">{{ y }}</option>
+            </select>
+            <svg class="select-chevron" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Summary KPI Cards -->
-    <div v-if="feesData" class="summary-grid">
-      <div class="summary-card card blue">
-        <span class="sum-label">TOTAL INVOICED</span>
+    <section v-if="feesData" class="summary-grid" aria-label="Fees Overview Metrics">
+      <!-- Total Invoiced -->
+      <div class="card summary-card variant-blue">
+        <div class="sum-top">
+          <span class="sum-label">TOTAL INVOICED</span>
+          <div class="sum-icon-box bg-blue-tint">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+        </div>
         <span class="sum-val">${{ Number(feesData.summary.total_billed).toFixed(2) }}</span>
-        <span class="sum-sub">All Issued Tuition & Fees</span>
+        <span class="sum-sub">All Issued Tuition & Invoices</span>
       </div>
 
-      <div class="summary-card card green">
-        <span class="sum-label">TOTAL PAID</span>
-        <span class="sum-val text-emerald">${{ Number(feesData.summary.total_paid).toFixed(2) }}</span>
+      <!-- Total Paid -->
+      <div class="card summary-card variant-emerald">
+        <div class="sum-top">
+          <span class="sum-label">TOTAL PAID TO DATE</span>
+          <div class="sum-icon-box bg-emerald-tint">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <span class="sum-val text-emerald-600">${{ Number(feesData.summary.total_paid).toFixed(2) }}</span>
         <span class="sum-sub">Verified Payment Receipts</span>
       </div>
 
-      <div class="summary-card card" :class="feesData.summary.total_outstanding > 0 ? 'red' : 'green'">
-        <span class="sum-label">OUTSTANDING BALANCE</span>
-        <div class="balance-display-row">
-          <span class="sum-val" :class="feesData.summary.total_outstanding > 0 ? 'text-rose' : 'text-emerald'">
-            ${{ Number(feesData.summary.total_outstanding).toFixed(2) }}
-          </span>
+      <!-- Outstanding Balance -->
+      <div class="card summary-card" :class="feesData.summary.total_outstanding > 0 ? 'variant-rose' : 'variant-emerald'">
+        <div class="sum-top">
+          <span class="sum-label">OUTSTANDING BALANCE</span>
+          <div class="sum-icon-box" :class="feesData.summary.total_outstanding > 0 ? 'bg-rose-tint' : 'bg-emerald-tint'">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
         </div>
-        <span class="sum-sub font-semibold" :class="feesData.summary.total_outstanding > 0 ? 'text-rose' : 'text-emerald'">
-          {{ feesData.summary.total_outstanding > 0 ? 'Due to School Finance Office' : '✓ All fees are paid' }}
+        <span class="sum-val" :class="feesData.summary.total_outstanding > 0 ? 'text-rose-600' : 'text-emerald-600'">
+          ${{ Number(feesData.summary.total_outstanding).toFixed(2) }}
+        </span>
+        <span class="sum-sub font-semibold" :class="feesData.summary.total_outstanding > 0 ? 'text-rose-600' : 'text-emerald-600'">
+          {{ feesData.summary.total_outstanding > 0 ? 'Due to School Bursar Office' : '✓ Account is fully paid' }}
         </span>
       </div>
-    </div>
+    </section>
 
-    <!-- Clear / Zero Balance Banner if no fees are owed -->
+    <!-- Cleared Account Banner -->
     <div v-if="feesData && feesData.summary.is_cleared" class="card cleared-banner">
       <div class="cleared-icon-wrap">
         <svg class="cleared-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -110,9 +137,9 @@ onMounted(() => {
         </svg>
       </div>
       <div class="cleared-text">
-        <strong class="cleared-title">NO OUTSTANDING BALANCE &bull; ACCOUNT IN GOOD STANDING</strong>
+        <strong class="cleared-title">FINANCIAL ACCOUNT IN GOOD STANDING</strong>
         <p class="cleared-desc">
-          All scheduled tuition fees and invoices for this period have been fully settled. Thank you for your prompt payments.
+          All scheduled tuition fees and invoices for this academic session have been fully settled. Thank you for your prompt payments.
         </p>
       </div>
     </div>
@@ -125,22 +152,39 @@ onMounted(() => {
 
     <!-- Error State -->
     <div v-else-if="errorMessage" class="card error-card">
-      <p class="error-title">Unable to Load Fee Records</p>
-      <p class="error-desc">{{ errorMessage }}</p>
-      <button class="retry-btn" @click="loadFees">Try Again</button>
+      <div class="error-icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10" stroke-width="2" />
+          <line x1="12" y1="8" x2="12" y2="12" stroke-width="2" stroke-linecap="round" />
+          <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </div>
+      <div class="error-content">
+        <p class="error-title">Unable to Load Fee Records</p>
+        <p class="error-desc">{{ errorMessage }}</p>
+      </div>
+      <button type="button" class="retry-btn" @click="loadFees">Try Again</button>
     </div>
 
     <!-- Content Stack -->
     <div v-else-if="feesData" class="content-stack">
       <!-- Invoices Section -->
-      <div class="section-container">
+      <section class="section-container" aria-label="Tuition Invoices">
         <div class="section-title-row">
-          <h3 class="section-title">Tuition Invoices</h3>
+          <div>
+            <h3 class="section-title">Tuition Invoices & Billing Breakdown</h3>
+            <p class="section-sub">Detailed fee structures, applied discounts, and payment history.</p>
+          </div>
           <span class="badge-count">{{ feesData.fees.length }} Invoices</span>
         </div>
 
         <div v-if="feesData.fees.length === 0" class="card empty-card">
-          <p class="empty-title">No Fee Invoices Recorded</p>
+          <div class="empty-icon-wrap">
+            <svg class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h4 class="empty-title">No Fee Invoices Recorded</h4>
           <p class="empty-desc">You do not have any tuition invoices issued for academic year {{ selectedYear }}.</p>
         </div>
 
@@ -149,12 +193,12 @@ onMounted(() => {
             <!-- Invoice Header -->
             <div class="invoice-header">
               <div class="invoice-main-info">
-                <span class="inv-num">INVOICE #INV-{{ f.id.toString().padStart(5, '0') }}</span>
+                <div class="inv-num-pill">INVOICE #INV-{{ f.id.toString().padStart(5, '0') }}</div>
                 <h4 class="fee-name">{{ f.fee_structure?.name || 'Tuition Fee' }}</h4>
                 <div class="fee-meta">
-                  <span>Due Date: <strong>{{ formatDate(f.due_date) }}</strong></span>
+                  <span class="meta-tag">Due Date: <strong>{{ formatDate(f.due_date) }}</strong></span>
                   <span class="meta-sep">&bull;</span>
-                  <span>Academic Year: {{ f.fee_structure?.academic_year || selectedYear }}</span>
+                  <span class="meta-tag">Session: {{ f.fee_structure?.academic_year || selectedYear }}</span>
                 </div>
               </div>
               <div class="invoice-status">
@@ -168,24 +212,24 @@ onMounted(() => {
             <!-- Financial Breakdown Grid -->
             <div class="breakdown-grid">
               <div class="b-item">
-                <span class="b-lbl">AMOUNT DUE</span>
-                <span class="b-val">${{ Number(f.amount_due).toFixed(2) }}</span>
+                <span class="b-lbl">GROSS AMOUNT</span>
+                <span class="b-val font-semibold">${{ Number(f.amount_due).toFixed(2) }}</span>
               </div>
               <div class="b-item">
-                <span class="b-lbl">DISCOUNT</span>
-                <span class="b-val text-muted">${{ Number(f.discount_amount).toFixed(2) }}</span>
+                <span class="b-lbl">DISCOUNT / WAIVER</span>
+                <span class="b-val text-slate-500">${{ Number(f.discount_amount).toFixed(2) }}</span>
               </div>
               <div class="b-item">
                 <span class="b-lbl">NET BILLED</span>
-                <span class="b-val font-bold">${{ Number(f.net_amount).toFixed(2) }}</span>
+                <span class="b-val font-bold text-slate-900">${{ Number(f.net_amount).toFixed(2) }}</span>
               </div>
               <div class="b-item">
                 <span class="b-lbl">PAID TO DATE</span>
-                <span class="b-val text-emerald font-bold">${{ Number(f.total_paid).toFixed(2) }}</span>
+                <span class="b-val font-bold text-emerald-600">${{ Number(f.total_paid).toFixed(2) }}</span>
               </div>
-              <div class="b-item">
+              <div class="b-item highlight-box" :class="f.balance_remaining > 0 ? 'box-due' : 'box-cleared'">
                 <span class="b-lbl">BALANCE REMAINING</span>
-                <span class="b-val font-bold" :class="f.balance_remaining > 0 ? 'text-rose' : 'text-emerald'">
+                <span class="b-val font-bold" :class="f.balance_remaining > 0 ? 'text-rose-600' : 'text-emerald-600'">
                   ${{ Number(f.balance_remaining).toFixed(2) }}
                 </span>
               </div>
@@ -193,16 +237,22 @@ onMounted(() => {
 
             <!-- Payment Receipts Nested -->
             <div v-if="f.payments && f.payments.length > 0" class="receipts-wrapper">
-              <h5 class="receipts-heading">Verified Payment Transactions</h5>
+              <div class="receipts-header-row">
+                <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <h5 class="receipts-heading">Verified Payment Transactions ({{ f.payments.length }})</h5>
+              </div>
+
               <div class="receipts-cards-grid">
                 <div v-for="p in f.payments" :key="p.id" class="receipt-card">
                   <div class="r-top">
                     <span class="r-num">{{ p.receipt_number }}</span>
-                    <strong class="r-amt text-emerald">+${{ Number(p.amount_paid).toFixed(2) }}</strong>
+                    <strong class="r-amt text-emerald-600">+${{ Number(p.amount_paid).toFixed(2) }}</strong>
                   </div>
                   <div class="r-meta-row">
                     <span>Method: <strong>{{ p.payment_method }}</strong></span>
-                    <span v-if="p.reference_number">&bull; Ref: {{ p.reference_number }}</span>
+                    <span v-if="p.reference_number" class="r-ref">&bull; Ref: {{ p.reference_number }}</span>
                   </div>
                   <div class="r-date">Recorded: {{ formatDate(p.payment_date) }}</div>
                 </div>
@@ -210,11 +260,14 @@ onMounted(() => {
             </div>
 
             <div v-else class="no-payments-note">
-              No payments recorded against this invoice yet.
+              <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>No payments recorded against this invoice yet.</span>
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 </template>
@@ -224,116 +277,165 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
+}
+
+.page-header {
+  margin-bottom: 0.25rem;
 }
 
 .header-content-row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .page-title {
-  font-size: 1.6rem;
+  font-size: 1.45rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: #0F172A;
   margin: 0;
 }
 
 .page-subtitle {
-  font-size: 0.88rem;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: #64748B;
+  margin: 0.25rem 0 0 0;
 }
 
+/* Academic Year Selector */
 .year-selector-wrap {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  padding: 0.4rem 0.75rem;
-  border-radius: 8px;
+  gap: 0.65rem;
 }
 
 .selector-lbl {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: #475569;
+}
+
+.select-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
 .year-select {
-  background: var(--bg-surface-secondary);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-  padding: 0.35rem 0.65rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
+  appearance: none;
+  background-color: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  padding: 0.45rem 2.25rem 0.45rem 0.85rem;
+  font-size: 0.84rem;
   font-weight: 600;
-  outline: none;
+  color: #1E293B;
   cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.year-select:focus {
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.select-chevron {
+  position: absolute;
+  right: 0.65rem;
+  width: 16px;
+  height: 16px;
+  color: #64748B;
+  pointer-events: none;
+}
+
+/* Base Card Style */
+.card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
 }
 
 /* Summary Grid */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .summary-card {
-  padding: 1.25rem;
+  padding: 1.35rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  border-left: 4px solid var(--brand-primary);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-left-width: 4px;
+  justify-content: space-between;
 }
 
-.summary-card.blue { border-left-color: #0284c7; }
-.summary-card.green { border-left-color: #10b981; }
-.summary-card.red { border-left-color: #ef4444; }
+.sum-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
 
 .sum-label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  color: #64748B;
 }
 
+.sum-icon-box {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sum-icon-box svg {
+  width: 18px;
+  height: 18px;
+}
+
+.bg-blue-tint { background: #EFF6FF; color: #2563EB; }
+.bg-emerald-tint { background: #ECFDF5; color: #059669; }
+.bg-rose-tint { background: #FEF2F2; color: #DC2626; }
+
 .sum-val {
-  font-size: 1.6rem;
+  font-size: 1.65rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: #0F172A;
+  line-height: 1.15;
+  margin-bottom: 0.35rem;
 }
 
 .sum-sub {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+  font-size: 0.74rem;
+  color: #64748B;
 }
-
-.text-emerald { color: #10b981; }
-.text-rose { color: #ef4444; }
 
 /* Cleared Banner */
 .cleared-banner {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(2, 132, 199, 0.05) 100%);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  border-left: 4px solid #10b981;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  border-left: 4px solid #10B981;
   padding: 1rem 1.25rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .cleared-icon-wrap {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: rgba(16, 185, 129, 0.15);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #D1FAE5;
+  color: #059669;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -341,57 +443,61 @@ onMounted(() => {
 }
 
 .cleared-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: #10b981;
+  width: 20px;
+  height: 20px;
 }
 
 .cleared-title {
-  font-size: 0.85rem;
-  color: #10b981;
-  letter-spacing: 0.05em;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #065F46;
+  letter-spacing: 0.03em;
   display: block;
 }
 
 .cleared-desc {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
+  font-size: 0.78rem;
+  color: #047857;
   margin: 0.2rem 0 0 0;
 }
 
-/* Invoices List */
+/* Invoices Section */
 .content-stack {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
-}
-
-.section-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .section-title-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .section-title {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--text-primary);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F172A;
   margin: 0;
+}
+
+.section-sub {
+  font-size: 0.78rem;
+  color: #64748B;
+  margin: 0.2rem 0 0 0;
 }
 
 .badge-count {
   font-size: 0.75rem;
   font-weight: 700;
-  background-color: var(--bg-surface-secondary);
-  color: var(--text-muted);
-  padding: 0.2rem 0.55rem;
-  border-radius: 12px;
+  background: #F1F5F9;
+  color: #475569;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  border: 1px solid #E2E8F0;
 }
 
 .invoices-list {
@@ -405,94 +511,116 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-top: 3px solid #10b981;
 }
 
 .invoice-header {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #F1F5F9;
   flex-wrap: wrap;
-  gap: 0.75rem;
 }
 
-.inv-num {
-  font-size: 0.72rem;
-  font-family: monospace;
-  font-weight: 700;
-  color: #10b981;
-  letter-spacing: 0.05em;
-  display: block;
+.inv-num-pill {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #2563EB;
+  background: #EFF6FF;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 0.35rem;
 }
 
 .fee-name {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  color: var(--text-primary);
-  margin: 0.2rem 0;
+  color: #0F172A;
+  margin: 0 0 0.25rem 0;
 }
 
 .fee-meta {
-  font-size: 0.82rem;
-  color: var(--text-muted);
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: #64748B;
 }
 
-.fee-meta strong {
-  color: var(--text-primary);
+.meta-tag strong {
+  color: #1E293B;
 }
 
 .meta-sep {
-  color: var(--border-subtle);
+  color: #CBD5E1;
 }
 
-/* Breakdown Grid */
+/* Financial Breakdown Grid (5 columns) */
 .breakdown-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 0.75rem;
-  background: var(--bg-surface-secondary);
+  gap: 0.85rem;
+  background: #F8FAFC;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
 }
 
 .b-item {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  line-height: 1.2;
 }
 
 .b-lbl {
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 700;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
+  color: #64748B;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.25rem;
 }
 
 .b-val {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 1.05rem;
+  color: #1E293B;
 }
 
-/* Receipts */
+.highlight-box {
+  padding: 0.4rem 0.65rem;
+  border-radius: 8px;
+}
+
+.box-due {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+}
+
+.box-cleared {
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+}
+
+/* Payment Receipts */
 .receipts-wrapper {
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 1rem;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.receipts-header-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
 }
 
 .receipts-heading {
-  font-size: 0.88rem;
-  font-weight: 800;
-  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F172A;
   margin: 0;
 }
 
@@ -503,11 +631,10 @@ onMounted(() => {
 }
 
 .receipt-card {
-  background: var(--bg-surface-secondary);
-  border: 1px solid var(--border-subtle);
-  border-left: 3px solid #10b981;
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -515,95 +642,185 @@ onMounted(() => {
 
 .r-top {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 }
 
 .r-num {
-  font-size: 0.75rem;
-  font-family: monospace;
+  font-size: 0.74rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #0F172A;
+  font-family: monospace;
 }
 
 .r-amt {
-  font-size: 0.95rem;
+  font-size: 0.86rem;
   font-weight: 800;
 }
 
 .r-meta-row {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
+  font-size: 0.72rem;
+  color: #475569;
+}
+
+.r-ref {
+  color: #64748B;
 }
 
 .r-date {
-  font-size: 0.7rem;
-  color: var(--text-muted);
+  font-size: 0.68rem;
+  color: #94A3B8;
+  margin-top: 0.15rem;
 }
 
 .no-payments-note {
-  font-size: 0.8rem;
-  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: #64748B;
   font-style: italic;
-  padding: 0.5rem 0;
+  padding: 0.35rem 0;
 }
 
-/* Common states */
-.loading-card, .error-card, .empty-card {
-  padding: 3.5rem;
-  text-align: center;
+/* Loading, Error, Empty */
+.loading-card,
+.empty-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: #64748B;
 }
 
 .spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid var(--border-subtle);
-  border-top-color: #10b981;
+  border: 3px solid #E2E8F0;
+  border-top-color: #10B981;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+  margin-bottom: 0.65rem;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
-.empty-title, .error-title {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--text-primary);
+.error-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background-color: #FEF2F2;
+  border-color: #FECACA;
+  color: #991B1B;
+}
+
+.error-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #FEE2E2;
+  color: #DC2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.error-icon-box svg {
+  width: 22px;
+  height: 22px;
+}
+
+.error-content {
+  flex: 1;
+}
+
+.error-title {
+  font-size: 0.95rem;
+  font-weight: 700;
   margin: 0;
 }
 
-.empty-desc, .error-desc {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin: 0;
+.error-desc {
+  font-size: 0.82rem;
+  margin: 0.2rem 0 0 0;
+  color: #B91C1C;
 }
 
 .retry-btn {
-  background-color: #0f172a;
-  color: #fff;
-  border: 1px solid #334155;
-  padding: 0.4rem 1rem;
-  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  background-color: #DC2626;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
 }
 
-@media (max-width: 900px) {
+.empty-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #F1F5F9;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.empty-icon {
+  width: 26px;
+  height: 26px;
+}
+
+.empty-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 0.25rem 0;
+}
+
+.empty-desc {
+  font-size: 0.82rem;
+  color: #64748B;
+  max-width: 420px;
+  margin: 0;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+  .summary-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .breakdown-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
   .summary-grid {
     grid-template-columns: 1fr;
+    gap: 0.85rem;
   }
   .breakdown-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .invoice-card {
+    padding: 1.15rem;
   }
 }
 
 @media (max-width: 480px) {
   .breakdown-grid {
     grid-template-columns: 1fr;
+    gap: 0.65rem;
   }
 }
 </style>

@@ -692,6 +692,7 @@ function resetForm() {
   top: -90px;
   left: -80px;
   width: 440px;
+  max-width: 100vw;
   height: 440px;
   background: radial-gradient(circle, rgba(18, 100, 232, 0.08) 0%, rgba(245, 248, 253, 0) 70%);
   border-radius: 50%;
@@ -703,6 +704,7 @@ function resetForm() {
   top: -80px;
   right: -70px;
   width: 450px;
+  max-width: 100vw;
   height: 450px;
   background: radial-gradient(circle, rgba(255, 101, 0, 0.06) 0%, rgba(245, 248, 253, 0) 70%);
   border-radius: 50%;
@@ -1618,8 +1620,16 @@ function resetForm() {
 }
 
 @media (max-width: 768px) {
+  .contact-section {
+    padding: 55px 0 75px;
+  }
+
+  .contact-container {
+    padding: 0 clamp(0.85rem, 3vw, 1.5rem);
+  }
+
   .section-title {
-    font-size: 2.15rem;
+    font-size: clamp(1.85rem, 5vw, 2.35rem);
   }
 
   .info-building-layout {
@@ -1632,7 +1642,7 @@ function resetForm() {
   }
 
   .building-image-container {
-    height: 200px;
+    height: 180px;
   }
 
   .floating-support-card {
@@ -1643,32 +1653,68 @@ function resetForm() {
 
   .form-row-2 {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    font-size: 16px;
+    min-height: 46px;
+  }
+
+  .btn-submit {
+    min-height: 48px;
+    width: 100%;
+    justify-content: center;
+    font-size: 1rem;
   }
 
   .bottom-trust-strip {
     grid-template-columns: 1fr;
     gap: 1.25rem;
+    padding: 1.25rem;
   }
 
   .wave-left,
   .wave-right {
-    opacity: 0.5;
+    opacity: 0.35;
+    max-width: 40vw;
   }
 }
 
 @media (max-width: 480px) {
+  .contact-badge-pill {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.85rem;
+  }
+
   .section-title {
-    font-size: 1.85rem;
+    font-size: clamp(1.65rem, 5.5vw, 2.05rem);
   }
 
   .contact-info-card,
   .contact-form-card {
-    padding: 1.75rem 1.25rem 1.5rem;
+    padding: 1.5rem 1.15rem 1.35rem;
+    border-radius: 16px;
   }
 
-  .contact-badge-pill {
-    font-size: 0.72rem;
-    padding: 0.3rem 0.9rem;
+  .contact-item {
+    gap: 0.75rem;
+  }
+
+  .contact-icon-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+  }
+
+  .item-title {
+    font-size: 0.85rem;
+  }
+
+  .item-detail {
+    font-size: 0.82rem;
   }
 }
 </style>

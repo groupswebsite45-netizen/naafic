@@ -386,7 +386,7 @@ async function handleSaveDraft() {
       })),
     };
     const res = await resultWorkflowService.saveTeacherDraft(payload);
-    showNotification('success', res.message || 'Draft saved successfully in PostgreSQL.');
+    showNotification('success', res.message || 'Draft saved successfully in database.');
     await loadAssignments();
   } catch (err: any) {
     showNotification('error', err?.response?.data?.error?.message || err?.response?.data?.detail || 'Failed to save draft.');
@@ -426,7 +426,6 @@ async function handleConfirmSubmit() {
     isConfirmSubmitOpen.value = false;
     isModalOpen.value = false;
     await loadAssignments();
-    // Switch to history tab to show the submitted result
     activeTab.value = 'history';
   } catch (err: any) {
     showNotification('error', err?.response?.data?.error?.message || err?.response?.data?.detail || 'Failed to submit results.');
@@ -454,6 +453,12 @@ onMounted(() => {
     <!-- Notification Toast -->
     <div v-if="notification" class="toast-banner" :class="notification.type">
       <div class="toast-content">
+        <svg v-if="notification.type === 'success'" class="toast-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        <svg v-else class="toast-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
         <span>{{ notification.message }}</span>
         <button class="toast-close" aria-label="Dismiss notification" @click="notification = null">&times;</button>
       </div>
@@ -462,11 +467,18 @@ onMounted(() => {
     <!-- Page Header -->
     <div class="page-header">
       <div class="header-titles">
-        <h1 class="page-title">Exams & Marks Entry Portal</h1>
+        <div class="somroyal-tag">
+          <svg class="crown-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+          </svg>
+          <span>EXAMINATIONS &amp; EVALUATIONS &bull; MARKS ENTRY</span>
+        </div>
+        <h1 class="page-title">Exams &amp; Marks Entry</h1>
         <p class="page-subtitle">
-          Create examinations for your assigned classes, enter student marks, attach papers, and submit results to Administration.
+          Create quizzes for assigned classes, enter student marks, attach paper evidence, and submit official result sheets to Administration.
         </p>
       </div>
+
       <div class="header-actions">
         <button
           type="button"
@@ -476,13 +488,13 @@ onMounted(() => {
           <svg class="btn-create-icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
           </svg>
-          <span>Create New Exam</span>
+          <span>Create New Quiz</span>
         </button>
       </div>
     </div>
 
     <!-- Filters Bar -->
-    <div class="filters-card card">
+    <div class="filters-card">
       <div class="filters-grid">
         <div class="form-group">
           <label class="form-label">Academic Year</label>
@@ -493,7 +505,7 @@ onMounted(() => {
         </div>
 
         <div class="form-group">
-          <label class="form-label">Class</label>
+          <label class="form-label">Assigned Class</label>
           <select v-model="selectedClass" class="form-select">
             <option value="ALL">All Assigned Classes ({{ availableClasses.length }})</option>
             <option v-for="c in availableClasses" :key="c" :value="c">{{ c }}</option>
@@ -501,7 +513,7 @@ onMounted(() => {
         </div>
 
         <div class="form-group">
-          <label class="form-label">Subject</label>
+          <label class="form-label">Assigned Subject</label>
           <select v-model="selectedSubject" class="form-select">
             <option value="ALL">All Assigned Subjects ({{ availableSubjects.length }})</option>
             <option v-for="s in availableSubjects" :key="s" :value="s">{{ s }}</option>
@@ -516,7 +528,7 @@ onMounted(() => {
         type="button"
         class="workflow-tab-btn"
         :class="{ active: activeTab === 'active' }"
-        @click="activeTab = 'active'"
+        @click="activeTab === 'active'"
       >
         <svg class="tab-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -526,11 +538,12 @@ onMounted(() => {
           {{ activeAssignments.length }}
         </span>
       </button>
+
       <button
         type="button"
         class="workflow-tab-btn"
         :class="{ active: activeTab === 'history' }"
-        @click="activeTab = 'history'"
+        @click="activeTab === 'history'"
       >
         <svg class="tab-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -543,28 +556,32 @@ onMounted(() => {
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="loading-box card">
-      <div class="spinner" />
-      <span>Loading examination streams from PostgreSQL...</span>
+    <div v-if="isLoading" class="state-card loading">
+      <div class="spinner-ring" />
+      <span class="loading-label">Loading examination streams from database...</span>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="displayedAssignments.length === 0" class="card empty-box">
-      <svg class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-      <p class="empty-title">{{ activeTab === 'active' ? 'No Pending Result Entry Tasks' : 'No Submitted Result Sheets' }}</p>
-      <p class="empty-desc">
+    <div v-else-if="displayedAssignments.length === 0" class="state-card empty">
+      <div class="empty-icon-circle">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <h3 class="state-title">
+        {{ activeTab === 'active' ? 'No Pending Result Entry Tasks' : 'No Submitted Result Sheets' }}
+      </h3>
+      <p class="state-desc">
         {{ activeTab === 'active' ? 'All your assigned subject results have been completed and submitted to Administration.' : 'Submitted exam result sheets and admin reviews will be preserved here permanently.' }}
       </p>
       <button
         v-if="activeTab === 'active'"
         type="button"
-        class="btn btn-primary"
-        style="margin-top: 1rem;"
+        class="btn-create-exam"
+        style="margin-top: 0.5rem;"
         @click="isCreateModalOpen = true"
       >
-        + Create New Exam
+        + Create New Quiz
       </button>
     </div>
 
@@ -573,7 +590,7 @@ onMounted(() => {
       <div
         v-for="item in displayedAssignments"
         :key="item.exam_id"
-        class="stream-card card"
+        class="stream-card"
         :class="{ 'card-overdue': item.is_overdue && item.status !== 'SUBMITTED' && item.status !== 'APPROVED' && item.status !== 'RELEASED' }"
       >
         <div class="stream-header">
@@ -590,9 +607,9 @@ onMounted(() => {
                 {{ item.remaining_time_human }}
               </span>
             </div>
-            <span class="exam-title">{{ item.exam_name }}</span>
+            <h3 class="exam-title">{{ item.exam_name }}</h3>
             <span class="exam-scope">
-              {{ item.class_name }}<template v-if="item.class_section"> ({{ item.class_section }})</template> • {{ item.subject_name }}
+              {{ item.class_name }}<template v-if="item.class_section"> (Sec {{ item.class_section }})</template> &bull; {{ item.subject_name }}
             </span>
           </div>
           <ResultStatusBadge :status="item.status" />
@@ -600,7 +617,7 @@ onMounted(() => {
 
         <!-- Overdue Notice in Card -->
         <div v-if="item.is_overdue && item.status !== 'SUBMITTED' && item.status !== 'APPROVED' && item.status !== 'RELEASED'" class="alert-box-small danger">
-          <strong>⚠️ Submissions Overdue:</strong> Deadline passed ({{ item.remaining_time_human }}). Contact School Admin to request an extension.
+          <strong>⚠️ Submissions Overdue:</strong> Deadline passed ({{ item.remaining_time_human }}). Contact School Admin for an extension.
         </div>
 
         <!-- Returned Warning Alert -->
@@ -610,7 +627,7 @@ onMounted(() => {
 
         <!-- Deadline row -->
         <div v-if="item.result_submission_deadline" class="stream-deadline-bar">
-          <span class="deadline-title">Submission Deadline:</span>
+          <span class="deadline-title">Deadline:</span>
           <span class="deadline-time">{{ formatDeadline(item.result_submission_deadline) }}</span>
         </div>
 
@@ -627,12 +644,12 @@ onMounted(() => {
 
         <div class="stream-meta-row">
           <span>Max Marks: <strong>{{ item.max_marks }}</strong></span>
-          <span>Pass Marks: <strong>{{ item.pass_marks }}</strong></span>
+          <span>Passing Marks: <strong>{{ item.pass_marks }}</strong></span>
         </div>
 
         <div class="stream-actions">
           <button
-            class="btn btn-primary btn-touch btn-block"
+            class="btn-open-roster"
             :class="{ 'btn-overdue': item.is_overdue && item.status !== 'SUBMITTED' && item.status !== 'APPROVED' && item.status !== 'RELEASED' }"
             @click="openRosterModal(item)"
           >
@@ -650,24 +667,22 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- =================================================================== -->
-    <!-- ROSTER ENTRY MODAL (FIXED & FULLY OPTIMIZED FOR MOBILE)             -->
-    <!-- =================================================================== -->
+    <!-- ROSTER ENTRY MODAL -->
     <div v-if="isModalOpen && activeAssignment" class="modal-backdrop" @click="isModalOpen = false">
       <div class="modal-card full-modal" @click.stop>
-        <!-- Modal Header (Fixed / Sticky at Top) -->
+        <!-- Modal Header -->
         <header class="modal-header">
           <div class="header-main-col">
             <div class="header-tag-line">
-              <span class="class-badge">{{ activeAssignment.class_name }}</span>
-              <span class="subject-badge">{{ activeAssignment.subject_name }}</span>
+              <span class="class-badge-pill">{{ activeAssignment.class_name }}</span>
+              <span class="subject-badge-pill">{{ activeAssignment.subject_name }}</span>
               <ResultStatusBadge :status="activeAssignment.status" />
             </div>
             <h2 class="modal-exam-name">{{ activeAssignment.exam_name }}</h2>
           </div>
           <button
-            class="modal-close-btn"
-            aria-label="Close exam details modal"
+            class="modal-close"
+            aria-label="Close modal"
             @click="isModalOpen = false"
           >
             &times;
@@ -680,7 +695,7 @@ onMounted(() => {
           <div v-if="activeAssignment.result_submission_deadline || activeAssignment.instructions" class="deadline-instructions-card" :class="{ 'is-overdue': activeAssignment.is_overdue }">
             <div class="deadline-header-row">
               <div class="deadline-info">
-                <span class="meta-label">Result Submission Deadline:</span>
+                <span class="meta-label">Submission Deadline:</span>
                 <span class="meta-date">{{ formatDeadline(activeAssignment.result_submission_deadline) }}</span>
               </div>
               <div v-if="activeAssignment.remaining_time_human" class="deadline-countdown-badge" :class="activeAssignment.deadline_status">
@@ -701,13 +716,13 @@ onMounted(() => {
 
           <!-- Overdue Alert -->
           <div v-if="isOverdue && !isSubmittedOrApproved" class="alert-box-compact danger">
-            <div class="alert-compact-title">⚠️ Result Submission Deadline Passed</div>
+            <div class="alert-compact-title">⚠️ Submission Deadline Passed</div>
             <p class="alert-compact-desc">
-              The result submission deadline for this examination has passed ({{ activeAssignment.remaining_time_human }}). Mark modifications and submissions are locked. Please contact the School Administrator to request an extension or reopen access.
+              The deadline for this assessment passed ({{ activeAssignment.remaining_time_human }}). Mark modifications and submissions are locked.
             </p>
           </div>
 
-          <!-- Submission Locked Compact Alert -->
+          <!-- Submission Locked Alert -->
           <div v-else-if="isSubmittedOrApproved" class="alert-box-compact info">
             <div class="alert-compact-title">🔒 Submission Locked</div>
             <p class="alert-compact-desc">
@@ -715,11 +730,11 @@ onMounted(() => {
             </p>
           </div>
 
-          <!-- KPI / Summary Grid (Multi-Col Responsive) -->
+          <!-- KPI Summary Strip -->
           <div class="roster-summary-grid">
             <div class="kpi-box">
               <span class="kpi-label">TOTAL</span>
-              <span class="kpi-value">{{ rosterStudents.length }}</span>
+              <span class="kpi-value text-navy">{{ rosterStudents.length }}</span>
             </div>
             <div class="kpi-box">
               <span class="kpi-label">COMPLETED</span>
@@ -743,26 +758,26 @@ onMounted(() => {
             </div>
             <div class="kpi-box kpi-max-box">
               <span class="kpi-label">MAX MARKS</span>
-              <span class="kpi-value">{{ activeAssignment.max_marks }}</span>
+              <span class="kpi-value text-navy">{{ activeAssignment.max_marks }}</span>
             </div>
           </div>
 
           <!-- Loading Indicator -->
-          <div v-if="isRosterLoading" class="loading-state">
-            <div class="spinner" />
-            <span>Loading student roster and scores from database...</span>
+          <div v-if="isRosterLoading" class="state-container loading">
+            <div class="spinner-ring" />
+            <span class="loading-label">Loading student roster and scores from database...</span>
           </div>
 
           <div v-else class="roster-data-wrap">
-            <!-- 1. Desktop Table View (>= 769px) -->
+            <!-- 1. Desktop Table View -->
             <div class="desktop-table-container">
-              <table class="roster-table">
+              <table class="somroyal-table">
                 <thead>
                   <tr>
                     <th style="width: 40px;">#</th>
                     <th>Student Name</th>
                     <th>Admission #</th>
-                    <th style="width: 120px;">Attendance</th>
+                    <th style="width: 125px;">Attendance</th>
                     <th style="width: 110px;">Marks (/{{ activeAssignment.max_marks }})</th>
                     <th style="width: 70px; text-align: center;">Grade</th>
                     <th style="width: 170px;">Absence Reason</th>
@@ -774,8 +789,8 @@ onMounted(() => {
                 <tbody>
                   <tr v-for="(std, idx) in rosterStudents" :key="std.student_id">
                     <td class="text-muted font-mono">{{ idx + 1 }}</td>
-                    <td class="font-bold">{{ std.student_name }}</td>
-                    <td><code>{{ std.admission_number }}</code></td>
+                    <td class="font-bold text-navy">{{ std.student_name }}</td>
+                    <td><code class="adm-code">{{ std.admission_number }}</code></td>
                     <td>
                       <select
                         v-model="std.attendance_status"
@@ -801,12 +816,16 @@ onMounted(() => {
                         :disabled="isLocked"
                         @input="handleMarksInput(std)"
                       />
-                      <span v-else class="text-muted status-tag">{{ std.attendance_status }}</span>
+                      <span v-else class="text-muted font-semibold">&ndash;</span>
                     </td>
                     <td style="text-align: center;">
                       <span
                         class="grade-pill"
-                        :class="std.grade ? std.grade.toLowerCase().replace('+', '-plus') : 'empty'"
+                        :class="{
+                          'grade-pass': ['A+', 'A', 'B', 'C', 'D'].includes(std.grade || ''),
+                          'grade-fail': std.grade === 'F',
+                          'grade-abs': std.grade === 'ABSENT' || std.grade === 'EXCUSED'
+                        }"
                       >
                         {{ std.grade || '—' }}
                       </span>
@@ -816,18 +835,18 @@ onMounted(() => {
                         v-if="std.attendance_status !== 'PRESENT'"
                         v-model="std.absence_reason"
                         type="text"
-                        class="roster-remark-input"
-                        placeholder="e.g. Medical / Unwell"
+                        class="roster-text-input"
+                        placeholder="Reason for absence..."
                         :disabled="isLocked"
                       />
-                      <span v-else class="text-muted" style="font-size: 0.8rem; text-align: center; display: block;">—</span>
+                      <span v-else class="text-muted font-normal">&ndash;</span>
                     </td>
                     <td>
                       <input
                         v-model="std.complaint"
                         type="text"
-                        class="roster-remark-input"
-                        placeholder="Optional complaint..."
+                        class="roster-text-input"
+                        placeholder="Complaint / dispute..."
                         :disabled="isLocked"
                       />
                     </td>
@@ -835,40 +854,43 @@ onMounted(() => {
                       <input
                         v-model="std.remarks"
                         type="text"
-                        class="roster-remark-input"
-                        placeholder="Optional notes"
+                        class="roster-text-input"
+                        placeholder="Remarks..."
                         :disabled="isLocked"
                       />
                     </td>
                     <td>
-                      <div class="paper-upload-cell">
-                        <div v-if="std.paper_file_path" class="uploaded-paper-tag">
-                          <svg class="paper-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          <button type="button" class="paper-name-btn" @click="handlePreviewPaper(std)">
-                            {{ std.paper_original_name || 'View Paper' }}
+                      <!-- Paper Upload / Preview -->
+                      <div class="paper-action-cell">
+                        <div v-if="std.paper_file_path" class="paper-badge-group">
+                          <button
+                            type="button"
+                            class="btn-view-paper"
+                            title="Preview uploaded exam paper"
+                            @click="handlePreviewPaper(std)"
+                          >
+                            📄 View
                           </button>
                           <button
                             v-if="!isLocked"
                             type="button"
-                            class="paper-del-btn"
-                            title="Remove Paper"
+                            class="btn-delete-paper"
+                            title="Delete exam paper"
                             @click="handleDeletePaper(std)"
                           >
                             &times;
                           </button>
                         </div>
-                        <label v-else-if="!isLocked" class="upload-paper-btn" :class="{ disabled: std.isUploadingPaper }">
+                        <label v-else-if="!isLocked" class="btn-upload-paper">
                           <input
                             type="file"
-                            accept=".jpg,.jpeg,.png,.pdf"
+                            accept=".pdf,.png,.jpg,.jpeg"
                             style="display: none;"
                             @change="handlePaperUpload(std, $event)"
                           />
-                          <span>{{ std.isUploadingPaper ? 'Uploading...' : '+ Attach Paper' }}</span>
+                          <span>{{ std.isUploadingPaper ? '...' : '+ Paper' }}</span>
                         </label>
-                        <span v-else class="text-muted" style="font-size: 0.75rem;">No Paper Attached</span>
+                        <span v-else class="text-muted">&ndash;</span>
                       </div>
                     </td>
                   </tr>
@@ -876,260 +898,219 @@ onMounted(() => {
               </table>
             </div>
 
-            <!-- 2. Mobile Student Cards View (<= 768px) -->
-            <div class="mobile-student-cards-list">
-              <article
+            <!-- 2. Mobile Roster Cards -->
+            <div class="mobile-roster-list">
+              <div
                 v-for="(std, idx) in rosterStudents"
                 :key="std.student_id"
-                class="mobile-student-entry-card"
+                class="mobile-std-card"
               >
-                <!-- Card Header -->
-                <div class="m-card-header">
-                  <span class="m-student-index">#{{ idx + 1 }}</span>
-                  <div class="m-student-identity">
-                    <h4 class="m-student-name">{{ std.student_name }}</h4>
-                    <span class="m-student-adm">Admission: <code>{{ std.admission_number }}</code></span>
+                <div class="m-card-top-row">
+                  <div class="m-std-info">
+                    <span class="m-idx">#{{ idx + 1 }}</span>
+                    <div>
+                      <h4 class="m-name">{{ std.student_name }}</h4>
+                      <code class="adm-code">{{ std.admission_number }}</code>
+                    </div>
                   </div>
-                </div>
-
-                <div class="m-card-divider" />
-
-                <!-- Attendance Row -->
-                <div class="m-field-group">
-                  <label class="m-field-label">ATTENDANCE</label>
-                  <select
-                    v-model="std.attendance_status"
-                    class="m-select-input"
-                    :disabled="isLocked"
-                    @change="handleAttendanceChange(std)"
+                  <span
+                    class="grade-pill"
+                    :class="{
+                      'grade-pass': ['A+', 'A', 'B', 'C', 'D'].includes(std.grade || ''),
+                      'grade-fail': std.grade === 'F',
+                      'grade-abs': std.grade === 'ABSENT' || std.grade === 'EXCUSED'
+                    }"
                   >
-                    <option value="PRESENT">Present</option>
-                    <option value="ABSENT">Absent</option>
-                    <option value="EXCUSED">Excused</option>
-                  </select>
+                    Grade: {{ std.grade || '—' }}
+                  </span>
                 </div>
 
-                <!-- Marks Row -->
-                <div class="m-field-group">
-                  <label class="m-field-label">MARKS</label>
-                  <div v-if="std.attendance_status === 'PRESENT'" class="m-marks-input-row">
+                <div class="m-fields-grid">
+                  <div class="m-field">
+                    <label class="m-field-lbl">Attendance</label>
+                    <select
+                      v-model="std.attendance_status"
+                      class="roster-select"
+                      :disabled="isLocked"
+                      @change="handleAttendanceChange(std)"
+                    >
+                      <option value="PRESENT">Present</option>
+                      <option value="ABSENT">Absent</option>
+                      <option value="EXCUSED">Excused</option>
+                    </select>
+                  </div>
+
+                  <div class="m-field">
+                    <label class="m-field-lbl">Score (/{{ activeAssignment.max_marks }})</label>
                     <input
+                      v-if="std.attendance_status === 'PRESENT'"
                       v-model.number="std.marks_obtained"
                       type="number"
                       inputmode="decimal"
-                      class="m-marks-input"
+                      class="roster-mark-input"
                       :min="0"
                       :max="std.max_marks"
-                      placeholder="0"
+                      placeholder="Score"
                       :disabled="isLocked"
                       @input="handleMarksInput(std)"
                     />
-                    <span class="m-max-marks-label">/ {{ std.max_marks }}</span>
-                  </div>
-                  <div v-else class="m-absent-notice">
-                    <span>Student marked <strong>{{ std.attendance_status }}</strong> (Scores disabled)</span>
+                    <span v-else class="text-muted">&ndash;</span>
                   </div>
                 </div>
 
-                <!-- Absence Reason Row (when Absent or Excused) -->
-                <div v-if="std.attendance_status !== 'PRESENT'" class="m-field-group">
-                  <label class="m-field-label">ABSENCE REASON</label>
+                <div v-if="std.attendance_status !== 'PRESENT'" class="m-field">
+                  <label class="m-field-lbl text-rose">Absence Reason</label>
                   <input
                     v-model="std.absence_reason"
                     type="text"
-                    class="m-marks-input"
-                    style="text-align: left; font-size: 0.85rem;"
-                    placeholder="e.g. Medical / Unwell"
+                    class="roster-text-input"
+                    placeholder="Specify why student was absent..."
                     :disabled="isLocked"
                   />
                 </div>
 
-                <!-- Complaint Row -->
-                <div class="m-field-group">
-                  <label class="m-field-label">STUDENT COMPLAINT / INQUIRY</label>
-                  <input
-                    v-model="std.complaint"
-                    type="text"
-                    class="m-marks-input"
-                    style="text-align: left; font-size: 0.85rem;"
-                    placeholder="Optional student complaint..."
-                    :disabled="isLocked"
-                  />
-                </div>
-
-                <!-- Grade Row -->
-                <div class="m-field-group">
-                  <label class="m-field-label">GRADE</label>
-                  <div class="m-grade-display">
-                    <span
-                      class="grade-pill lg"
-                      :class="std.grade ? std.grade.toLowerCase().replace('+', '-plus') : 'empty'"
-                    >
-                      {{ std.grade ? `${std.grade}` : '—' }}
-                    </span>
-                    <span v-if="std.grade && std.attendance_status === 'PRESENT'" class="m-grade-subtext">
-                      {{ (std.marks_obtained || 0) >= (activeAssignment.pass_marks || 50) ? 'Pass' : 'Needs Improvement' }}
-                    </span>
+                <div class="m-fields-grid">
+                  <div class="m-field">
+                    <label class="m-field-lbl">Student Complaint</label>
+                    <input
+                      v-model="std.complaint"
+                      type="text"
+                      class="roster-text-input"
+                      placeholder="Complaint notes..."
+                      :disabled="isLocked"
+                    />
+                  </div>
+                  <div class="m-field">
+                    <label class="m-field-lbl">Remarks</label>
+                    <input
+                      v-model="std.remarks"
+                      type="text"
+                      class="roster-text-input"
+                      placeholder="Remarks..."
+                      :disabled="isLocked"
+                    />
                   </div>
                 </div>
+              </div>
+            </div>
 
-                <!-- Exam Paper Row -->
-                <div class="m-field-group">
-                  <label class="m-field-label">EXAM PAPER</label>
-                  <div v-if="std.paper_file_path" class="m-paper-attached-row">
-                    <div class="m-paper-info">
-                      <span class="m-paper-title">📄 {{ std.paper_original_name || 'Exam Paper Attached' }}</span>
-                    </div>
-                    <div class="m-paper-actions">
-                      <button type="button" class="btn btn-xs btn-outline" @click="handlePreviewPaper(std)">
-                        View
-                      </button>
-                      <button
-                        v-if="!isLocked"
-                        type="button"
-                        class="btn btn-xs btn-outline-danger"
-                        @click="handleDeletePaper(std)"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                  <div v-else class="m-no-paper-row">
-                    <span class="m-no-paper-text">No Paper Attached</span>
-                    <label v-if="!isLocked" class="btn btn-xs btn-outline m-upload-btn" :class="{ disabled: std.isUploadingPaper }">
-                      <input
-                        type="file"
-                        accept=".jpg,.jpeg,.png,.pdf"
-                        style="display: none;"
-                        @change="handlePaperUpload(std, $event)"
-                      />
-                      <span>{{ std.isUploadingPaper ? 'Uploading...' : '📎 Upload Paper' }}</span>
-                    </label>
-                  </div>
-                </div>
-
-                <!-- Remarks Row -->
-                <div class="m-field-group">
-                  <label class="m-field-label">REMARKS</label>
-                  <textarea
-                    v-model="std.remarks"
-                    class="m-textarea"
-                    rows="2"
-                    placeholder="Enter teacher feedback or observations..."
-                    :disabled="isLocked"
-                  />
-                </div>
-              </article>
+            <!-- Notes Section for Admin Submission -->
+            <div class="notes-section">
+              <label class="notes-lbl">Teacher Remarks &amp; Submission Notes for School Administration</label>
+              <textarea
+                v-model="teacherNotes"
+                class="notes-textarea"
+                rows="2"
+                placeholder="Optional notes or explanations submitted to Administration along with this result sheet..."
+                :disabled="isLocked"
+              />
             </div>
           </div>
         </div>
 
-        <!-- Modal Footer (Fixed / Sticky at Bottom) -->
+        <!-- Sticky Modal Footer -->
         <footer class="modal-footer">
-          <div class="footer-status-msg">
-            <span v-if="!isReadyToSubmit && !isLocked" class="pending-warning">
-              ⚠️ {{ pendingCount }} student(s) still require marks entry.
-            </span>
-            <span v-else-if="isLocked" class="locked-indicator-pill">
-              🔒 Results {{ activeAssignment.status === 'RELEASED' ? 'Published to Students' : (activeAssignment.status === 'APPROVED' ? 'Approved by Administration' : 'Submitted to Administration (Read-Only)') }}
-            </span>
-          </div>
-          <div class="footer-action-buttons">
-            <button class="btn btn-outline btn-touch btn-footer-item" @click="isModalOpen = false">
-              Close
-            </button>
-            <button
-              v-if="!isLocked"
-              class="btn btn-outline btn-touch btn-footer-item"
-              :disabled="isSaving"
-              @click="handleSaveDraft"
-            >
-              {{ isSaving ? 'Saving Draft...' : 'Save Draft' }}
-            </button>
-            <button
-              v-if="!isLocked"
-              class="btn btn-primary btn-touch btn-footer-item btn-footer-submit"
-              :disabled="!isReadyToSubmit || isSubmitting"
-              @click="triggerSubmit"
-            >
-              Submit Results to Admin
-            </button>
-          </div>
-        </footer>
-      </div>
-    </div>
-
-    <!-- =================================================================== -->
-    <!-- SUBMIT CONFIRMATION MODAL                                           -->
-    <!-- =================================================================== -->
-    <div v-if="isConfirmSubmitOpen && activeAssignment" class="modal-backdrop" @click="isConfirmSubmitOpen = false">
-      <div class="modal-card small-modal" @click.stop>
-        <header class="modal-header">
-          <h3 class="modal-title">Submit Results to Administration</h3>
-          <button class="modal-close-btn" aria-label="Close modal" @click="isConfirmSubmitOpen = false">&times;</button>
-        </header>
-        <div class="modal-scroll-body">
-          <p class="confirm-intro">You are about to formally submit completed marks for administrative review:</p>
-          <div class="confirm-box">
-            <div><strong>Exam:</strong> {{ activeAssignment.exam_name }}</div>
-            <div><strong>Class:</strong> {{ activeAssignment.class_name }}</div>
-            <div><strong>Subject:</strong> {{ activeAssignment.subject_name }}</div>
-            <div><strong>Completed Records:</strong> {{ completedCount }} / {{ rosterStudents.length }}</div>
-          </div>
-          <div class="form-group" style="margin-top: 1rem;">
-            <label class="form-label">Optional Submission Notes for Admin</label>
-            <textarea
-              v-model="teacherNotes"
-              class="form-input"
-              rows="2"
-              placeholder="e.g., All scores entered and verified against physical answer sheets."
-            />
-          </div>
-        </div>
-        <footer class="modal-footer">
-          <button class="btn btn-outline btn-touch" :disabled="isSubmitting" @click="isConfirmSubmitOpen = false">
-            Cancel
+          <button class="btn-cancel" @click="isModalOpen = false">
+            Close
           </button>
-          <button class="btn btn-primary btn-touch" :disabled="isSubmitting" @click="handleConfirmSubmit">
-            {{ isSubmitting ? 'Submitting to Admin...' : 'Confirm Submission' }}
+
+          <button
+            v-if="!isLocked"
+            type="button"
+            class="btn-save-draft"
+            :disabled="isSaving"
+            @click="handleSaveDraft"
+          >
+            {{ isSaving ? 'Saving Draft...' : 'Save Draft' }}
+          </button>
+
+          <button
+            v-if="!isLocked"
+            type="button"
+            class="btn-submit-admin"
+            :disabled="isSubmitting || !isReadyToSubmit"
+            @click="triggerSubmit"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span>Submit to Administration</span>
           </button>
         </footer>
       </div>
     </div>
 
-    <!-- =================================================================== -->
-    <!-- EXAM PAPER PREVIEW MODAL                                            -->
-    <!-- =================================================================== -->
-    <div v-if="isPreviewModalOpen && previewStudent" class="modal-backdrop" @click="closePreviewModal">
-      <div class="modal-card preview-modal" @click.stop>
-        <header class="modal-header">
-          <div>
-            <h3 class="modal-title">Exam Document Preview</h3>
-            <span class="adm-code">{{ previewStudent.student_name }} ({{ previewStudent.admission_number }})</span>
+    <!-- CONFIRM SUBMISSION MODAL -->
+    <div v-if="isConfirmSubmitOpen" class="modal-backdrop" @click="isConfirmSubmitOpen = false">
+      <div class="modal-card small" @click.stop>
+        <div class="confirm-modal-header">
+          <div class="confirm-icon-box">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
           </div>
-          <button class="modal-close-btn" aria-label="Close preview" @click="closePreviewModal">&times;</button>
-        </header>
-        <div class="modal-scroll-body preview-scroll-body">
-          <div v-if="!previewBlobUrl" class="loading-state">
-            <div class="spinner" />
-            <span>Loading exam paper file...</span>
+          <h3 class="confirm-title">Submit Results to Administration</h3>
+          <p class="confirm-subtitle">Verify your marks entry before committing to official administrative review.</p>
+        </div>
+
+        <div class="confirm-modal-body">
+          <div class="confirm-checklist">
+            <div class="check-item">
+              <span>Total Students:</span>
+              <strong>{{ rosterStudents.length }}</strong>
+            </div>
+            <div class="check-item">
+              <span>Completed Marks:</span>
+              <strong class="text-emerald">{{ completedCount }}</strong>
+            </div>
+            <div class="check-item">
+              <span>Absent Students:</span>
+              <strong class="text-amber">{{ absentStudentsCount }}</strong>
+            </div>
+            <div class="check-item">
+              <span>Student Complaints:</span>
+              <strong class="text-rose">{{ recordedComplaintsCount }}</strong>
+            </div>
           </div>
-          <div v-else-if="previewStudent.paper_mime_type === 'application/pdf'" class="pdf-preview-box">
-            <iframe :src="previewBlobUrl" class="pdf-iframe" title="Exam Document Preview" />
-          </div>
-          <div v-else class="image-preview-box">
-            <img :src="previewBlobUrl" alt="Exam Sheet Preview" class="preview-img" />
+
+          <div class="warning-lock-note">
+            🔒 <strong>Important:</strong> Once submitted, marks become locked and cannot be edited unless returned by School Administration.
           </div>
         </div>
-        <footer class="modal-footer">
-          <button class="btn btn-primary btn-touch btn-block" @click="closePreviewModal">Close Preview</button>
-        </footer>
+
+        <div class="confirm-modal-footer">
+          <button class="btn-cancel" @click="isConfirmSubmitOpen = false">Cancel</button>
+          <button class="btn-confirm-submit" :disabled="isSubmitting" @click="handleConfirmSubmit">
+            {{ isSubmitting ? 'Submitting...' : 'Yes, Submit Officially' }}
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- =================================================================== -->
-    <!-- TEACHER CREATE EXAM MODAL                                           -->
-    <!-- =================================================================== -->
+    <!-- PAPER PREVIEW MODAL -->
+    <div v-if="isPreviewModalOpen" class="modal-backdrop" @click="closePreviewModal">
+      <div class="modal-card" style="max-width: 800px;" @click.stop>
+        <div class="modal-header">
+          <h3 class="modal-exam-name">Exam Paper Document: {{ previewStudent?.student_name }}</h3>
+          <button class="modal-close" @click="closePreviewModal">&times;</button>
+        </div>
+        <div class="modal-scroll-body" style="padding: 1.5rem; text-align: center;">
+          <iframe
+            v-if="previewBlobUrl && previewStudent?.paper_mime_type === 'application/pdf'"
+            :src="previewBlobUrl"
+            style="width: 100%; height: 500px; border: none; border-radius: 8px;"
+          />
+          <img
+            v-else-if="previewBlobUrl"
+            :src="previewBlobUrl"
+            style="max-width: 100%; max-height: 500px; border-radius: 8px;"
+            alt="Exam document"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATE QUIZ MODAL COMPONENT -->
     <TeacherCreateExamModal
       :is-open="isCreateModalOpen"
       @close="isCreateModalOpen = false"
@@ -1143,100 +1124,144 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  max-width: 1300px;
+  max-width: 1360px;
   margin: 0 auto;
   width: 100%;
-  box-sizing: border-box;
 }
 
-/* Toast Notification */
+/* Toast */
 .toast-banner {
   padding: 0.85rem 1.25rem;
-  border-radius: 8px;
-  animation: fadeIn 0.3s ease;
+  border-radius: 12px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
-.toast-banner.success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
-.toast-banner.error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
-.toast-content { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: 500; }
-.toast-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: inherit; line-height: 1; }
 
-/* Page Header */
-.page-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-.header-titles { min-width: 0; flex: 1; }
-.page-title { font-size: 1.5rem; font-weight: 800; color: var(--text-primary, #0f172a); margin: 0; word-break: break-word; }
-.page-subtitle { font-size: 0.85rem; color: var(--text-muted, #64748b); margin-top: 0.2rem; }
+.toast-banner.success {
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  color: #065F46;
+}
 
-.header-actions {
+.toast-banner.error {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  color: #991B1B;
+}
+
+.toast-content {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
+}
+
+.toast-icon { width: 18px; height: 18px; flex-shrink: 0; }
+.toast-close { margin-left: auto; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: inherit; }
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.somroyal-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #10B981;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.crown-icon { width: 14px; height: 14px; color: #F59E0B; }
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0A192F;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+  font-size: 0.88rem;
+  color: #64748B;
+  margin-top: 0.25rem;
+  line-height: 1.5;
+  max-width: 780px;
 }
 
 .btn-create-exam {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.25rem;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #ffffff;
-  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
-  border: 1px solid #4338ca;
-  border-radius: 8px;
+  gap: 0.45rem;
+  background: #10B981;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.6rem 1.15rem;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
   transition: all 0.2s ease;
-  white-space: nowrap;
 }
 
-.btn-create-exam:hover {
-  background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
-  box-shadow: 0 6px 12px -1px rgba(79, 70, 229, 0.35);
-  transform: translateY(-1px);
+.btn-create-exam:hover { background: #059669; }
+.btn-create-icon { width: 16px; height: 16px; }
+
+/* Filters */
+.filters-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 6px rgba(10, 25, 47, 0.03);
 }
 
-.btn-create-icon {
-  width: 18px;
-  height: 18px;
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
 }
 
-@media (max-width: 640px) {
-  .page-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .header-actions {
-    width: 100%;
-  }
-  .btn-create-exam {
-    width: 100%;
-    justify-content: center;
-  }
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
-/* Filters Bar */
-.filters-card { padding: 1.25rem; width: 100%; box-sizing: border-box; }
-.filters-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-.form-group { display: flex; flex-direction: column; gap: 0.35rem; }
-.form-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted, #64748b); letter-spacing: 0.03em; }
-.form-select, .form-input {
+.form-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-select {
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  color: #0A192F;
   padding: 0.55rem 0.75rem;
-  border: 1px solid var(--border-medium, #cbd5e1);
-  border-radius: 6px;
-  background: var(--bg-surface, #ffffff);
-  font-size: 0.88rem;
-  color: var(--text-primary, #0f172a);
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 40px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  outline: none;
 }
 
 /* Workflow Tabs */
 .workflow-tabs-container {
   display: flex;
-  gap: 0.75rem;
-  border-bottom: 2px solid #e2e8f0;
-  padding-bottom: 0.25rem;
+  gap: 0.5rem;
+  border-bottom: 2px solid #E2E8F0;
+  padding-bottom: 0.2rem;
 }
 
 .workflow-tab-btn {
@@ -1244,964 +1269,717 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.65rem 1.15rem;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  color: #64748b;
+  color: #64748B;
   background: transparent;
   border: none;
-  border-radius: 8px 8px 0 0;
+  border-bottom: 3px solid transparent;
   cursor: pointer;
-  position: relative;
+  margin-bottom: -2px;
   transition: all 0.2s ease;
 }
 
-.workflow-tab-btn:hover {
-  color: #1e293b;
-  background: #f8fafc;
-}
+.workflow-tab-btn:hover { color: #0A192F; }
 
 .workflow-tab-btn.active {
-  color: #1e40af;
-  background: #eff6ff;
-  border-bottom: 3px solid #1e40af;
+  color: #0A192F;
+  border-bottom-color: #10B981;
 }
 
-.workflow-tab-btn .tab-icon {
-  width: 18px;
-  height: 18px;
-}
+.tab-icon { width: 18px; height: 18px; }
 
 .tab-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.15rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
 }
 
 .tab-badge.badge-primary {
-  background: #3b82f6;
-  color: #ffffff;
+  background: #ECFDF5;
+  color: #059669;
 }
 
 .tab-badge.badge-empty {
-  background: #e2e8f0;
-  color: #64748b;
+  background: #F1F5F9;
+  color: #94A3B8;
 }
 
 .tab-badge.badge-neutral {
-  background: #e2e8f0;
-  color: #334155;
-}
-
-.locked-indicator-pill {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #1e40af;
-  background: #dbeafe;
-  border: 1px solid #bfdbfe;
-  padding: 0.25rem 0.65rem;
-  border-radius: 6px;
+  background: #EFF6FF;
+  color: #1E40AF;
 }
 
 /* Streams Grid */
 .streams-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 1.25rem;
-  width: 100%;
 }
+
 .stream-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   gap: 1rem;
-  border-top: 4px solid #0284c7;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-sizing: border-box;
+  box-shadow: 0 2px 6px rgba(10, 25, 47, 0.03);
+  transition: all 0.2s ease;
 }
+
 .stream-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-color: #CBD5E1;
+  box-shadow: 0 6px 18px rgba(10, 25, 47, 0.06);
 }
-.stream-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
-.stream-title-col { display: flex; flex-direction: column; min-width: 0; }
-.exam-title { font-size: 1.15rem; font-weight: 800; color: var(--text-primary, #0f172a); word-break: break-word; }
-.exam-scope { font-size: 0.82rem; color: var(--text-muted, #64748b); display: block; margin-top: 0.15rem; }
 
 .stream-card.card-overdue {
-  border-top-color: #ef4444;
-  border-left: 3px solid #ef4444;
+  border-left: 4px solid #EF4444;
+}
+
+.stream-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.stream-title-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
 }
 
 .stream-type-line {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.35rem;
+  gap: 0.4rem;
   flex-wrap: wrap;
 }
 
 .exam-type-pill {
-  font-size: 0.6875rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  padding: 0.15rem 0.45rem;
+  background: #0A192F;
+  color: #FFFFFF;
+  padding: 0.15rem 0.5rem;
   border-radius: 4px;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
-  background: #f1f5f9;
-  color: #475569;
 }
-
-.exam-type-pill.FINAL { background: #fee2e2; color: #991b1b; }
-.exam-type-pill.MID_TERM { background: #e0e7ff; color: #3730a3; }
-.exam-type-pill.MONTHLY { background: #dcfce7; color: #166534; }
-.exam-type-pill.QUIZ { background: #fef3c7; color: #92400e; }
 
 .deadline-countdown-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  padding: 0.15rem 0.45rem;
-  border-radius: 4px;
-  background: #f1f5f9;
-  color: #475569;
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
 }
 
 .deadline-countdown-chip.OVERDUE {
-  background: #fef2f2;
-  color: #b91c1c;
-  border: 1px solid #fecaca;
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
 }
 
-.deadline-countdown-chip.APPROACHING {
-  background: #fffbeb;
-  color: #b45309;
-  border: 1px solid #fde68a;
+.deadline-countdown-chip.DUE_SOON {
+  background: #FEF3C7;
+  color: #D97706;
+  border: 1px solid #FDE68A;
 }
 
-.deadline-countdown-chip.ON_TRACK {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
+.deadline-countdown-chip.ON_TIME {
+  background: #ECFDF5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
 }
 
-.chip-icon {
-  width: 12px;
-  height: 12px;
+.chip-icon { width: 12px; height: 12px; }
+
+.exam-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0A192F;
+  margin: 0;
+}
+
+.exam-scope {
+  font-size: 0.78rem;
+  color: #64748B;
+  font-weight: 600;
+}
+
+.alert-box-small {
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.alert-box-small.danger {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  color: #991B1B;
+}
+
+.alert-box-small.warning {
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  color: #92400E;
 }
 
 .stream-deadline-bar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: #f8fafc;
-  padding: 0.45rem 0.65rem;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  background: #F8FAFC;
+  padding: 0.45rem 0.75rem;
   border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  font-size: 0.775rem;
+  color: #64748B;
 }
 
-.deadline-title {
-  color: #64748b;
-  font-weight: 500;
-}
-
-.deadline-time {
-  color: #0f172a;
-  font-weight: 600;
-}
-
-.btn-overdue {
-  background: #dc2626 !important;
-  border-color: #b91c1c !important;
-}
-
-.btn-overdue:hover {
-  background: #b91c1c !important;
-}
-
-.progress-section { display: flex; flex-direction: column; gap: 0.35rem; }
-.progress-labels { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-secondary, #475569); }
-.progress-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
-.progress-bar-fill { height: 100%; background: #0284c7; border-radius: 4px; }
-.stream-meta-row { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted, #64748b); }
-
-/* =================================================================== */
-/* MODAL ARCHITECTURE: FIXED HEADER + SCROLLABLE CONTENT + FIXED FOOTER */
-/* =================================================================== */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-  padding: 10px;
-  box-sizing: border-box;
-}
-
-.modal-card {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.modal-card.full-modal {
-  width: calc(100% - 20px);
-  max-width: 1080px;
-  max-height: calc(100vh - 20px);
-  height: auto;
-}
-
-.modal-card.small-modal {
-  width: calc(100% - 20px);
-  max-width: 520px;
-  max-height: calc(100vh - 20px);
-}
-
-.modal-card.preview-modal {
-  width: calc(100% - 20px);
-  max-width: 800px;
-  max-height: calc(100vh - 20px);
-}
-
-/* Modal Header: Fixed/Sticky */
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--border-subtle, #e2e8f0);
-  background: #ffffff;
-  flex-shrink: 0;
-  gap: 0.75rem;
-}
-
-.header-main-col {
+.progress-section {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  min-width: 0;
-  flex: 1;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  color: #64748B;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: #E2E8F0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10B981, #059669);
+  border-radius: 10px;
+}
+
+.stream-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  color: #64748B;
+  border-top: 1px solid #F1F5F9;
+  padding-top: 0.5rem;
+}
+
+.btn-open-roster {
+  width: 100%;
+  background: #0A192F;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-open-roster:hover { background: #10B981; }
+
+/* Full Roster Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 25, 47, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 1rem;
+}
+
+.modal-card.full-modal {
+  background: #FFFFFF;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 94vh;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #F8FAFC;
 }
 
 .header-tag-line {
   display: flex;
-  gap: 0.5rem;
   align-items: center;
-  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
-.class-badge {
-  background: #e0f2fe;
-  color: #0369a1;
-  font-weight: 700;
-  font-size: 0.78rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: 4px;
-}
-
-.subject-badge {
-  background: #f1f5f9;
-  color: #334155;
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 0.2rem 0.55rem;
+.class-badge-pill, .subject-badge-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: #E2E8F0;
+  color: #0A192F;
+  padding: 0.15rem 0.55rem;
   border-radius: 4px;
 }
 
 .modal-exam-name {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 800;
+  color: #0A192F;
   margin: 0;
-  color: var(--text-primary, #0f172a);
-  word-break: break-word;
-  line-height: 1.3;
 }
 
-.modal-close-btn {
+.modal-close {
   background: none;
   border: none;
-  font-size: 1.8rem;
-  line-height: 1;
+  font-size: 1.75rem;
+  color: #94A3B8;
   cursor: pointer;
-  color: var(--text-muted, #64748b);
-  min-width: 44px;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  flex-shrink: 0;
-  transition: background-color 0.2s, color 0.2s;
 }
 
-.modal-close-btn:hover {
-  background-color: var(--bg-surface-secondary, #f8fafc);
-  color: var(--text-primary, #0f172a);
-}
+.modal-close:hover { color: #0A192F; }
 
-/* Modal Content Area: Scrollable */
 .modal-scroll-body {
-  flex: 1;
-  min-height: 0;
+  padding: 1.5rem 2rem;
   overflow-y: auto;
-  padding: 1.25rem;
-  -webkit-overflow-scrolling: touch;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
-/* Compact Alerts */
-.alert-box-compact {
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 0.85rem;
-}
-.alert-box-compact.info {
-  background: #e0f2fe;
-  border: 1px solid #bae6fd;
-  color: #0369a1;
-}
-.alert-box-compact.warning {
-  background: #fef3c7;
-  border: 1px solid #fde68a;
-  color: #92400e;
-}
-.alert-box-compact.danger {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #991b1b;
-}
-.alert-box-small.danger {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.78rem;
-}
-.overdue-text {
-  color: #dc2626 !important;
-  font-weight: 600;
-}
 .deadline-instructions-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.85rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
 }
-.deadline-instructions-card.is-overdue {
-  background: #fef2f2;
-  border-color: #fecaca;
-}
+
 .deadline-header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-.deadline-info {
-  display: flex;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-}
-.meta-label {
-  color: #64748b;
-  font-weight: 500;
-}
-.meta-date {
-  color: #0f172a;
-  font-weight: 700;
-}
-.deadline-countdown-badge {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.2rem 0.55rem;
-  border-radius: 6px;
-}
-.deadline-countdown-badge.OVERDUE {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-.deadline-countdown-badge.APPROACHING {
-  background: #fef3c7;
-  color: #92400e;
-}
-.deadline-countdown-badge.ON_TRACK {
-  background: #e0e7ff;
-  color: #4338ca;
-}
-.instructions-block {
-  border-top: 1px dashed #cbd5e1;
-  padding-top: 0.5rem;
-  font-size: 0.8125rem;
-  line-height: 1.4;
-}
-.instructions-title {
-  font-weight: 700;
-  color: #334155;
-  display: block;
-  margin-bottom: 0.15rem;
-}
-.instructions-content {
-  margin: 0;
-  color: #475569;
-}
-.alert-compact-title {
-  font-weight: 700;
-  font-size: 0.9rem;
-  margin-bottom: 0.2rem;
-}
-.alert-compact-desc {
-  margin: 0;
-  line-height: 1.4;
-  word-break: break-word;
 }
 
-/* KPI Summary Grid */
+.meta-label { font-size: 0.76rem; color: #1E40AF; font-weight: 700; }
+.meta-date { font-size: 0.84rem; font-weight: 800; color: #1E3A8A; margin-left: 0.35rem; }
+
+.instructions-block {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #BFDBFE;
+  font-size: 0.8rem;
+  color: #1E3A8A;
+}
+
+.alert-box-compact {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+}
+
+.alert-box-compact.warning { background: #FEF3C7; border: 1px solid #FDE68A; color: #92400E; }
+.alert-box-compact.danger { background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; }
+.alert-box-compact.info { background: #F1F5F9; border: 1px solid #CBD5E1; color: #334155; }
+
+.alert-compact-title { font-weight: 800; margin-bottom: 0.15rem; }
+.alert-compact-desc { margin: 0; }
+
 .roster-summary-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.5rem;
-  background: var(--bg-surface-secondary, #f8fafc);
-  border: 1px solid var(--border-subtle, #e2e8f0);
-  padding: 0.75rem;
-  border-radius: 8px;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.75rem;
 }
 
 .kpi-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
   text-align: center;
-  padding: 0.35rem 0.25rem;
 }
 
+.kpi-box.kpi-max-box {
+  background: #0A192F;
+}
+
+.kpi-box.kpi-max-box .kpi-label { color: #94A3B8; }
+.kpi-box.kpi-max-box .kpi-value { color: #FFFFFF !important; }
+
 .kpi-label {
-  font-size: 0.68rem;
-  font-weight: 700;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #64748B;
   text-transform: uppercase;
-  color: var(--text-muted, #64748b);
-  display: block;
 }
 
 .kpi-value {
-  font-size: 1.25rem;
-  font-weight: 800;
-  display: block;
-  margin-top: 0.1rem;
+  font-size: 1.35rem;
+  font-weight: 900;
 }
 
-.roster-data-wrap {
-  width: 100%;
-}
+.text-navy { color: #0A192F !important; }
+.text-emerald { color: #059669 !important; }
+.text-rose { color: #DC2626 !important; }
+.text-amber { color: #D97706 !important; }
 
-/* Desktop Table View */
 .desktop-table-container {
-  display: block;
-  width: 100%;
   overflow-x: auto;
-  border: 1px solid var(--border-subtle, #e2e8f0);
-  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
 }
 
-.roster-table {
+.somroyal-table {
   width: 100%;
   border-collapse: collapse;
+  font-size: 0.86rem;
   text-align: left;
-  font-size: 0.88rem;
-  min-width: 720px;
 }
 
-.roster-table th {
-  background: var(--bg-surface-secondary, #f8fafc);
-  padding: 0.75rem 0.85rem;
+.somroyal-table thead {
+  background: #0A192F;
+  color: #FFFFFF;
+}
+
+.somroyal-table th {
+  padding: 0.85rem 1rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: var(--text-secondary, #475569);
-  border-bottom: 1px solid var(--border-subtle, #e2e8f0);
-  position: sticky;
-  top: 0;
-  z-index: 5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #1E293B;
 }
 
-.roster-table td {
-  padding: 0.75rem 0.85rem;
-  border-bottom: 1px solid var(--border-subtle, #e2e8f0);
+.somroyal-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #F1F5F9;
+  color: #1E293B;
   vertical-align: middle;
 }
 
-.roster-select, .roster-mark-input, .roster-remark-input {
-  padding: 0.45rem 0.65rem;
-  border: 1px solid var(--border-medium, #cbd5e1);
-  border-radius: 4px;
-  font-size: 0.85rem;
-  color: var(--text-primary, #0f172a);
-  box-sizing: border-box;
-}
-.roster-mark-input { width: 90px; font-weight: 700; }
-.roster-remark-input { width: 100%; max-width: 180px; }
-
-/* Grade Badges */
-.grade-pill {
-  font-weight: 800;
+.roster-select, .roster-mark-input, .roster-text-input {
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  padding: 0.35rem 0.55rem;
+  border-radius: 6px;
   font-size: 0.82rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: 4px;
-  display: inline-block;
-  letter-spacing: 0.03em;
+  color: #0A192F;
+  outline: none;
 }
-.grade-pill.lg {
-  font-size: 0.95rem;
-  padding: 0.25rem 0.75rem;
-}
-.grade-pill.a-plus, .grade-pill.a { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
-.grade-pill.b { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
-.grade-pill.c { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-.grade-pill.d { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
-.grade-pill.f, .grade-pill.absent { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
-.grade-pill.empty { background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; }
 
-.paper-upload-cell { display: flex; align-items: center; gap: 0.4rem; }
-.uploaded-paper-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+.roster-mark-input {
+  width: 70px;
+  font-weight: 800;
+  text-align: center;
 }
-.paper-icon { width: 1rem; height: 1rem; color: #16a34a; flex-shrink: 0; }
-.paper-name-btn {
-  background: none;
-  border: none;
-  color: #15803d;
-  font-size: 0.78rem;
+
+.roster-text-input { width: 100%; }
+
+.grade-pill {
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+}
+
+.grade-pill.grade-pass { background: #ECFDF5; color: #065F46; }
+.grade-pill.grade-fail { background: #FEF2F2; color: #991B1B; }
+.grade-pill.grade-abs { background: #F1F5F9; color: #64748B; }
+
+.paper-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.btn-view-paper {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1E40AF;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
-  text-decoration: underline;
-}
-.paper-del-btn {
-  background: none;
-  border: none;
-  color: #ef4444;
-  font-size: 1.1rem;
-  cursor: pointer;
-  line-height: 1;
-}
-.upload-paper-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.45rem 0.75rem;
-  background: #f8fafc;
-  border: 1px dashed #cbd5e1;
-  border-radius: 6px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #475569;
-  cursor: pointer;
-  box-sizing: border-box;
 }
 
-/* =================================================================== */
-/* MOBILE STUDENT CARDS (<= 768px)                                     */
-/* =================================================================== */
-.mobile-student-cards-list {
+.btn-delete-paper {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.btn-upload-paper {
+  display: inline-block;
+  background: #F1F5F9;
+  border: 1px dashed #94A3B8;
+  color: #475569;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-upload-paper:hover { background: #E2E8F0; }
+
+.notes-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.notes-lbl {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #0A192F;
+}
+
+.notes-textarea {
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.84rem;
+  color: #0A192F;
+  outline: none;
+}
+
+.modal-footer {
+  padding: 1rem 2rem;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btn-cancel {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #475569;
+  padding: 0.55rem 1.15rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-save-draft {
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  color: #0A192F;
+  padding: 0.55rem 1.15rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-submit-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #10B981;
+  border: none;
+  color: #FFFFFF;
+  padding: 0.55rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-submit-admin:hover:not(:disabled) { background: #059669; }
+.btn-submit-admin svg { width: 16px; height: 16px; }
+
+/* Mobile Roster List */
+.mobile-roster-list {
   display: none;
   flex-direction: column;
   gap: 1rem;
-  width: 100%;
 }
 
-.mobile-student-entry-card {
-  background: #ffffff;
-  border: 1px solid var(--border-medium, #cbd5e1);
-  border-radius: 10px;
+.mobile-std-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
   padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  box-sizing: border-box;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.m-card-header {
+.m-card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.m-std-info {
   display: flex;
   align-items: flex-start;
-  gap: 0.65rem;
-}
-
-.m-student-index {
-  font-size: 0.78rem;
-  font-weight: 800;
-  background: #f1f5f9;
-  color: #475569;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-
-.m-student-identity {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 0;
-}
-
-.m-student-name {
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--text-primary, #0f172a);
-  margin: 0;
-  word-break: break-word;
-  line-height: 1.3;
-}
-
-.m-student-adm {
-  font-size: 0.78rem;
-  color: var(--text-muted, #64748b);
-}
-
-.m-student-adm code {
-  font-family: monospace;
-  background: #f8fafc;
-  padding: 0.1rem 0.35rem;
-  border-radius: 4px;
-  color: #334155;
-  font-weight: 600;
-}
-
-.m-card-divider {
-  height: 1px;
-  background-color: var(--border-subtle, #e2e8f0);
-}
-
-.m-field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.m-field-label {
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  color: var(--text-muted, #64748b);
-  letter-spacing: 0.04em;
-}
-
-.m-select-input {
-  width: 100%;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid var(--border-medium, #cbd5e1);
-  border-radius: 6px;
-  background: var(--bg-surface, #ffffff);
-  font-size: 0.9rem;
-  color: var(--text-primary, #0f172a);
-  min-height: 44px;
-  box-sizing: border-box;
-}
-
-.m-marks-input-row {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-.m-marks-input {
-  width: 120px;
-  padding: 0.65rem 0.75rem;
-  font-size: 1.1rem;
-  font-weight: 800;
-  border: 1px solid var(--border-medium, #cbd5e1);
-  border-radius: 6px;
-  background: #ffffff;
-  color: var(--text-primary, #0f172a);
-  min-height: 44px;
-  box-sizing: border-box;
-  text-align: center;
-}
-
-.m-max-marks-label {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-secondary, #475569);
-}
-
-.m-absent-notice {
-  padding: 0.65rem 0.75rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  color: #991b1b;
-  font-size: 0.85rem;
-}
-
-.m-grade-display {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-.m-grade-subtext {
-  font-size: 0.82rem;
-  color: var(--text-muted, #64748b);
-  font-weight: 600;
-}
-
-.m-paper-attached-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.65rem 0.75rem;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 6px;
   gap: 0.5rem;
-  flex-wrap: wrap;
 }
 
-.m-paper-info {
+.m-idx { font-size: 0.75rem; color: #94A3B8; font-weight: 700; }
+.m-name { font-size: 0.95rem; font-weight: 800; color: #0A192F; margin: 0; }
+.m-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
+}
+
+.m-field { display: flex; flex-direction: column; gap: 0.2rem; }
+.m-field-lbl { font-size: 0.68rem; font-weight: 700; color: #64748B; }
+
+/* Confirm Submit Modal */
+.modal-card.small { max-width: 460px; }
+.confirm-modal-header { padding: 1.5rem 1.5rem 0.5rem; text-align: center; }
+.confirm-icon-box {
+  width: 48px;
+  height: 48px;
+  background: #ECFDF5;
+  color: #10B981;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  min-width: 0;
-  flex: 1;
+  justify-content: center;
+  margin: 0 auto 0.75rem;
 }
 
-.m-paper-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #15803d;
-  word-break: break-all;
-}
-
-.m-paper-actions {
+.confirm-icon-box svg { width: 24px; height: 24px; }
+.confirm-title { font-size: 1.25rem; font-weight: 800; color: #0A192F; margin: 0; }
+.confirm-subtitle { font-size: 0.84rem; color: #64748B; margin-top: 0.25rem; }
+.confirm-modal-body { padding: 1rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+.confirm-checklist {
   display: flex;
+  flex-direction: column;
   gap: 0.4rem;
+  background: #F8FAFC;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #E2E8F0;
+  font-size: 0.84rem;
 }
 
-.m-no-paper-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0.75rem;
-  background: var(--bg-surface-secondary, #f8fafc);
-  border: 1px dashed var(--border-medium, #cbd5e1);
-  border-radius: 6px;
-  gap: 0.5rem;
-}
-
-.m-no-paper-text {
-  font-size: 0.82rem;
-  color: var(--text-muted, #64748b);
-}
-
-.m-upload-btn {
-  padding: 0.45rem 0.75rem;
-  min-height: 38px;
-  font-size: 0.82rem;
-  cursor: pointer;
-}
-
-.m-textarea {
-  width: 100%;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid var(--border-medium, #cbd5e1);
-  border-radius: 6px;
-  font-size: 0.88rem;
-  background: var(--bg-surface, #ffffff);
-  color: var(--text-primary, #0f172a);
-  resize: vertical;
-  min-height: 60px;
-  box-sizing: border-box;
+.check-item { display: flex; justify-content: space-between; }
+.warning-lock-note {
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  color: #92400E;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
   line-height: 1.4;
 }
 
-/* Modal Footer: Fixed/Sticky */
-.modal-footer {
+.confirm-modal-footer {
+  padding: 1rem 1.5rem;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.85rem 1.25rem;
-  border-top: 1px solid var(--border-subtle, #e2e8f0);
-  background: #ffffff;
-  flex-shrink: 0;
+  justify-content: flex-end;
   gap: 0.75rem;
-  flex-wrap: wrap;
 }
 
-.footer-status-msg {
-  display: flex;
-  align-items: center;
-}
-
-.footer-action-buttons {
-  display: flex;
-  gap: 0.65rem;
-  flex-wrap: wrap;
-}
-
-.pending-warning {
-  font-size: 0.85rem;
-  color: #b91c1c;
-  font-weight: 600;
-}
-
-.confirm-intro {
-  font-size: 0.9rem;
-  margin-top: 0;
-}
-
-.confirm-box {
-  background: var(--bg-surface-secondary, #f8fafc);
-  padding: 0.85rem;
-  border-radius: 6px;
-  border: 1px solid var(--border-subtle, #e2e8f0);
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.88rem;
-}
-
-.preview-scroll-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 280px;
-  max-height: 520px;
-}
-.image-preview-box { max-width: 100%; text-align: center; }
-.preview-img { max-width: 100%; max-height: 480px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.pdf-iframe { width: 100%; height: 460px; border: 1px solid var(--border-medium, #cbd5e1); border-radius: 6px; }
-
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.55rem 1rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
+.btn-confirm-submit {
+  background: #10B981;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.55rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 800;
   cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.2s;
 }
-.btn-touch { min-height: 44px; }
-.btn-primary { background: #0284c7; color: #ffffff; }
-.btn-primary:hover:not(:disabled) { background: #0369a1; }
-.btn-outline { background: #ffffff; border-color: var(--border-medium, #cbd5e1); color: var(--text-primary, #0f172a); }
-.btn-outline:hover:not(:disabled) { background: #f8fafc; }
-.btn-outline-danger { background: #fff; border-color: #fca5a5; color: #dc2626; }
-.btn-outline-danger:hover { background: #fef2f2; }
-.btn-xs { padding: 0.3rem 0.55rem; font-size: 0.75rem; min-height: 32px; }
-.btn-block { width: 100%; }
-.btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
-.loading-box, .empty-box {
-  padding: 3rem 1rem;
+/* States */
+.state-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  padding: 4rem 1.5rem;
   text-align: center;
-  color: var(--text-muted, #64748b);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
-.empty-icon { width: 48px; height: 48px; color: #94a3b8; }
-.empty-title { font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-primary, #0f172a); }
-.empty-desc { font-size: 0.85rem; margin: 0; }
-.loading-state {
-  padding: 2.5rem 1rem;
+
+.spinner-ring {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #E2E8F0;
+  border-top-color: #10B981;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-label { font-size: 0.88rem; color: #64748B; font-weight: 600; }
+.empty-icon-circle {
+  width: 56px;
+  height: 56px;
+  background: #F1F5F9;
+  border-radius: 16px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.85rem;
-  color: var(--text-muted, #64748b);
+  color: #94A3B8;
 }
-.spinner { width: 32px; height: 32px; border: 3px solid var(--border-subtle, #e2e8f0); border-top-color: #0284c7; border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
-/* =================================================================== */
-/* RESPONSIVE BREAKPOINTS (320px to 1920px)                            */
-/* =================================================================== */
+.empty-icon-circle svg { width: 28px; height: 28px; }
+.state-title { font-size: 1.15rem; font-weight: 800; color: #0A192F; margin: 0; }
+.state-desc { font-size: 0.86rem; color: #64748B; max-width: 500px; line-height: 1.5; margin: 0; }
+
 @media (max-width: 1024px) {
-  .filters-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .filters-grid { grid-template-columns: 1fr; }
+  .roster-summary-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 @media (max-width: 768px) {
-  .desktop-table-container {
-    display: none;
-  }
-  .mobile-student-cards-list {
-    display: flex;
-  }
-  .roster-summary-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .kpi-max-box {
-    grid-column: 1 / -1;
-  }
-  .modal-card.full-modal {
-    width: calc(100% - 16px);
-    max-height: calc(100dvh - 16px);
-  }
-  .modal-header {
-    padding: 0.85rem 1rem;
-  }
-  .modal-scroll-body {
-    padding: 1rem 0.85rem;
-  }
-  .modal-footer {
-    padding: 0.85rem 1rem;
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .footer-action-buttons {
-    flex-direction: column;
-    width: 100%;
-  }
-  .btn-footer-item {
-    width: 100%;
-  }
-  .streams-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .filters-grid {
-    grid-template-columns: 1fr;
-  }
-  .modal-exam-name {
-    font-size: 1.1rem;
-  }
-}
-
-@media (max-width: 380px) {
-  .m-marks-input {
-    width: 90px;
-  }
+  .page-header { flex-direction: column; align-items: stretch; }
+  .btn-create-exam { width: 100%; justify-content: center; }
+  .streams-grid { grid-template-columns: 1fr; }
+  .desktop-table-container { display: none; }
+  .mobile-roster-list { display: flex; }
+  .roster-summary-grid { grid-template-columns: repeat(2, 1fr); }
+  .modal-card.full-modal { border-radius: 14px; max-height: 98vh; }
+  .modal-header, .modal-scroll-body, .modal-footer { padding-left: 1rem; padding-right: 1rem; }
+  .modal-footer { flex-direction: column-reverse; }
+  .btn-cancel, .btn-save-draft, .btn-submit-admin { width: 100%; justify-content: center; }
 }
 </style>

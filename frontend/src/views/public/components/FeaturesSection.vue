@@ -525,9 +525,11 @@ const displayedFeatures = computed(() => {
   left: 50%;
   transform: translateX(-50%);
   width: 900px;
+  max-width: 100vw;
   height: 500px;
   background: radial-gradient(circle, rgba(234, 241, 255, 0.95) 0%, rgba(245, 248, 253, 0) 70%);
   border-radius: 50%;
+  pointer-events: none;
 }
 
 .bg-radial-glow-right {
@@ -535,9 +537,11 @@ const displayedFeatures = computed(() => {
   top: 120px;
   right: -80px;
   width: 480px;
+  max-width: 100vw;
   height: 480px;
   background: radial-gradient(circle, rgba(255, 105, 0, 0.04) 0%, rgba(255, 245, 235, 0) 70%);
   border-radius: 50%;
+  pointer-events: none;
 }
 
 .bg-swoosh-top-left {
@@ -545,8 +549,10 @@ const displayedFeatures = computed(() => {
   top: 0;
   left: 0;
   width: 420px;
+  max-width: 100vw;
   height: auto;
   opacity: 0.8;
+  pointer-events: none;
 }
 
 /* Overlapping Corner Waves */
@@ -555,8 +561,10 @@ const displayedFeatures = computed(() => {
   bottom: 0;
   left: 0;
   width: 320px;
+  max-width: 50vw;
   height: 220px;
   z-index: 1;
+  pointer-events: none;
 }
 
 .corner-waves-bottom-right {
@@ -564,8 +572,10 @@ const displayedFeatures = computed(() => {
   bottom: 0;
   right: 0;
   width: 340px;
+  max-width: 50vw;
   height: 260px;
   z-index: 1;
+  pointer-events: none;
 }
 
 .corner-wave-svg {
@@ -735,6 +745,8 @@ const displayedFeatures = computed(() => {
   justify-content: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+  max-width: 100%;
+  box-sizing: border-box;
   margin-bottom: 2.85rem;
 }
 
@@ -1124,18 +1136,32 @@ const displayedFeatures = computed(() => {
 
 @media (max-width: 768px) {
   .features-section {
-    padding: 60px 0 75px;
+    padding: 55px 0 70px;
+  }
+  .features-container {
+    padding: 0 clamp(0.85rem, 3vw, 1.25rem);
   }
   .features-cards-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
   .filter-pill-bar {
     justify-content: flex-start;
     overflow-x: auto;
-    padding-bottom: 0.5rem;
+    padding: 0.25rem 0.5rem 0.75rem;
     flex-wrap: nowrap;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .filter-pill-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .category-filter-btn {
+    flex-shrink: 0;
+    min-height: 42px;
+    padding: 0.5rem 1rem;
+    font-size: 0.82rem;
   }
   .cta-button-group {
     flex-direction: column;
@@ -1145,6 +1171,39 @@ const displayedFeatures = computed(() => {
   .btn-cta-secondary {
     width: 100%;
     justify-content: center;
+    min-height: 46px;
+  }
+}
+
+@media (max-width: 480px) {
+  .features-badge-pill {
+    font-size: 0.72rem;
+    padding: 0.35rem 0.85rem;
+  }
+  .features-main-title {
+    font-size: clamp(1.65rem, 5.5vw, 2.05rem);
+    line-height: 1.22;
+  }
+  .features-subtitle {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    margin-bottom: 2rem;
+  }
+  .feature-box-card {
+    padding: 1.35rem 1.15rem;
+    border-radius: 14px;
+  }
+  .card-feature-title {
+    font-size: 1.15rem;
+  }
+  .card-bullet-text {
+    font-size: 0.82rem;
+  }
+  .corner-waves-bottom-left,
+  .corner-waves-bottom-right {
+    opacity: 0.3;
+    transform: scale(0.65);
+    transform-origin: bottom;
   }
 }
 </style>

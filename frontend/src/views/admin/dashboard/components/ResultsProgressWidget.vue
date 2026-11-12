@@ -1,17 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 interface Props {
   resultsData?: any;
   loading?: boolean;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   resultsData: null,
   loading: false,
 });
 
 const selectedPeriod = ref('This Year');
+
+const passedCount = computed(() => Number(props.resultsData?.passed_count ?? 0));
+const failedCount = computed(() => Number(props.resultsData?.failed_count ?? 0));
+const notTakenCount = computed(() => Number(props.resultsData?.not_taken_count ?? 0));
+const totalResults = computed(() => passedCount.value + failedCount.value + notTakenCount.value);
+
+const passedPct = computed(() => totalResults.value > 0 ? Math.round((passedCount.value / totalResults.value) * 100) : 0);
+const failedPct = computed(() => totalResults.value > 0 ? Math.round((failedCount.value / totalResults.value) * 100) : 0);
+const notTakenPct = computed(() => totalResults.value > 0 ? Math.round((notTakenCount.value / totalResults.value) * 100) : 0);
+
+const passedDash = computed(() => `${(passedPct.value / 100) * 339.29} 339.29`);
+const failedDash = computed(() => `${(failedPct.value / 100) * 339.29} 339.29`);
+const failedOffset = computed(() => -((passedPct.value / 100) * 339.29));
 </script>
 
 <template>
@@ -56,30 +69,31 @@ const selectedPeriod = ref('This Year');
             stroke="#E2E8F0"
             stroke-width="14"
           />
-          <!-- Passed Segment (85% Green Arc) -->
-          <!-- Circumference = 2 * PI * 54 = 339.29. 85% = 288.4, 15% = 50.9 -->
+          <!-- Passed Segment -->
           <circle
+            v-if="passedPct > 0"
             cx="70"
             cy="70"
             r="54"
             fill="none"
             stroke="#10B981"
             stroke-width="14"
-            stroke-dasharray="288.4 339.29"
+            :stroke-dasharray="passedDash"
             stroke-dashoffset="0"
             stroke-linecap="round"
             transform="rotate(-90 70 70)"
           />
-          <!-- Failed Segment (15% Red Arc) -->
+          <!-- Failed Segment -->
           <circle
+            v-if="failedPct > 0"
             cx="70"
             cy="70"
             r="54"
             fill="none"
             stroke="#EF4444"
             stroke-width="14"
-            stroke-dasharray="50.9 339.29"
-            stroke-dashoffset="-288.4"
+            :stroke-dasharray="failedDash"
+            :stroke-dashoffset="failedOffset"
             stroke-linecap="round"
             transform="rotate(-90 70 70)"
           />
@@ -87,8 +101,8 @@ const selectedPeriod = ref('This Year');
 
         <!-- Center Metric -->
         <div class="donut-center-text">
-          <span class="center-value">85%</span>
-          <span class="center-label">Average</span>
+          <span class="center-value">{{ totalResults > 0 ? `${passedPct}%` : '0%' }}</span>
+          <span class="center-label">{{ totalResults > 0 ? 'Average' : 'No Data' }}</span>
         </div>
       </div>
 
@@ -100,8 +114,8 @@ const selectedPeriod = ref('This Year');
             <span class="legend-name">Passed</span>
           </div>
           <div class="legend-val">
-            <span class="val-count">18</span>
-            <span class="val-pct">(85%)</span>
+            <span class="val-count">{{ passedCount }}</span>
+            <span class="val-pct">({{ passedPct }}%)</span>
           </div>
         </div>
 
@@ -111,8 +125,8 @@ const selectedPeriod = ref('This Year');
             <span class="legend-name">Failed</span>
           </div>
           <div class="legend-val">
-            <span class="val-count">3</span>
-            <span class="val-pct">(15%)</span>
+            <span class="val-count">{{ failedCount }}</span>
+            <span class="val-pct">({{ failedPct }}%)</span>
           </div>
         </div>
 
@@ -122,8 +136,8 @@ const selectedPeriod = ref('This Year');
             <span class="legend-name">Not Taken</span>
           </div>
           <div class="legend-val">
-            <span class="val-count">0</span>
-            <span class="val-pct">(0%)</span>
+            <span class="val-count">{{ notTakenCount }}</span>
+            <span class="val-pct">({{ notTakenPct }}%)</span>
           </div>
         </div>
       </div>
@@ -337,5 +351,24 @@ const selectedPeriod = ref('This Year');
 .val-pct {
   color: #64748B;
   font-weight: 500;
+}
+
+@media (max-width: 480px) {
+  .analytics-card {
+    padding: 1rem 0.75rem;
+    gap: 0.85rem;
+  }
+  .card-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .chart-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .legend-list {
+    width: 100%;
+  }
 }
 </style>
