@@ -378,7 +378,7 @@ onMounted(() => {
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  color: #10B981;
+  color: #38BDF8;
   text-transform: uppercase;
   margin-bottom: 0.35rem;
 }
@@ -867,7 +867,7 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.btn-modal-close:hover { background: #10B981; }
+.btn-modal-close:hover { background: #1E3A8A; }
 
 /* Common States */
 .state-container {
@@ -883,7 +883,7 @@ onMounted(() => {
   width: 36px;
   height: 36px;
   border: 3px solid #E2E8F0;
-  border-top-color: #10B981;
+  border-top-color: #1E3A8A;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

@@ -441,7 +441,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 6px;
-  background: linear-gradient(90deg, #0A192F 0%, #10B981 50%, #F59E0B 100%);
+  background: linear-gradient(90deg, #0A192F 0%, #1E3A8A 40%, #0284C7 75%, #FF5722 100%);
 }
 
 .hero-body-content {

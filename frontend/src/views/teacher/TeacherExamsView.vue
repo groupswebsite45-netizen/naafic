@@ -1201,7 +1201,7 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  background: #10B981;
+  background: #1E3A8A;
   color: #FFFFFF;
   border: none;
   padding: 0.6rem 1.15rem;
@@ -1209,11 +1209,11 @@ onMounted(() => {
   font-size: 0.84rem;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
   transition: all 0.2s ease;
 }
 
-.btn-create-exam:hover { background: #059669; }
+.btn-create-exam:hover { background: #1E40AF; }
 .btn-create-icon { width: 16px; height: 16px; }
 
 /* Filters */
@@ -1810,7 +1810,7 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  background: #10B981;
+  background: #1E3A8A;
   border: none;
   color: #FFFFFF;
   padding: 0.55rem 1.25rem;
@@ -1818,10 +1818,10 @@ onMounted(() => {
   font-size: 0.84rem;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
 }
 
-.btn-submit-admin:hover:not(:disabled) { background: #059669; }
+.btn-submit-admin:hover:not(:disabled) { background: #1E40AF; }
 .btn-submit-admin svg { width: 16px; height: 16px; }
 
 /* Mobile Roster List */
@@ -1915,7 +1915,7 @@ onMounted(() => {
 }
 
 .btn-confirm-submit {
-  background: #10B981;
+  background: #1E3A8A;
   color: #FFFFFF;
   border: none;
   padding: 0.55rem 1.25rem;
@@ -1924,6 +1924,8 @@ onMounted(() => {
   font-weight: 800;
   cursor: pointer;
 }
+
+.btn-confirm-submit:hover { background: #1E40AF; }
 
 /* States */
 .state-card {

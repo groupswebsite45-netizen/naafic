@@ -353,14 +353,14 @@ function closeMobileSidebar() {
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #0F2A4A 0%, #0A192F 100%);
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: linear-gradient(135deg, #FF6500 0%, #FF8A00 100%);
+  border: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2px 8px rgba(255, 101, 0, 0.35);
   flex-shrink: 0;
 }
 
@@ -396,7 +396,7 @@ function closeMobileSidebar() {
 
 .portal-tag {
   font-size: 0.65rem;
-  color: #10B981;
+  color: #38BDF8;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -472,10 +472,10 @@ function closeMobileSidebar() {
 }
 
 .nav-item.active {
-  background: linear-gradient(90deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.06) 100%);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #FF6B35 0%, #FF5722 100%) !important;
+  color: #FFFFFF !important;
   font-weight: 700;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 16px rgba(255, 87, 34, 0.4);
 }
 
 .nav-icon-wrap {
@@ -499,7 +499,7 @@ function closeMobileSidebar() {
 }
 
 .nav-item.active .nav-icon {
-  color: #10B981;
+  color: #FFFFFF;
 }
 
 .nav-label {
@@ -513,8 +513,8 @@ function closeMobileSidebar() {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #10B981;
-  box-shadow: 0 0 8px #10B981;
+  background: #FFFFFF;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
 }
 
 /* Sidebar Footer */
@@ -547,14 +547,14 @@ function closeMobileSidebar() {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  background: #1E293B;
   color: #FFFFFF;
   font-weight: 800;
   font-size: 0.88rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(30, 41, 59, 0.25);
 }
 
 .online-indicator {
@@ -697,7 +697,7 @@ function closeMobileSidebar() {
 .header-page-title {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #10B981;
+  color: #0F172A;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

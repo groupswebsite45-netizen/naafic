@@ -373,7 +373,7 @@ function closeMobileSidebar() {
 
 .portal-tag {
   font-size: 0.65rem;
-  color: #10B981;
+  color: #38BDF8;
   font-weight: 700;
   letter-spacing: 0.06em;
 }
@@ -423,7 +423,7 @@ function closeMobileSidebar() {
   font-size: 0.86rem;
   font-weight: 500;
   color: #94A3B8;
-  border-radius: 10px;
+  border-radius: 12px;
   text-decoration: none;
   position: relative;
   transition: all 0.18s ease;
@@ -436,6 +436,7 @@ function closeMobileSidebar() {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: #94A3B8;
 }
 
 .nav-icon-box svg {
@@ -446,7 +447,7 @@ function closeMobileSidebar() {
 
 .nav-item:hover {
   background-color: rgba(255, 255, 255, 0.05);
-  color: #F1F5F9;
+  color: #F8FAFC;
 }
 
 .nav-item:hover .nav-icon-box svg {
@@ -454,15 +455,14 @@ function closeMobileSidebar() {
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(5, 150, 105, 0.28) 100%);
-  color: #FFFFFF;
-  font-weight: 600;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  background: linear-gradient(135deg, #FF6B35 0%, #FF5722 100%) !important;
+  color: #FFFFFF !important;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(255, 87, 34, 0.4);
 }
 
 .nav-item.active .nav-icon-box {
-  color: #34D399;
+  color: #FFFFFF;
 }
 
 .active-indicator {
@@ -471,15 +471,15 @@ function closeMobileSidebar() {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #10B981;
-  box-shadow: 0 0 8px #10B981;
+  background-color: #FFFFFF;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
 }
 
 /* Sidebar Footer */
 .sidebar-footer {
   padding: 1rem 0.85rem;
   background-color: #081528;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
@@ -499,7 +499,7 @@ function closeMobileSidebar() {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #10B981 0%, #047857 100%);
+  background: #1E293B;
   color: #FFFFFF;
   font-weight: 700;
   font-size: 0.82rem;
@@ -507,7 +507,7 @@ function closeMobileSidebar() {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 2px 6px rgba(30, 41, 59, 0.25);
 }
 
 .user-info {
@@ -528,7 +528,7 @@ function closeMobileSidebar() {
 
 .user-status-pill {
   font-size: 0.68rem;
-  color: #34D399;
+  color: #38BDF8;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -539,8 +539,8 @@ function closeMobileSidebar() {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #10B981;
-  box-shadow: 0 0 6px #10B981;
+  background-color: #38BDF8;
+  box-shadow: 0 0 6px #38BDF8;
 }
 
 .logout-btn {
@@ -682,13 +682,14 @@ function closeMobileSidebar() {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #0A192F;
+  background: #1E293B;
   color: #FFFFFF;
   font-weight: 700;
   font-size: 0.72rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 6px rgba(30, 41, 59, 0.25);
 }
 
 .header-user-text {
@@ -710,7 +711,7 @@ function closeMobileSidebar() {
 
 .header-user-role {
   font-size: 0.66rem;
-  color: #10B981;
+  color: #2563EB;
   font-weight: 600;
 }
 

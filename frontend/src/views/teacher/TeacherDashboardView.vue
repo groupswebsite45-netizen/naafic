@@ -380,9 +380,9 @@ onMounted(() => {
   gap: 1.5rem;
 }
 
-/* 1. Welcome Hero Card */
+/* 1. Welcome Hero Card (Admin Brand Gradient) */
 .welcome-hero-card {
-  background: linear-gradient(135deg, #0A192F 0%, #0F2A4A 60%, #081528 100%);
+  background: linear-gradient(135deg, #071E46 0%, #0D47A1 45%, #0284C7 100%);
   border-radius: 16px;
   padding: 1.75rem 2rem;
   color: #FFFFFF;
@@ -392,7 +392,7 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 25px -5px rgba(10, 25, 47, 0.25);
+  box-shadow: 0 12px 30px -6px rgba(7, 30, 70, 0.35);
   position: relative;
   overflow: hidden;
 }
@@ -404,7 +404,7 @@ onMounted(() => {
   right: 0;
   bottom: 0;
   width: 320px;
-  background: radial-gradient(circle at right, rgba(16, 185, 129, 0.18) 0%, transparent 70%);
+  background: radial-gradient(circle at right, rgba(2, 132, 199, 0.25) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -415,7 +415,7 @@ onMounted(() => {
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  color: #10B981;
+  color: #38BDF8;
   text-transform: uppercase;
   margin-bottom: 0.4rem;
 }
@@ -500,14 +500,14 @@ onMounted(() => {
 }
 
 .btn-action.primary {
-  background: #10B981;
+  background: #1E3A8A;
   color: #FFFFFF;
   border: none;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
 }
 
 .btn-action.primary:hover {
-  background: #059669;
+  background: #1E40AF;
   transform: translateY(-1px);
 }
 
@@ -664,7 +664,7 @@ onMounted(() => {
   gap: 0.25rem;
   background: none;
   border: none;
-  color: #10B981;
+  color: #2563EB;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
@@ -675,8 +675,8 @@ onMounted(() => {
 }
 
 .btn-link:hover {
-  background: #ECFDF5;
-  color: #059669;
+  background: #EFF6FF;
+  color: #1D4ED8;
 }
 
 .btn-link svg {
@@ -781,13 +781,13 @@ onMounted(() => {
 }
 
 .btn-att-action.primary {
-  background: #10B981;
+  background: #1E3A8A;
   color: #FFFFFF;
   border: none;
 }
 
 .btn-att-action.primary:hover {
-  background: #059669;
+  background: #1E40AF;
 }
 
 .btn-att-action.outline {

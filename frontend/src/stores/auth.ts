@@ -45,14 +45,17 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isSuperAdmin = computed(() => {
     if (!user.value) return false;
-    if (user.value.is_superuser) return true;
-    return user.value.roles?.some((r) => r.name.toUpperCase() === 'SUPER_ADMIN') ?? false;
+    if (user.value.roles?.some((r) => r.name.toUpperCase() === 'SUPER_ADMIN')) return true;
+    if (user.value.username === 'superadmin') return true;
+    if (user.value.is_superuser && !user.value.roles?.some((r) => r.name.toUpperCase() === 'ADMIN')) return true;
+    return false;
   });
 
   const isAdmin = computed(() => {
     if (!user.value) return false;
-    if (user.value.is_superuser) return true;
-    return user.value.roles?.some((r) => r.name.toUpperCase() === 'ADMIN') ?? false;
+    if (user.value.roles?.some((r) => r.name.toUpperCase() === 'ADMIN')) return true;
+    if (isSuperAdmin.value) return true;
+    return false;
   });
 
   const isTeacher = computed(() => {

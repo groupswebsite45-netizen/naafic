@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     PORT: int = 8000
     HOST: str = "0.0.0.0"
 
-    DATABASE_URL: str = "postgresql+psycopg2://postgres:123@localhost:5432/sms"
+    DATABASE_URL: str = "postgresql+psycopg2://postgres:123@localhost:5432/hawlwadaag_school_db"
 
     JWT_SECRET: str = "hawlwadaag_super_secret_jwt_key_change_in_production_2026_xyz"
     JWT_ALGORITHM: str = "HS256"

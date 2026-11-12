@@ -44,7 +44,7 @@ def run_migration():
                 id=1,
                 code="SOM-SCH-0001",
                 name="Hawlwadaag Primary and Secondary School",
-                institution_type="Primary & Secondary School",
+                type="Primary & Secondary School",
                 contact_person="Dr. Abdullahi Warsame",
                 email="admin@hawlwadaagschool.edu.so",
                 phone="+252 61 0000000",
@@ -52,14 +52,17 @@ def run_migration():
                 city="Mogadishu",
                 address="Hawlwadaag District, Mogadishu, Somalia",
                 subscription_plan="Professional School",
-                subscription_status="Active",
-                subscription_start_date=now - timedelta(days=90),
-                subscription_end_date=now + timedelta(days=275),
-                status="Active",
-                students_count=350,
-                teachers_count=18,
+                subscription_status="ACTIVE",
+                subscription_start_date=(now - timedelta(days=90)).date(),
+                subscription_expiry_date=(now + timedelta(days=275)).date(),
+                status="ACTIVE",
+                database_name="hawlwadaag_school_db",
+                admin_username="admin",
+                admin_email="admin@hawlwadaagschool.edu.so"
             )
             db.add(inst1)
+            db.commit()
+            db.execute(text("SELECT setval(pg_get_serial_sequence('institutions', 'id'), (SELECT max(id) FROM institutions))"))
             db.commit()
 
         # Check total institutions count
@@ -179,7 +182,7 @@ def run_migration():
                 inst = Institution(
                     code=inst_data["code"],
                     name=inst_data["name"],
-                    institution_type=inst_data["type"],
+                    type=inst_data["type"],
                     contact_person=inst_data["contact"],
                     email=inst_data["email"],
                     phone=inst_data["phone"],
@@ -187,12 +190,12 @@ def run_migration():
                     city=inst_data["city"],
                     address=f"{inst_data['city']}, {inst_data['region']}, Somalia",
                     subscription_plan=inst_data["plan"],
-                    subscription_status="Active" if inst_data["status"] == "Active" else "Trial",
-                    subscription_start_date=now - timedelta(days=10),
-                    subscription_end_date=now + timedelta(days=355),
-                    status=inst_data["status"],
-                    students_count=inst_data["students"],
-                    teachers_count=inst_data["teachers"],
+                    subscription_status="ACTIVE" if inst_data["status"].upper() == "ACTIVE" else "TRIAL",
+                    subscription_start_date=(now - timedelta(days=10)).date(),
+                    subscription_expiry_date=(now + timedelta(days=355)).date(),
+                    status=inst_data["status"].upper(),
+                    admin_username=f"admin_{inst_data['code'].lower().replace('-', '_')}",
+                    admin_email=inst_data["email"],
                     created_at=created_dt
                 )
                 db.add(inst)
@@ -215,7 +218,7 @@ def run_migration():
                 email="superadmin@somroyal.com",
                 username="superadmin",
                 hashed_password=hashed_pwd,
-                full_name="Super Admin",
+                full_name="Somroyal Super Admin",
                 phone_number="+252612508505",
                 is_active=True,
                 is_superuser=True
@@ -225,16 +228,27 @@ def run_migration():
             db.refresh(super_user)
             print("[OK] Created 'superadmin' user.")
 
-        # Assign SUPER_ADMIN role to super_user and user 1 (admin)
-        for u in [super_user, db.query(User).filter(User.id == 1).first()]:
-            if u:
-                u.is_superuser = True
-                has_sr = any(r.name == "SUPER_ADMIN" for r in u.roles)
-                if not has_sr:
-                    ur = UserRole(user_id=u.id, role_id=super_role.id)
-                    db.add(ur)
-        db.commit()
-        print("[OK] Verified superuser privileges & roles.")
+        # Assign SUPER_ADMIN role only to super_user
+        if super_user:
+            super_user.is_superuser = True
+            has_sr = any(r.name == "SUPER_ADMIN" for r in super_user.roles)
+            if not has_sr:
+                ur = UserRole(user_id=super_user.id, role_id=super_role.id)
+                db.add(ur)
+            db.commit()
+
+        # Configure School Admin 'admin': is_superuser = False, belongs to Hawlwadaag School
+        admin_user = db.query(User).filter(User.username == "admin").first()
+        if admin_user:
+            admin_user.is_superuser = False
+            admin_user.institution_id = 1
+            admin_user.full_name = "School Administrator"
+            for r in list(admin_user.roles):
+                if r.name == "SUPER_ADMIN":
+                    db.query(UserRole).filter(UserRole.user_id == admin_user.id, UserRole.role_id == r.id).delete()
+            db.commit()
+            print("[OK] Configured School Admin 'admin' (is_superuser=False, institution_id=1).")
+        print("[OK] Verified distinct roles & privileges.")
 
         # Seed realistic payments
         if db.query(InstitutionPayment).count() == 0:
@@ -243,10 +257,9 @@ def run_migration():
             for idx, inst in enumerate(insts[:5]):
                 payment = InstitutionPayment(
                     institution_id=inst.id,
-                    payment_reference=f"PAY-SOM-{1000 + idx}",
+                    reference=f"PAY-SOM-{1000 + idx}",
                     amount=95.00 if idx == 0 else 25.00,
                     payment_method="EVC Plus" if idx % 2 == 0 else "Zaad",
-                    payment_type="Setup Fee" if idx == 0 else "Subscription",
                     status="Completed",
                     payment_date=now - timedelta(days=idx + 1),
                     notes=f"Payment for {inst.name}"

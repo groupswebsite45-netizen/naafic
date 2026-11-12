@@ -339,8 +339,8 @@ onMounted(() => {
 }
 
 .year-select:focus {
-  border-color: #10B981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .select-chevron {
@@ -699,7 +699,7 @@ onMounted(() => {
   width: 32px;
   height: 32px;
   border: 3px solid #E2E8F0;
-  border-top-color: #10B981;
+  border-top-color: #1E3A8A;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 0.65rem;

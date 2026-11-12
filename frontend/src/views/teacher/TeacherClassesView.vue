@@ -1381,7 +1381,7 @@ onMounted(() => {
 }
 
 .btn-view-class:hover {
-  background: #10B981;
+  background: #1E3A8A;
 }
 
 .btn-view-class .btn-icon {
@@ -1683,7 +1683,7 @@ onMounted(() => {
 }
 
 .btn-modal-prim:hover {
-  background: #10B981;
+  background: #1E3A8A;
 }
 
 /* Common State Styles */

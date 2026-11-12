@@ -847,7 +847,7 @@ async function handleSubmit() {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  background: #10B981;
+  background: #1E3A8A;
   border: none;
   color: #FFFFFF;
   padding: 0.55rem 1.25rem;
@@ -855,11 +855,11 @@ async function handleSubmit() {
   font-size: 0.84rem;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
 }
 
 .btn-create:hover:not(:disabled) {
-  background: #059669;
+  background: #1E40AF;
 }
 
 .btn-create svg { width: 16px; height: 16px; }

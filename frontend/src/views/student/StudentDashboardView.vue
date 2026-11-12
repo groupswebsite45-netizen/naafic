@@ -458,7 +458,7 @@ onMounted(() => {
   width: 32px;
   height: 32px;
   border: 3px solid #E2E8F0;
-  border-top-color: #10B981;
+  border-top-color: #2563EB;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -530,9 +530,9 @@ onMounted(() => {
   background-color: #B91C1C;
 }
 
-/* 1. Hero Welcome Banner */
+/* 1. Hero Welcome Banner (Admin Brand Gradient) */
 .welcome-banner {
-  background: linear-gradient(135deg, #0A192F 0%, #0F2A4A 60%, #064E3B 100%);
+  background: linear-gradient(135deg, #071E46 0%, #0D47A1 45%, #0284C7 100%);
   border-radius: 20px;
   padding: 1.75rem 2rem;
   color: #FFFFFF;
@@ -542,7 +542,7 @@ onMounted(() => {
   gap: 1.5rem;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 25px -5px rgba(10, 25, 47, 0.3), 0 8px 10px -6px rgba(10, 25, 47, 0.2);
+  box-shadow: 0 12px 30px -6px rgba(7, 30, 70, 0.35);
 }
 
 .banner-decor-shapes {
@@ -555,7 +555,7 @@ onMounted(() => {
 .decor-circle {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(2, 132, 199, 0.25) 0%, transparent 70%);
 }
 
 .circle-1 {
@@ -593,9 +593,9 @@ onMounted(() => {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #34D399;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(52, 211, 153, 0.3);
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   padding: 0.25rem 0.65rem;
   border-radius: 9999px;
 }
@@ -604,17 +604,17 @@ onMounted(() => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #10B981;
-  box-shadow: 0 0 8px #10B981;
+  background-color: #38BDF8;
+  box-shadow: 0 0 8px #38BDF8;
 }
 
 .status-chip {
   font-size: 0.72rem;
-  color: #94A3B8;
-  background: rgba(255, 255, 255, 0.06);
+  color: #CBD5E1;
+  background: rgba(255, 255, 255, 0.1);
   padding: 0.25rem 0.65rem;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .welcome-heading {
@@ -626,7 +626,7 @@ onMounted(() => {
 }
 
 .student-name-highlight {
-  color: #FBBF24;
+  color: #FDE68A;
 }
 
 .welcome-meta-chips {
@@ -655,7 +655,7 @@ onMounted(() => {
 .meta-icon {
   width: 14px;
   height: 14px;
-  color: #34D399;
+  color: #38BDF8;
 }
 
 .welcome-right {
@@ -688,7 +688,7 @@ onMounted(() => {
 .arrow-icon {
   width: 16px;
   height: 16px;
-  color: #10B981;
+  color: #2563EB;
   transition: transform 0.2s ease;
 }
 
@@ -870,7 +870,7 @@ onMounted(() => {
 }
 
 .quick-nav-card:hover .quick-nav-arrow {
-  color: #10B981;
+  color: #2563EB;
   transform: translateX(3px);
 }
 
@@ -928,7 +928,7 @@ onMounted(() => {
   gap: 0.35rem;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #10B981;
+  color: #2563EB;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -938,8 +938,8 @@ onMounted(() => {
 }
 
 .panel-action-link:hover {
-  background: #ECFDF5;
-  color: #059669;
+  background: #EFF6FF;
+  color: #1D4ED8;
 }
 
 .action-arrow {

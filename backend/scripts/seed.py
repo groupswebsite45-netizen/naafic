@@ -43,6 +43,7 @@ def run_seed():
         # 1. ROLES
         # =========================================================================
         roles_data = [
+            ("SUPER_ADMIN", "Somroyal Platform Super Administrator", True),
             ("ADMIN", "System and school administrator with full management access", True),
             ("TEACHER", "Academic faculty member managing attendance, schedule and grades", True),
             ("STUDENT", "Enrolled student accessing timetable, fees, and exam results", True),
@@ -81,8 +82,33 @@ def run_seed():
         db.commit()
 
         # =========================================================================
-        # 3. INITIAL ADMIN USER
+        # 3. INITIAL USERS: SUPER ADMIN (SaaS) & SCHOOL ADMIN
         # =========================================================================
+        # 3A. Super Admin (SaaS Admin)
+        super_user = db.query(User).filter(User.username == "superadmin").first()
+        if not super_user:
+            super_user = User(
+                email="superadmin@somroyal.com",
+                username="superadmin",
+                hashed_password=get_password_hash("Admin@Hawlwadaag2026"),
+                full_name="Somroyal Super Admin",
+                phone_number="+252 61 250 8505",
+                is_active=True,
+                is_superuser=True
+            )
+            db.add(super_user)
+            db.commit()
+            db.refresh(super_user)
+            db.add(UserRole(user_id=super_user.id, role_id=created_roles["SUPER_ADMIN"].id))
+            db.commit()
+            logger.info("Super Admin user created.")
+        else:
+            super_user.hashed_password = get_password_hash("Admin@Hawlwadaag2026")
+            super_user.is_superuser = True
+            super_user.is_active = True
+            db.commit()
+
+        # 3B. School Admin (Tenant Administrator)
         admin_email = settings.INITIAL_ADMIN_EMAIL.lower().strip()
         admin_username = settings.INITIAL_ADMIN_USERNAME.lower().strip()
         admin_user = db.query(User).filter(User.username == admin_username).first()
@@ -91,10 +117,10 @@ def run_seed():
                 email=admin_email,
                 username=admin_username,
                 hashed_password=get_password_hash(settings.INITIAL_ADMIN_PASSWORD),
-                full_name=settings.INITIAL_ADMIN_FULL_NAME,
+                full_name="School Administrator",
                 phone_number="+252 61 1234567",
                 is_active=True,
-                is_superuser=True
+                is_superuser=False
             )
             db.add(admin_user)
             db.commit()
@@ -106,8 +132,10 @@ def run_seed():
         else:
             admin_user.hashed_password = get_password_hash(settings.INITIAL_ADMIN_PASSWORD)
             admin_user.is_active = True
+            admin_user.is_superuser = False
+            admin_user.full_name = "School Administrator"
             db.commit()
-            logger.info("Admin user password refreshed.")
+            logger.info("Admin user password refreshed (School Admin).")
 
         # =========================================================================
         # 4. CLASSES
@@ -484,8 +512,9 @@ def run_seed():
         print("DATABASE SEED COMPLETED SUCCESSFULLY FOR HAWLWADAAG SCHOOL")
         print("="*70)
         print(f"School Name: Hawlwadaag Primary and Secondary School")
-        print(f"Admin Account:    admin / Admin@Hawlwadaag2026")
-        print(f"Teacher Accounts: teacher.ahmed, teacher.fadumo, teacher.omar (Pwd: Teacher@Hawlwadaag2026)")
+        print(f"Super Admin (SaaS): superadmin / Admin@Hawlwadaag2026  (-> /super-admin/dashboard)")
+        print(f"School Admin:       admin / Admin@Hawlwadaag2026       (-> /admin/dashboard)")
+        print(f"Teacher Accounts:   teacher.fadumo, teacher.omar, etc. (Pwd: Teacher@Hawlwadaag2026)")
         print(f"Student Accounts: student.mustaf, student.amina, student.liban (Pwd: Student@Hawlwadaag2026)")
         print(f"Classes Seeded:   {len(classes_data)}")
         print(f"Subjects Seeded:  {len(subjects_data)}")

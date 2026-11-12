@@ -325,8 +325,8 @@ onMounted(() => {
 
 .year-select:focus,
 .mobile-select-dropdown:focus {
-  border-color: #10B981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .select-chevron {
@@ -362,7 +362,7 @@ onMounted(() => {
   width: 32px;
   height: 32px;
   border: 3px solid #E2E8F0;
-  border-top-color: #10B981;
+  border-top-color: #1E3A8A;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -613,7 +613,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  border-left: 4px solid #10B981;
+  border-left: 4px solid #2563EB;
 }
 
 .mobile-period-card.break-slot {
@@ -734,7 +734,7 @@ onMounted(() => {
 }
 
 .desktop-day-column.hasSlots .day-col-badge {
-  background: #10B981;
+  background: #2563EB;
   color: #FFFFFF;
 }
 
@@ -756,7 +756,7 @@ onMounted(() => {
 .desktop-slot-item {
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
-  border-left: 3px solid #10B981;
+  border-left: 3px solid #2563EB;
   border-radius: 8px;
   padding: 0.65rem;
   display: flex;
@@ -781,7 +781,7 @@ onMounted(() => {
 .slot-time-pill {
   font-size: 0.68rem;
   font-weight: 700;
-  color: #059669;
+  color: #2563EB;
   line-height: 1.1;
 }
 

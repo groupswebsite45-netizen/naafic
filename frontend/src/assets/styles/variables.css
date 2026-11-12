@@ -8,6 +8,16 @@
   --brand-accent: #d97706;
   --brand-accent-light: #fef3c7;
 
+  /* Official Admin Brand & Navigation System (PORTAL_COLOR_PALETTE.md) */
+  --brand-sidebar-bg: #0a192f;
+  --brand-sidebar-header: #081528;
+  --brand-nav-active-from: #ff6b35;
+  --brand-nav-active-to: #ff5722;
+  --brand-nav-active-shadow: rgba(255, 87, 34, 0.4);
+  --brand-logo-gradient: linear-gradient(135deg, #ff6500 0%, #ff8a00 100%);
+  --brand-hero-gradient: linear-gradient(135deg, #071e46 0%, #0d47a1 45%, #0284c7 100%);
+  --brand-hero-shadow: 0 12px 30px -6px rgba(7, 30, 70, 0.35);
+
   /* Neutral Color Palette */
   --bg-app: #f8fafc;
   --bg-surface: #ffffff;

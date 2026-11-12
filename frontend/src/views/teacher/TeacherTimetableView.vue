@@ -267,7 +267,7 @@ onMounted(() => {
 .today-tag {
   font-size: 0.68rem;
   font-weight: 800;
-  color: #10B981;
+  color: #38BDF8;
   letter-spacing: 0.08em;
   margin-bottom: 0.25rem;
 }
@@ -309,7 +309,7 @@ onMounted(() => {
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  color: #10B981;
+  color: #38BDF8;
   text-transform: uppercase;
   margin-bottom: 0.35rem;
 }
@@ -418,7 +418,7 @@ onMounted(() => {
 }
 
 .day-card.is-today {
-  border: 2px solid #10B981;
+  border: 2px solid #2563EB;
 }
 
 .day-header {
@@ -446,7 +446,7 @@ onMounted(() => {
 .today-indicator {
   font-size: 0.65rem;
   font-weight: 900;
-  background: #10B981;
+  background: #2563EB;
   color: #FFFFFF;
   padding: 0.1rem 0.4rem;
   border-radius: 4px;
@@ -476,7 +476,7 @@ onMounted(() => {
 .slot-item {
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
-  border-left: 3px solid #10B981;
+  border-left: 3px solid #2563EB;
   border-radius: 8px;
   padding: 0.75rem;
   display: flex;
@@ -535,7 +535,7 @@ onMounted(() => {
 }
 
 .day-section-card.is-today {
-  border-left: 4px solid #10B981;
+  border-left: 4px solid #2563EB;
 }
 
 .day-section-header {
@@ -586,7 +586,7 @@ onMounted(() => {
 .list-slot-card {
   background: #F8FAFC;
   border: 1px solid #E2E8F0;
-  border-left: 3px solid #10B981;
+  border-left: 3px solid #2563EB;
   border-radius: 10px;
   padding: 0.85rem 1rem;
   display: flex;
@@ -600,7 +600,7 @@ onMounted(() => {
   gap: 0.35rem;
   font-size: 0.76rem;
   font-weight: 700;
-  color: #059669;
+  color: #2563EB;
 }
 
 .list-slot-time svg {
@@ -652,7 +652,7 @@ onMounted(() => {
   width: 36px;
   height: 36px;
   border: 3px solid #E2E8F0;
-  border-top-color: #10B981;
+  border-top-color: #1E3A8A;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
