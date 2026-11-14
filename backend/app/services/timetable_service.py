@@ -250,6 +250,44 @@ class TimetableService:
                     recommended_weekly_periods=def_periods
                 ))
 
+        # Fallback to curriculum subjects if no teacher assignments are configured yet
+        if not authorized_faculty:
+            div = school_class.division or "ALL"
+            curr_subjects = (
+                self.db.query(Subject)
+                .filter(
+                    Subject.status == "ACTIVE",
+                    Subject.division.in_([div, "ALL"])
+                )
+                .all()
+            )
+            if not curr_subjects:
+                curr_subjects = self.db.query(Subject).filter(Subject.status == "ACTIVE").all()
+
+            for sub in curr_subjects:
+                if sub.id not in seen_subjects:
+                    seen_subjects.add(sub.id)
+                    name_lower = sub.name.lower()
+                    if any(core in name_lower for core in ["math", "english", "somali", "arabic"]):
+                        def_periods = 5
+                    elif any(sci in name_lower for sci in ["physic", "chem", "bio", "science"]):
+                        def_periods = 4
+                    elif any(elec in name_lower for elec in ["islam", "geograph", "histor", "computer"]):
+                        def_periods = 3
+                    else:
+                        def_periods = 3
+
+                    authorized_faculty.append(TimetableAuthorizedFaculty(
+                        assignment_id=0,
+                        subject_id=sub.id,
+                        subject_name=sub.name,
+                        subject_code=sub.code or "",
+                        teacher_id=None,
+                        teacher_name="Unassigned Teacher",
+                        teacher_number=None,
+                        recommended_weekly_periods=def_periods
+                    ))
+
         # 3. Timetable slots for this class
         slots = (
             self.db.query(Timetable)
@@ -323,16 +361,20 @@ class TimetableService:
     ) -> TimetableGenerateResponse:
         """Run intelligent constraint-satisfaction engine for selected class."""
         res = self.generator.generate_for_class(request, user_id=user_id)
-        if res.success:
-            self.audit_repo.log_event(
-                action="TIMETABLE_AUTO_GENERATED",
-                user_id=user_id,
-                details={
-                    "class_id": res.class_id,
-                    "academic_year": res.academic_year,
-                    "periods_generated": res.total_generated_periods
-                }
+        if not res.success:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=res.message or "Failed to generate timetable."
             )
+        self.audit_repo.log_event(
+            action="TIMETABLE_AUTO_GENERATED",
+            user_id=user_id,
+            details={
+                "class_id": res.class_id,
+                "academic_year": res.academic_year,
+                "periods_generated": res.total_generated_periods
+            }
+        )
         return res
 
     def batch_save_class_timetable(

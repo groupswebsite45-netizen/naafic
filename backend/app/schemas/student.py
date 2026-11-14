@@ -21,7 +21,7 @@ class StudentEnrollmentResponse(BaseModel):
 
 class StudentEnrollmentCreate(BaseModel):
     class_id: int
-    academic_year: str = "2025-2026"
+    academic_year: str = "2026/2027"
     roll_number: Optional[str] = None
     start_date: Optional[date] = None
 
@@ -45,7 +45,7 @@ class StudentBase(BaseModel):
 
 class StudentCreate(StudentBase):
     initial_class_id: Optional[int] = None
-    academic_year: Optional[str] = "2025-2026"
+    academic_year: Optional[str] = "2026/2027"
     create_portal_account: bool = False
     portal_username: Optional[str] = None
     portal_password: Optional[str] = None

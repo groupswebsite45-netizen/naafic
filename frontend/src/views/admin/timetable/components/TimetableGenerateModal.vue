@@ -80,7 +80,13 @@ async function fetchClassOverview(classId: number) {
     try {
       const settings = await timetableService.getSettings(props.academicYear);
       if (settings) {
-        if (settings.school_days?.length) form.school_days = [...settings.school_days];
+        if (Array.isArray(settings.days_list) && settings.days_list.length) {
+          form.school_days = [...settings.days_list];
+        } else if (Array.isArray(settings.school_days)) {
+          form.school_days = [...settings.school_days];
+        } else if (typeof settings.school_days === 'string' && settings.school_days.trim()) {
+          form.school_days = settings.school_days.split(',').map((d: string) => d.trim()).filter(Boolean);
+        }
         if (settings.start_time) form.start_time = settings.start_time.slice(0, 5);
         if (settings.end_time) form.end_time = settings.end_time.slice(0, 5);
         if (settings.period_duration_minutes) form.period_duration_minutes = settings.period_duration_minutes;
@@ -208,8 +214,13 @@ async function handleGenerate() {
           <!-- Unplaced constraints notice if any -->
           <div v-if="generationResult.unplaced_subjects && generationResult.unplaced_subjects.length > 0" class="unplaced-list">
             <div class="unplaced-title">⚠️ Scheduling Constraint Notes:</div>
-            <div v-for="u in generationResult.unplaced_subjects" :key="u.subject_name" class="unplaced-item">
-              <strong>{{ u.subject_name }}:</strong> {{ u.reason }} (Placed {{ u.placed }}/{{ u.requested }})
+            <div v-for="(u, idx) in generationResult.unplaced_subjects" :key="idx" class="unplaced-item">
+              <template v-if="typeof u === 'string'">
+                {{ u }}
+              </template>
+              <template v-else>
+                <strong>{{ u.subject_name }}:</strong> {{ u.reason }} (Placed {{ u.placed }}/{{ u.requested }})
+              </template>
             </div>
           </div>
 
@@ -498,16 +509,26 @@ async function handleGenerate() {
   gap: 1.25rem;
 }
 
-.alert-box.alert-error {
+.alert-box {
   display: flex;
   align-items: center;
   gap: 0.625rem;
   padding: 0.875rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.alert-box svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  min-width: 1.25rem;
+  flex-shrink: 0;
+}
+
+.alert-box.alert-error {
   background: #fef2f2;
   border: 1px solid #fecaca;
   color: #991b1b;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
 }
 
 .generation-result-card {

@@ -11,6 +11,7 @@ import {
   TeacherAttendanceSessionItem,
   TeacherAttendanceSummaryResponse,
   TeacherStudentAttendanceSummaryItem,
+  StudentAttendanceHistoryDetailResponse,
 } from '../../types/attendance';
 
 const route = useRoute();
@@ -24,6 +25,11 @@ const selectedYear = ref<string>('');
 const selectedClassId = ref<number | null>(null);
 const selectedSubjectId = ref<number | null>(null);
 const selectedDate = ref<string>(getTodayDateString());
+
+// Session Logs / History Tab Filters
+const historySubjectId = ref<number | ''>('');
+const historyMonth = ref<number | ''>('');
+const historyDate = ref<string>('');
 
 // Loading & UI States
 const isLoadingOptions = ref(true);
@@ -40,8 +46,10 @@ const historySessions = ref<TeacherAttendanceSessionItem[]>([]);
 const summaryData = ref<TeacherAttendanceSummaryResponse | null>(null);
 const summarySearchQuery = ref('');
 
-// Student History Modal
+// Student History Modal with Subject Breakdown
 const selectedStudentDetail = ref<TeacherStudentAttendanceSummaryItem | null>(null);
+const studentBreakdownDetail = ref<StudentAttendanceHistoryDetailResponse | null>(null);
+const isLoadingStudentDetail = ref(false);
 const isStudentModalOpen = ref(false);
 
 function getTodayDateString(): string {
@@ -68,13 +76,20 @@ const availableClasses = computed<TeacherAttendanceClassOption[]>(() => {
 
 const availableSubjects = computed<TeacherAttendanceSubjectOption[]>(() => {
   if (!options.value || !selectedClassId.value) return [];
-  return options.value.subjects.filter((s) => s.class_id === selectedClassId.value);
+  return options.value.subjects.filter(
+    (s) => s.class_id === selectedClassId.value && (!selectedYear.value || !s.academic_year || s.academic_year === selectedYear.value)
+  );
 });
 
 // Computed Counters
 const presentCount = computed(() => {
   if (!rosterData.value) return 0;
-  return rosterData.value.students.filter((s) => s.status === 'PRESENT' || s.status === 'LATE').length;
+  return rosterData.value.students.filter((s) => s.status === 'PRESENT').length;
+});
+
+const lateCount = computed(() => {
+  if (!rosterData.value) return 0;
+  return rosterData.value.students.filter((s) => s.status === 'LATE').length;
 });
 
 const absentCount = computed(() => {
@@ -82,9 +97,18 @@ const absentCount = computed(() => {
   return rosterData.value.students.filter((s) => s.status === 'ABSENT' || s.status === 'EXCUSED').length;
 });
 
+const rosterTurnoutRate = computed(() => {
+  if (!rosterData.value || rosterData.value.total_students === 0) return 0;
+  return Math.round(((presentCount.value + lateCount.value) / rosterData.value.total_students) * 100);
+});
+
 const isFutureDate = computed(() => {
   if (!selectedDate.value) return false;
   return selectedDate.value > getTodayDateString();
+});
+
+const isLocked = computed(() => {
+  return Boolean(rosterData.value?.is_recorded || (rosterData.value as any)?.is_locked);
 });
 
 const filteredStudentSummaries = computed(() => {
@@ -140,11 +164,34 @@ async function loadOptions() {
 }
 
 // Watchers for cascading dropdowns
+watch(selectedYear, (newYear) => {
+  if (options.value && newYear) {
+    const validClass = availableClasses.value.find((c) => c.id === selectedClassId.value);
+    if (!validClass) {
+      selectedClassId.value = availableClasses.value.length > 0 ? availableClasses.value[0].id : null;
+    }
+    const validSub = availableSubjects.value.find((s) => s.id === selectedSubjectId.value);
+    if (!validSub) {
+      selectedSubjectId.value = availableSubjects.value.length > 0 ? availableSubjects.value[0].id : null;
+    }
+    if (activeTab.value === 'take') {
+      fetchRoster();
+    } else if (activeTab.value === 'history') {
+      fetchHistory();
+    } else if (activeTab.value === 'summary') {
+      fetchSummary();
+    }
+  }
+});
+
 watch(selectedClassId, (newClassId) => {
   if (options.value && newClassId) {
-    const subs = options.value.subjects.filter((s) => s.class_id === newClassId);
+    const subs = availableSubjects.value;
     if (subs.length > 0) {
-      selectedSubjectId.value = subs[0].id;
+      const exists = subs.some((s) => s.id === selectedSubjectId.value);
+      if (!exists) {
+        selectedSubjectId.value = subs[0].id;
+      }
     } else {
       selectedSubjectId.value = null;
     }
@@ -155,6 +202,8 @@ watch(selectedClassId, (newClassId) => {
     } else if (activeTab.value === 'summary') {
       fetchSummary();
     }
+  } else {
+    selectedSubjectId.value = null;
   }
 });
 
@@ -200,26 +249,59 @@ async function fetchRoster() {
   }
 }
 
-// Toggle Student ON / OFF
-function toggleStudentStatus(std: StudentAttendanceRosterItem) {
-  if (std.status === 'PRESENT') {
-    std.status = 'ABSENT';
-  } else {
-    std.status = 'PRESENT';
+// Set Student Status (3-state: PRESENT / LATE / ABSENT)
+function setStudentStatus(std: StudentAttendanceRosterItem, status: 'PRESENT' | 'LATE' | 'ABSENT') {
+  if (isLocked.value) return;
+  std.status = status;
+  if (status === 'PRESENT' && !std.remarks) {
     std.remarks = null;
   }
 }
 
+// Bulk Marking Actions
+function markAllPresent() {
+  if (isLocked.value || !rosterData.value) return;
+  rosterData.value.students.forEach((s) => {
+    s.status = 'PRESENT';
+    s.remarks = null;
+  });
+}
+
+function markAllLate() {
+  if (isLocked.value || !rosterData.value) return;
+  rosterData.value.students.forEach((s) => {
+    s.status = 'LATE';
+  });
+}
+
+function markAllAbsent() {
+  if (isLocked.value || !rosterData.value) return;
+  rosterData.value.students.forEach((s) => {
+    s.status = 'ABSENT';
+  });
+}
+
 // Save Attendance
 async function handleSaveAttendance() {
+  if (isLocked.value) {
+    showNotification('error', 'Attendance Already Submitted. You can view this record, but editing is not permitted.');
+    isConfirmSaveModalOpen.value = false;
+    return;
+  }
   if (!rosterData.value || !selectedClassId.value || !selectedSubjectId.value) return;
+
+  if (selectedDate.value > getTodayDateString()) {
+    showNotification('error', 'Attendance cannot be recorded for future dates.');
+    isConfirmSaveModalOpen.value = false;
+    return;
+  }
 
   isSaving.value = true;
   try {
     const payload = {
       class_id: selectedClassId.value,
       subject_id: selectedSubjectId.value,
-      academic_year: rosterData.value.academic_year || selectedYear.value || '2025-2026',
+      academic_year: rosterData.value.academic_year || selectedYear.value || '2026/2027',
       date: selectedDate.value,
       entries: rosterData.value.students.map((s) => ({
         student_id: s.student_id,
@@ -229,31 +311,31 @@ async function handleSaveAttendance() {
     };
 
     const res = await attendanceService.saveAttendance(payload);
-    showNotification('success', `Attendance saved: ${res.present_count} Present, ${res.absent_count} Absent in ${res.class_name}.`);
+    showNotification(
+      'success',
+      `Attendance saved: ${res.present_count} Present, ${res.late_count ?? 0} Late, ${res.absent_count} Absent in ${res.class_name}.`
+    );
     isConfirmSaveModalOpen.value = false;
     await fetchRoster();
   } catch (err: any) {
-    showNotification('error', err?.response?.data?.error?.message || 'Failed to save attendance records.');
+    const detailMsg = err?.response?.data?.detail || err?.response?.data?.error?.message;
+    showNotification('error', detailMsg || 'Failed to save attendance records.');
+    isConfirmSaveModalOpen.value = false;
+    await fetchRoster();
   } finally {
     isSaving.value = false;
   }
 }
 
-// Mark All Present
-function markAllPresent() {
-  if (!rosterData.value) return;
-  rosterData.value.students.forEach((s) => {
-    s.status = 'PRESENT';
-    s.remarks = null;
-  });
-}
-
-// Fetch History
+// Fetch History with Subject, Month & Date Filters
 async function fetchHistory() {
   isLoadingHistory.value = true;
   try {
     const list = await attendanceService.getHistory({
       class_id: selectedClassId.value || undefined,
+      subject_id: historySubjectId.value !== '' ? Number(historySubjectId.value) : undefined,
+      month: historyMonth.value !== '' ? Number(historyMonth.value) : undefined,
+      date: historyDate.value || undefined,
       academic_year: selectedYear.value || undefined,
     });
     historySessions.value = list;
@@ -263,6 +345,12 @@ async function fetchHistory() {
     isLoadingHistory.value = false;
   }
 }
+
+watch([historySubjectId, historyMonth, historyDate], () => {
+  if (activeTab.value === 'history') {
+    fetchHistory();
+  }
+});
 
 // Load Session from History
 function loadSessionFromHistory(session: TeacherAttendanceSessionItem) {
@@ -290,9 +378,20 @@ async function fetchSummary() {
   }
 }
 
-function openStudentHistoryModal(std: TeacherStudentAttendanceSummaryItem) {
+// Open Student History & Subject Breakdown Modal
+async function openStudentHistoryModal(std: TeacherStudentAttendanceSummaryItem) {
   selectedStudentDetail.value = std;
+  studentBreakdownDetail.value = null;
   isStudentModalOpen.value = true;
+  isLoadingStudentDetail.value = true;
+  try {
+    const detail = await attendanceService.getStudentBreakdown(std.student_id, selectedYear.value || undefined);
+    studentBreakdownDetail.value = detail;
+  } catch (err: any) {
+    showNotification('error', err?.response?.data?.error?.message || 'Failed to load subject breakdown.');
+  } finally {
+    isLoadingStudentDetail.value = false;
+  }
 }
 
 function handleTabChange(tab: 'take' | 'history' | 'summary') {
@@ -461,9 +560,12 @@ onMounted(() => {
         <div class="summary-banner">
           <div class="summary-left">
             <div class="session-status-row">
-              <span class="session-badge" :class="rosterData.is_recorded ? 'recorded' : 'new'">
-                <span class="dot" :class="rosterData.is_recorded ? 'green' : 'amber'" />
-                {{ rosterData.is_recorded ? 'Saved Session' : 'New Session (Unsaved)' }}
+              <span class="session-badge" :class="isLocked ? 'locked' : (rosterData.is_recorded ? 'recorded' : 'new')">
+                <svg v-if="isLocked" class="badge-lock-icon" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                </svg>
+                <span v-else class="dot" :class="rosterData.is_recorded ? 'green' : 'amber'" />
+                {{ isLocked ? 'Submitted & Locked (Read-Only)' : 'New Session (Unsaved)' }}
               </span>
               <strong class="session-class-name">{{ rosterData.class_name }}</strong>
             </div>
@@ -484,26 +586,114 @@ onMounted(() => {
               <span class="pill-label">PRESENT</span>
               <span class="pill-val text-emerald">{{ presentCount }}</span>
             </div>
+            <div class="stat-pill late">
+              <span class="pill-label">LATE</span>
+              <span class="pill-val text-amber">{{ lateCount }}</span>
+            </div>
             <div class="stat-pill absent">
               <span class="pill-label">ABSENT</span>
               <span class="pill-val text-rose">{{ absentCount }}</span>
+            </div>
+            <div class="stat-pill rate">
+              <span class="pill-label">RATE</span>
+              <span class="pill-val text-navy">{{ rosterTurnoutRate }}%</span>
             </div>
           </div>
 
           <!-- Actions -->
           <div class="banner-actions">
-            <button class="btn-all-present" @click="markAllPresent">
-              <svg viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-              </svg>
-              <span>Mark All Present</span>
-            </button>
-            <button class="btn-save-attendance" :disabled="isSaving" @click="isConfirmSaveModalOpen = true">
+            <div class="bulk-actions-group">
+              <button
+                type="button"
+                class="btn-bulk present"
+                :disabled="isLocked"
+                :class="{ 'btn-disabled': isLocked }"
+                @click="markAllPresent"
+                title="Mark all students present"
+              >
+                All Present
+              </button>
+              <button
+                type="button"
+                class="btn-bulk late"
+                :disabled="isLocked"
+                :class="{ 'btn-disabled': isLocked }"
+                @click="markAllLate"
+                title="Mark all students late"
+              >
+                All Late
+              </button>
+              <button
+                type="button"
+                class="btn-bulk absent"
+                :disabled="isLocked"
+                :class="{ 'btn-disabled': isLocked }"
+                @click="markAllAbsent"
+                title="Mark all students absent"
+              >
+                All Absent
+              </button>
+            </div>
+            <button
+              v-if="!isLocked"
+              class="btn-save-attendance"
+              :disabled="isSaving"
+              @click="isConfirmSaveModalOpen = true"
+            >
               <span>Save Attendance</span>
               <svg viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
               </svg>
             </button>
+            <button
+              v-else
+              type="button"
+              class="btn-save-attendance is-locked-btn"
+              disabled
+              title="Attendance is already submitted and locked."
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+              </svg>
+              <span>Submitted & Locked</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Locked State Notice -->
+        <div v-if="isLocked" class="locked-notice-banner">
+          <div class="locked-notice-content">
+            <div class="locked-icon-wrapper">
+              <svg class="locked-icon" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="locked-text-wrap">
+              <div class="locked-title-row">
+                <h4 class="locked-title">Attendance Already Submitted. You can view this record, but editing is not permitted.</h4>
+                <span class="read-only-badge">Read-Only</span>
+              </div>
+              <p class="locked-meta">
+                This attendance record is permanently locked. Session for <strong>{{ rosterData.class_name }}</strong> &bull; <strong>{{ rosterData.subject_name }}</strong> on <strong>{{ rosterData.date }}</strong>.
+                <span v-if="rosterData.submitted_at">
+                  (Submitted {{ new Date(rosterData.submitted_at).toLocaleDateString() }}{{ rosterData.submitted_by_name ? ` by ${rosterData.submitted_by_name}` : '' }})
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Unrecorded State Notice -->
+        <div v-else-if="!rosterData.is_recorded" class="unrecorded-notice-banner mb-4 p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
+          <svg class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h4 class="text-sm font-bold text-amber-900">No attendance records found for this date.</h4>
+            <p class="text-xs text-amber-700 mt-0.5">
+              Roll call has not yet been recorded for {{ rosterData.subject_name }} on {{ rosterData.date }}.
+              Select student attendance statuses below and click "Save Attendance" when ready.
+            </p>
           </div>
         </div>
 
@@ -516,15 +706,18 @@ onMounted(() => {
                   <th style="width: 50px;">#</th>
                   <th>Student Name</th>
                   <th>Admission #</th>
-                  <th style="width: 150px; text-align: center;">Status (Present / Absent)</th>
-                  <th>Absence Reason / Remarks</th>
+                  <th style="width: 250px; text-align: center;">Status (Present / Late / Absent)</th>
+                  <th>Absence / Late Reason & Remarks</th>
                 </tr>
               </thead>
               <tbody>
                 <tr
                   v-for="(std, idx) in rosterData.students"
                   :key="std.student_id"
-                  :class="{ 'row-absent': std.status === 'ABSENT' || std.status === 'EXCUSED' }"
+                  :class="{
+                    'row-absent': std.status === 'ABSENT' || std.status === 'EXCUSED',
+                    'row-late': std.status === 'LATE'
+                  }"
                 >
                   <td class="text-muted">{{ idx + 1 }}</td>
                   <td class="font-bold">
@@ -533,28 +726,59 @@ onMounted(() => {
                   </td>
                   <td><code class="adm-code">{{ std.admission_number }}</code></td>
                   <td style="text-align: center;">
-                    <!-- ON / OFF Toggle Switch -->
-                    <button
-                      type="button"
-                      class="toggle-switch"
-                      :class="{
-                        'is-on': std.status === 'PRESENT' || std.status === 'LATE',
-                        'is-off': std.status === 'ABSENT' || std.status === 'EXCUSED'
-                      }"
-                      :aria-label="`Toggle attendance for ${std.student_name}`"
-                      @click="toggleStudentStatus(std)"
-                    >
-                      <span class="switch-handle" />
-                      <span class="switch-text">{{ (std.status === 'PRESENT' || std.status === 'LATE') ? 'PRESENT' : 'ABSENT' }}</span>
-                    </button>
+                    <!-- 3-State Status Button Group -->
+                    <div class="status-btn-group" :class="{ 'is-locked': isLocked }">
+                      <button
+                        type="button"
+                        class="status-choice-btn btn-present"
+                        :class="{ active: std.status === 'PRESENT', 'is-locked-btn': isLocked }"
+                        :disabled="isLocked"
+                        :aria-label="`Mark ${std.student_name} Present`"
+                        @click="setStudentStatus(std, 'PRESENT')"
+                      >
+                        <svg class="status-icon" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        <span>Present</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="status-choice-btn btn-late"
+                        :class="{ active: std.status === 'LATE', 'is-locked-btn': isLocked }"
+                        :disabled="isLocked"
+                        :aria-label="`Mark ${std.student_name} Late`"
+                        @click="setStudentStatus(std, 'LATE')"
+                      >
+                        <svg class="status-icon" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                        </svg>
+                        <span>Late</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="status-choice-btn btn-absent"
+                        :class="{ active: std.status === 'ABSENT' || std.status === 'EXCUSED', 'is-locked-btn': isLocked }"
+                        :disabled="isLocked"
+                        :aria-label="`Mark ${std.student_name} Absent`"
+                        @click="setStudentStatus(std, 'ABSENT')"
+                      >
+                        <svg class="status-icon" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                        <span>Absent</span>
+                      </button>
+                    </div>
                   </td>
                   <td>
-                    <div v-if="std.status === 'ABSENT' || std.status === 'EXCUSED'" class="reason-wrap">
+                    <div v-if="std.status === 'ABSENT' || std.status === 'EXCUSED' || std.status === 'LATE'" class="reason-wrap">
                       <input
                         v-model="std.remarks"
                         type="text"
                         class="reason-input"
-                        placeholder="e.g. Sick, Family emergency, Unexcused"
+                        :disabled="isLocked"
+                        :readonly="isLocked"
+                        :class="{ 'input-locked': isLocked }"
+                        :placeholder="isLocked ? (std.remarks ? '' : 'No remarks recorded') : (std.status === 'LATE' ? 'e.g. Traffic, Arrived 15m late' : 'e.g. Sick, Family emergency, Unexcused')"
                       />
                     </div>
                     <span v-else class="text-present-tag">
@@ -573,16 +797,19 @@ onMounted(() => {
         <!-- Mobile Roster Cards (<= 768px) -->
         <div class="mobile-roster">
           <div class="mobile-bulk-actions">
-            <button class="btn-all-present block" @click="markAllPresent">
-              Mark All Present
-            </button>
+            <button class="btn-bulk present" :disabled="isLocked" :class="{ 'btn-disabled': isLocked }" @click="markAllPresent">All Present</button>
+            <button class="btn-bulk late" :disabled="isLocked" :class="{ 'btn-disabled': isLocked }" @click="markAllLate">All Late</button>
+            <button class="btn-bulk absent" :disabled="isLocked" :class="{ 'btn-disabled': isLocked }" @click="markAllAbsent">All Absent</button>
           </div>
 
           <div
             v-for="(std, idx) in rosterData.students"
             :key="std.student_id"
             class="student-card-mobile"
-            :class="{ 'card-absent': std.status === 'ABSENT' || std.status === 'EXCUSED' }"
+            :class="{
+              'card-absent': std.status === 'ABSENT' || std.status === 'EXCUSED',
+              'card-late': std.status === 'LATE'
+            }"
           >
             <div class="m-card-header">
               <div class="m-student-meta">
@@ -593,57 +820,133 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- Switch -->
-              <button
-                type="button"
-                class="toggle-switch"
-                :class="{
-                  'is-on': std.status === 'PRESENT' || std.status === 'LATE',
-                  'is-off': std.status === 'ABSENT' || std.status === 'EXCUSED'
-                }"
-                :aria-label="`Toggle attendance for ${std.student_name}`"
-                @click="toggleStudentStatus(std)"
-              >
-                <span class="switch-handle" />
-                <span class="switch-text">{{ (std.status === 'PRESENT' || std.status === 'LATE') ? 'PRESENT' : 'ABSENT' }}</span>
-              </button>
+              <!-- 3-State Switch for Mobile -->
+              <div class="status-btn-group mobile" :class="{ 'is-locked': isLocked }">
+                <button
+                  type="button"
+                  class="status-choice-btn btn-present"
+                  :class="{ active: std.status === 'PRESENT', 'is-locked-btn': isLocked }"
+                  :disabled="isLocked"
+                  @click="setStudentStatus(std, 'PRESENT')"
+                >
+                  P
+                </button>
+                <button
+                  type="button"
+                  class="status-choice-btn btn-late"
+                  :class="{ active: std.status === 'LATE', 'is-locked-btn': isLocked }"
+                  :disabled="isLocked"
+                  @click="setStudentStatus(std, 'LATE')"
+                >
+                  L
+                </button>
+                <button
+                  type="button"
+                  class="status-choice-btn btn-absent"
+                  :class="{ active: std.status === 'ABSENT' || std.status === 'EXCUSED', 'is-locked-btn': isLocked }"
+                  :disabled="isLocked"
+                  @click="setStudentStatus(std, 'ABSENT')"
+                >
+                  A
+                </button>
+              </div>
             </div>
 
-            <div v-if="std.status === 'ABSENT' || std.status === 'EXCUSED'" class="m-card-reason">
-              <label class="reason-label">Absence reason / notes:</label>
+            <div v-if="std.status === 'ABSENT' || std.status === 'EXCUSED' || std.status === 'LATE'" class="m-card-reason">
+              <label class="reason-label">{{ std.status === 'LATE' ? 'Late arrival notes:' : 'Absence reason / notes:' }}</label>
               <input
                 v-model="std.remarks"
                 type="text"
                 class="reason-input"
-                placeholder="e.g. Sick, Family emergency"
+                :disabled="isLocked"
+                :readonly="isLocked"
+                :class="{ 'input-locked': isLocked }"
+                :placeholder="isLocked ? (std.remarks ? '' : 'No remarks recorded') : (std.status === 'LATE' ? 'e.g. Arrived late' : 'e.g. Sick, Family emergency')"
               />
             </div>
           </div>
         </div>
 
         <!-- Bottom Save Floating Bar on Mobile -->
-        <div class="mobile-save-bar">
+        <div v-if="!isLocked" class="mobile-save-bar">
           <div class="mobile-save-counts">
             <span class="text-emerald font-bold">{{ presentCount }} Present</span>
+            <span class="text-amber font-bold">{{ lateCount }} Late</span>
             <span class="text-rose font-bold">{{ absentCount }} Absent</span>
           </div>
           <button class="btn-save-attendance block" :disabled="isSaving" @click="isConfirmSaveModalOpen = true">
             Save Attendance
           </button>
         </div>
+        <div v-else class="mobile-save-bar locked-bar">
+          <div class="mobile-save-counts">
+            <span class="text-emerald font-bold">{{ presentCount }} Present</span>
+            <span class="text-amber font-bold">{{ lateCount }} Late</span>
+            <span class="text-rose font-bold">{{ absentCount }} Absent</span>
+          </div>
+          <div class="mobile-locked-tag">
+            <svg class="w-4 h-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+            </svg>
+            <span>Submitted & Locked (Read-Only)</span>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- TAB 2: SESSION HISTORY -->
     <div v-else-if="activeTab === 'history'" class="tab-content">
+      <!-- Session Logs Filters -->
+      <div class="history-filter-bar">
+        <div class="h-filter-item">
+          <label class="h-label">Subject</label>
+          <select v-model="historySubjectId" class="h-select">
+            <option value="">All Subjects</option>
+            <option v-for="s in availableSubjects" :key="s.id" :value="s.id">
+              {{ s.name }} ({{ s.code }})
+            </option>
+          </select>
+        </div>
+
+        <div class="h-filter-item">
+          <label class="h-label">Month</label>
+          <select v-model="historyMonth" class="h-select">
+            <option value="">All Months</option>
+            <option :value="1">January</option>
+            <option :value="2">February</option>
+            <option :value="3">March</option>
+            <option :value="4">April</option>
+            <option :value="5">May</option>
+            <option :value="6">June</option>
+            <option :value="7">July</option>
+            <option :value="8">August</option>
+            <option :value="9">September</option>
+            <option :value="10">October</option>
+            <option :value="11">November</option>
+            <option :value="12">December</option>
+          </select>
+        </div>
+
+        <div class="h-filter-item">
+          <label class="h-label">Date</label>
+          <input v-model="historyDate" type="date" class="h-select" :max="getTodayDateString()" />
+        </div>
+
+        <div v-if="historySubjectId || historyMonth || historyDate" class="h-filter-clear">
+          <button type="button" class="btn-clear-filters" @click="historySubjectId = ''; historyMonth = ''; historyDate = ''">
+            Clear Filters
+          </button>
+        </div>
+      </div>
+
       <div v-if="isLoadingHistory" class="state-card loading">
         <div class="spinner-ring" />
         <span class="loading-label">Loading attendance session logs...</span>
       </div>
 
       <div v-else-if="historySessions.length === 0" class="state-card empty">
-        <h3 class="state-title">No Previous Sessions Recorded</h3>
-        <p class="state-desc">No attendance logs exist yet for this class and academic year.</p>
+        <h3 class="state-title">{{ historyDate ? 'No attendance records found for this date.' : 'No Previous Sessions Recorded' }}</h3>
+        <p class="state-desc">{{ historyDate ? 'No attendance logs match ' + historyDate + ' for this class and subject.' : 'No attendance logs match your filter criteria for this class and academic year.' }}</p>
       </div>
 
       <div v-else class="history-grid">
@@ -651,7 +954,7 @@ onMounted(() => {
           <div class="session-top">
             <span class="session-date">📅 {{ s.date }}</span>
             <span class="rate-badge" :class="s.attendance_percentage >= 80 ? 'green' : 'amber'">
-              {{ s.attendance_percentage }}% Present
+              {{ s.attendance_percentage }}% Turnout
             </span>
           </div>
 
@@ -662,13 +965,14 @@ onMounted(() => {
             <div class="session-stats">
               <span>Total: <strong>{{ s.total_students }}</strong></span>
               <span class="text-emerald">Present: <strong>{{ s.present_count }}</strong></span>
+              <span class="text-amber">Late: <strong>{{ s.late_count }}</strong></span>
               <span class="text-rose">Absent: <strong>{{ s.absent_count }}</strong></span>
             </div>
           </div>
 
           <div class="session-footer">
             <button class="btn-edit-session" @click="loadSessionFromHistory(s)">
-              <span>View / Edit Attendance</span>
+              <span>View Attendance</span>
               <svg viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
               </svg>
@@ -714,6 +1018,7 @@ onMounted(() => {
                   <th>Admission #</th>
                   <th class="text-center">Total Sessions</th>
                   <th class="text-center">Present</th>
+                  <th class="text-center">Late</th>
                   <th class="text-center">Absent</th>
                   <th class="text-center">Attendance Rate</th>
                   <th style="text-align: right;">Action</th>
@@ -725,6 +1030,7 @@ onMounted(() => {
                   <td><code class="adm-code">{{ std.admission_number }}</code></td>
                   <td class="text-center">{{ std.total_sessions }}</td>
                   <td class="text-center text-emerald font-bold">{{ std.present_count }}</td>
+                  <td class="text-center text-amber font-bold">{{ std.late_count }}</td>
                   <td class="text-center text-rose font-bold">{{ std.absent_count }}</td>
                   <td class="text-center">
                     <span
@@ -736,7 +1042,7 @@ onMounted(() => {
                   </td>
                   <td style="text-align: right;">
                     <button class="btn-summary-detail" @click="openStudentHistoryModal(std)">
-                      <span>View History</span>
+                      <span>Subject Breakdown</span>
                     </button>
                   </td>
                 </tr>
@@ -767,6 +1073,10 @@ onMounted(() => {
               <strong class="val text-emerald">{{ presentCount }}</strong>
             </div>
             <div class="confirm-count-item">
+              <span class="lbl">Late</span>
+              <strong class="val text-amber">{{ lateCount }}</strong>
+            </div>
+            <div class="confirm-count-item">
               <span class="lbl">Absent</span>
               <strong class="val text-rose">{{ absentCount }}</strong>
             </div>
@@ -776,7 +1086,7 @@ onMounted(() => {
             </div>
           </div>
           <p class="confirm-note">
-            Attendance will be recorded for <strong>{{ rosterData?.class_name }}</strong> on <strong>{{ selectedDate }}</strong>.
+            Attendance will be recorded for <strong>{{ rosterData?.class_name }}</strong> ({{ rosterData?.subject_name }}) on <strong>{{ selectedDate }}</strong>.
           </p>
         </div>
 
@@ -789,9 +1099,9 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- STUDENT ABSENCE HISTORY MODAL -->
+    <!-- STUDENT SUBJECT BREAKDOWN & ATTENDANCE HISTORY MODAL -->
     <div v-if="isStudentModalOpen" class="modal-backdrop" @click="isStudentModalOpen = false">
-      <div class="modal-card" @click.stop>
+      <div class="modal-card wide" @click.stop>
         <div v-if="selectedStudentDetail" class="modal-content-wrap">
           <div class="modal-header">
             <div>
@@ -800,54 +1110,150 @@ onMounted(() => {
                 <code class="adm-code">{{ selectedStudentDetail.admission_number }}</code>
               </div>
               <h3 class="modal-title">{{ selectedStudentDetail.student_name }}</h3>
-              <p class="modal-subtitle">Attendance rate: {{ selectedStudentDetail.attendance_percentage }}%</p>
+              <p class="modal-subtitle">
+                Overall Attendance Rate: <strong>{{ studentBreakdownDetail?.overall_percentage ?? selectedStudentDetail.attendance_percentage }}%</strong>
+              </p>
             </div>
             <button class="modal-close" @click="isStudentModalOpen = false">&times;</button>
           </div>
 
           <div class="modal-body">
+            <!-- Overall Stats Bar -->
             <div class="modal-stats-grid">
               <div class="stat-box">
                 <span class="stat-title">Total Sessions</span>
-                <span class="stat-num text-navy">{{ selectedStudentDetail.total_sessions }}</span>
+                <span class="stat-num text-navy">{{ studentBreakdownDetail?.total_sessions ?? selectedStudentDetail.total_sessions }}</span>
               </div>
               <div class="stat-box">
                 <span class="stat-title">Present</span>
-                <span class="stat-num text-emerald">{{ selectedStudentDetail.present_count }}</span>
+                <span class="stat-num text-emerald">{{ studentBreakdownDetail?.total_present ?? selectedStudentDetail.present_count }}</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-title">Late</span>
+                <span class="stat-num text-amber">{{ studentBreakdownDetail?.total_late ?? selectedStudentDetail.late_count }}</span>
               </div>
               <div class="stat-box">
                 <span class="stat-title">Absent</span>
-                <span class="stat-num text-rose">{{ selectedStudentDetail.absent_count }}</span>
+                <span class="stat-num text-rose">{{ studentBreakdownDetail?.total_absent ?? selectedStudentDetail.absent_count }}</span>
               </div>
               <div class="stat-box">
-                <span class="stat-title">Attendance %</span>
-                <span class="stat-num text-navy">{{ selectedStudentDetail.attendance_percentage }}%</span>
+                <span class="stat-title">Attendance Rate</span>
+                <span class="stat-num text-navy">
+                  {{ studentBreakdownDetail?.overall_percentage ?? selectedStudentDetail.attendance_percentage }}%
+                </span>
               </div>
             </div>
 
-            <h4 class="sub-heading">Absence Timeline</h4>
-            <div v-if="selectedStudentDetail.absent_history.length === 0" class="empty-inline-success">
-              No absences recorded. Perfect attendance!
+            <!-- Subject-by-Subject Breakdown Table (Exact Requested Format) -->
+            <div class="breakdown-section">
+              <div class="section-title-row">
+                <h4 class="sub-heading">Subject-Based Attendance Breakdown</h4>
+                <span class="sub-desc">Actual database records for each enrolled subject</span>
+              </div>
+
+              <div v-if="isLoadingStudentDetail" class="loading-state-inline">
+                <div class="spinner-ring sm" />
+                <span>Loading subject breakdown from database...</span>
+              </div>
+
+              <div v-else-if="studentBreakdownDetail && studentBreakdownDetail.by_subject.length > 0" class="table-responsive-wrapper">
+                <table class="somroyal-table breakdown-table">
+                  <thead>
+                    <tr>
+                      <th>Subject</th>
+                      <th class="text-center text-emerald">Present</th>
+                      <th class="text-center text-rose">Absent</th>
+                      <th class="text-center text-amber">Late</th>
+                      <th class="text-center">Attendance Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="sub in studentBreakdownDetail.by_subject" :key="sub.subject_id">
+                      <td class="font-bold text-navy">
+                        {{ sub.subject_name }}
+                        <span v-if="sub.subject_code" class="sub-code-tag">({{ sub.subject_code }})</span>
+                      </td>
+                      <td class="text-center font-bold text-emerald">{{ sub.present_count }}</td>
+                      <td class="text-center font-bold text-rose">{{ sub.absent_count }}</td>
+                      <td class="text-center font-bold text-amber">{{ sub.late_count }}</td>
+                      <td class="text-center">
+                        <span
+                          class="rate-pill"
+                          :class="sub.attendance_percentage >= 80 ? 'high' : (sub.attendance_percentage >= 60 ? 'medium' : 'low')"
+                        >
+                          {{ sub.attendance_percentage }}%
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div v-else class="empty-inline-success">
+                No subject-level breakdown records found for this student.
+              </div>
             </div>
-            <div v-else class="table-responsive-wrapper">
-              <table class="somroyal-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Subject</th>
-                    <th>Status</th>
-                    <th>Reason / Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(h, i) in selectedStudentDetail.absent_history" :key="i">
-                    <td class="font-bold text-navy">{{ h.date }}</td>
-                    <td>{{ h.subject_name || 'Class Session' }}</td>
-                    <td><span class="status-pill-absent">{{ h.status }}</span></td>
-                    <td class="text-slate-600">{{ h.remarks || 'None specified' }}</td>
-                  </tr>
-                </tbody>
-              </table>
+
+            <!-- Session Log Timeline -->
+            <div class="breakdown-section mt-4">
+              <div class="section-title-row">
+                <h4 class="sub-heading">Recent Session History</h4>
+                <span class="sub-desc">Date-by-date attendance audit trail</span>
+              </div>
+
+              <div v-if="studentBreakdownDetail && studentBreakdownDetail.records.length > 0" class="table-responsive-wrapper">
+                <table class="somroyal-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Subject</th>
+                      <th>Period</th>
+                      <th>Status</th>
+                      <th>Teacher</th>
+                      <th>Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="rec in studentBreakdownDetail.records" :key="rec.id">
+                      <td class="font-bold text-navy">{{ rec.date }}</td>
+                      <td>{{ rec.subject_name }}</td>
+                      <td class="text-muted">{{ rec.period || '—' }}</td>
+                      <td>
+                        <span
+                          class="status-pill-badge"
+                          :class="rec.status === 'PRESENT' ? 'pill-present' : (rec.status === 'LATE' ? 'pill-late' : 'pill-absent')"
+                        >
+                          {{ rec.status }}
+                        </span>
+                      </td>
+                      <td class="text-slate-600 text-sm">{{ rec.teacher_name || 'Assigned Faculty' }}</td>
+                      <td class="text-slate-600 text-sm">{{ rec.remarks || '—' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div v-else-if="selectedStudentDetail.absent_history.length > 0" class="table-responsive-wrapper">
+                <table class="somroyal-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Subject</th>
+                      <th>Status</th>
+                      <th>Reason / Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(h, i) in selectedStudentDetail.absent_history" :key="i">
+                      <td class="font-bold text-navy">{{ h.date }}</td>
+                      <td>{{ h.subject_name || 'Class Session' }}</td>
+                      <td><span class="status-pill-badge pill-absent">{{ h.status }}</span></td>
+                      <td class="text-slate-600">{{ h.remarks || 'None specified' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div v-else class="empty-inline-success">
+                No recent attendance records or absences logged.
+              </div>
             </div>
           </div>
 
@@ -1103,6 +1509,17 @@ onMounted(() => {
   border: 1px solid rgba(16, 185, 129, 0.4);
 }
 
+.session-badge.locked {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60A5FA;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.badge-lock-icon {
+  width: 13px;
+  height: 13px;
+}
+
 .session-badge.new {
   background: rgba(245, 158, 11, 0.2);
   color: #F59E0B;
@@ -1212,6 +1629,89 @@ onMounted(() => {
 }
 
 .btn-save-attendance svg { width: 15px; height: 15px; }
+
+.btn-save-attendance.is-locked-btn {
+  background: #334155 !important;
+  color: #94A3B8 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  opacity: 0.9;
+}
+
+.btn-disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+/* Locked Attendance Notice Banner */
+.locked-notice-banner {
+  background: #F8FAFC;
+  border: 1.5px solid #CBD5E1;
+  border-left: 5px solid #0A192F;
+  border-radius: 14px;
+  padding: 1.15rem 1.4rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 6px rgba(10, 25, 47, 0.04);
+}
+
+.locked-notice-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.locked-icon-wrapper {
+  background: #0A192F;
+  color: #F59E0B;
+  border-radius: 8px;
+  padding: 0.45rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.locked-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.locked-text-wrap {
+  flex: 1;
+}
+
+.locked-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.locked-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0A192F;
+  margin: 0;
+}
+
+.read-only-badge {
+  background: #E2E8F0;
+  color: #334155;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.locked-meta {
+  font-size: 0.82rem;
+  color: #64748B;
+  margin: 0.3rem 0 0 0;
+  line-height: 1.4;
+}
 
 /* Table */
 .desktop-roster {
@@ -1328,6 +1828,13 @@ onMounted(() => {
   outline: none;
 }
 
+.reason-input.input-locked {
+  background: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #64748B !important;
+  cursor: not-allowed !important;
+}
+
 .text-present-tag {
   display: inline-flex;
   align-items: center;
@@ -1415,6 +1922,24 @@ onMounted(() => {
   padding: 0.85rem 1.25rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   z-index: 20;
+}
+
+.mobile-save-bar.locked-bar {
+  background: #1E293B;
+  border: 1px solid #334155;
+}
+
+.mobile-locked-tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #94A3B8;
+  padding: 0.6rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .mobile-save-counts {
@@ -1926,6 +2451,267 @@ onMounted(() => {
   padding: 0.85rem 1.25rem;
   border-radius: 12px;
   font-size: 0.84rem;
+}
+
+/* 3-State Status Button Group */
+.status-btn-group {
+  display: inline-flex;
+  align-items: center;
+  background: #F1F5F9;
+  padding: 3px;
+  border-radius: 24px;
+  gap: 3px;
+  border: 1px solid #E2E8F0;
+}
+
+.status-choice-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 18px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.status-choice-btn:hover {
+  color: #0A192F;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.status-choice-btn .status-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.status-choice-btn.btn-present.active {
+  background: #ECFDF5;
+  color: #065F46;
+  border-color: #10B981;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.15);
+}
+
+.status-choice-btn.btn-late.active {
+  background: #FEF3C7;
+  color: #92400E;
+  border-color: #F59E0B;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.15);
+}
+
+.status-choice-btn.btn-absent.active {
+  background: #FEF2F2;
+  color: #991B1B;
+  border-color: #EF4444;
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.15);
+}
+
+.status-btn-group.mobile {
+  padding: 2px;
+}
+
+.status-btn-group.mobile .status-choice-btn {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.status-btn-group.is-locked {
+  background: #F1F5F9;
+  border-color: #E2E8F0;
+  cursor: not-allowed;
+}
+
+.status-choice-btn.is-locked-btn {
+  cursor: not-allowed !important;
+}
+
+.status-choice-btn.is-locked-btn:not(.active) {
+  opacity: 0.35 !important;
+  color: #94A3B8 !important;
+}
+
+.status-choice-btn.is-locked-btn:hover {
+  background: transparent !important;
+}
+
+/* Row states */
+.row-late {
+  background-color: #FFFBEB !important;
+}
+
+.card-late {
+  border-left: 4px solid #F59E0B !important;
+}
+
+/* Bulk actions */
+.bulk-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-bulk {
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-bulk:hover {
+  transform: translateY(-1px);
+}
+
+.btn-bulk.present:hover {
+  background: #ECFDF5;
+  border-color: #10B981;
+  color: #065F46;
+}
+
+.btn-bulk.late:hover {
+  background: #FEF3C7;
+  border-color: #F59E0B;
+  color: #92400E;
+}
+
+.btn-bulk.absent:hover {
+  background: #FEF2F2;
+  border-color: #EF4444;
+  color: #991B1B;
+}
+
+/* Stats Pill for Late and Rate */
+.stat-pill.late {
+  border-left: 3px solid #F59E0B;
+}
+
+.stat-pill.rate {
+  border-left: 3px solid #1E3A8A;
+}
+
+/* History filter bar */
+.history-filter-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: #FFFFFF;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  margin-bottom: 1.25rem;
+}
+
+.h-filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 170px;
+}
+
+.h-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+}
+
+.h-select {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  background: #F8FAFC;
+  color: #0A192F;
+}
+
+.btn-clear-filters {
+  align-self: flex-end;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid #E2E8F0;
+  background: #F1F5F9;
+  color: #475569;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Modal Wide & Breakdown */
+.modal-card.wide {
+  max-width: 950px;
+  width: 95%;
+}
+
+.breakdown-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.sub-desc {
+  font-size: 0.78rem;
+  color: #64748B;
+}
+
+.sub-code-tag {
+  font-size: 0.72rem;
+  color: #64748B;
+  font-weight: normal;
+  margin-left: 0.35rem;
+}
+
+.status-pill-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.status-pill-badge.pill-present {
+  background: #ECFDF5;
+  color: #065F46;
+}
+
+.status-pill-badge.pill-late {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.status-pill-badge.pill-absent {
+  background: #FEF2F2;
+  color: #991B1B;
+}
+
+.loading-state-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 1.5rem;
+  color: #64748B;
+  font-size: 0.85rem;
+}
+
+.spinner-ring.sm {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
 }
 
 /* Responsive Rules */

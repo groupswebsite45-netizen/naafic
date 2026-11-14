@@ -29,8 +29,8 @@ const executionError = ref('');
 
 // Academic Years
 const sourceAcademicYear = ref('2026/2027');
-const targetAcademicYear = ref('2027/2028');
-const availableYears = ref<string[]>(['2025-2026', '2026/2027', '2027/2028', '2028/2029']);
+const targetAcademicYear = ref('2026/2027');
+const availableYears = ref<string[]>(['2026/2027']);
 
 // -----------------------------------------------------------------------------
 // WORKFLOW 1: BULK PROMOTION STATE
@@ -723,7 +723,7 @@ onMounted(() => {
               v-model="targetAcademicYear"
               type="text"
               class="year-field"
-              placeholder="e.g. 2027/2028"
+              placeholder="2026/2027"
               @change="loadSuggestedMappings"
             />
             <span class="year-hint">New class assignments will be enrolled for this year.</span>

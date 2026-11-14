@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue';
 import { Teacher, SchoolClass, Subject } from '../../../../types/school';
+import { teacherService } from '../../../../services/teacherService';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -8,6 +9,7 @@ const props = defineProps<{
   availableClasses: SchoolClass[];
   availableSubjects: Subject[];
   isSubmitting: boolean;
+  errorMessage?: string;
 }>();
 
 const emit = defineEmits<{
@@ -19,11 +21,34 @@ const emit = defineEmits<{
 const form = reactive({
   class_id: 0,
   subject_id: 0,
-  academic_year: '2025-2026',
+  academic_year: '2026/2027',
   section: '',
 });
 
 const formError = ref('');
+const assignmentSuccessMessage = ref('');
+
+watch(
+  () => props.errorMessage,
+  (newErr) => {
+    if (newErr) {
+      formError.value = newErr;
+    }
+  }
+);
+
+watch(
+  () => props.teacher?.assignments?.length,
+  (newLen, oldLen) => {
+    if (newLen !== undefined && oldLen !== undefined && newLen > oldLen) {
+      assignmentSuccessMessage.value = 'Teaching allocation added successfully! You can assign more classes/subjects below.';
+      formError.value = '';
+      setTimeout(() => {
+        assignmentSuccessMessage.value = '';
+      }, 5000);
+    }
+  }
+);
 
 watch(
   () => props.isOpen,
@@ -31,7 +56,8 @@ watch(
     if (open) {
       form.class_id = props.availableClasses.length > 0 ? props.availableClasses[0].id : 0;
       form.subject_id = props.availableSubjects.length > 0 ? props.availableSubjects[0].id : 0;
-      form.academic_year = '2025-2026';
+      const initialClass = props.availableClasses.find((c) => c.id === form.class_id);
+      form.academic_year = initialClass?.academic_year || '2026/2027';
       form.section = '';
       formError.value = '';
     }
@@ -39,7 +65,64 @@ watch(
   { immediate: true }
 );
 
-function handleAddAssignment() {
+watch(
+  () => form.class_id,
+  (newClassId) => {
+    if (newClassId) {
+      const cls = props.availableClasses.find((c) => c.id === Number(newClassId));
+      if (cls?.academic_year) {
+        form.academic_year = cls.academic_year;
+      }
+    }
+  }
+);
+
+const isCheckingAvailability = ref(false);
+
+async function checkCurrentSelection() {
+  formError.value = '';
+  if (!form.class_id || !form.subject_id || !form.academic_year) return;
+
+  // 1. Check duplicate within current teacher's assignments
+  if (props.teacher?.assignments) {
+    const normYear = (y?: string) => (y || '').replace('/', '-').trim();
+    const targetNorm = normYear(form.academic_year);
+    const isSelfDup = props.teacher.assignments.some(
+      (a) => a.class_id === Number(form.class_id) && a.subject_id === Number(form.subject_id) && normYear(a.academic_year) === targetNorm
+    );
+    if (isSelfDup) {
+      formError.value = 'This teacher is already assigned to this subject and class for this academic year.';
+      return;
+    }
+  }
+
+  // 2. Check if another teacher is already assigned via API
+  try {
+    isCheckingAvailability.value = true;
+    const res = await teacherService.checkAssignment({
+      class_id: Number(form.class_id),
+      subject_id: Number(form.subject_id),
+      academic_year: form.academic_year.trim(),
+      teacher_id: props.teacher?.id,
+    });
+    if (!res.available) {
+      formError.value = res.message || 'This subject is already assigned to another teacher in this class.';
+    }
+  } catch (err: any) {
+    console.warn('Assignment check failed:', err);
+  } finally {
+    isCheckingAvailability.value = false;
+  }
+}
+
+watch(
+  [() => form.class_id, () => form.subject_id, () => form.academic_year],
+  () => {
+    checkCurrentSelection();
+  }
+);
+
+async function handleAddAssignment() {
   formError.value = '';
   if (!form.class_id) {
     formError.value = 'Please select a valid school class.';
@@ -50,13 +133,34 @@ function handleAddAssignment() {
     return;
   }
 
-  // Check duplicate in existing assignments
+  // Check duplicate in current teacher assignments
   if (props.teacher?.assignments) {
+    const normYear = (y?: string) => (y || '').replace('/', '-').trim();
+    const targetNorm = normYear(form.academic_year);
     const isDup = props.teacher.assignments.some(
-      (a) => a.class_id === Number(form.class_id) && a.subject_id === Number(form.subject_id) && a.academic_year === form.academic_year
+      (a) => a.class_id === Number(form.class_id) && a.subject_id === Number(form.subject_id) && normYear(a.academic_year) === targetNorm
     );
     if (isDup) {
       formError.value = 'This teacher is already assigned to this subject and class for this academic year.';
+      return;
+    }
+  }
+
+  // Check if another teacher is assigned
+  try {
+    const checkRes = await teacherService.checkAssignment({
+      class_id: Number(form.class_id),
+      subject_id: Number(form.subject_id),
+      academic_year: form.academic_year.trim(),
+      teacher_id: props.teacher?.id,
+    });
+    if (!checkRes.available) {
+      formError.value = checkRes.message || 'This subject is already assigned to another teacher in this class.';
+      return;
+    }
+  } catch (err: any) {
+    if (err.response?.data?.detail) {
+      formError.value = err.response.data.detail;
       return;
     }
   }
@@ -92,6 +196,14 @@ function handleAddAssignment() {
 
         <!-- Body -->
         <div class="modal-body">
+          <!-- Success alert -->
+          <div v-if="assignmentSuccessMessage" class="alert-box-success">
+            <svg class="alert-icon-svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <span>{{ assignmentSuccessMessage }}</span>
+          </div>
+
           <!-- Error alert -->
           <div v-if="formError" class="alert-box-error">
             <span>{{ formError }}</span>
@@ -122,8 +234,7 @@ function handleAddAssignment() {
               <div class="form-group">
                 <label class="form-label">Academic Year</label>
                 <select v-model="form.academic_year" class="form-select">
-                  <option value="2025-2026">2025-2026 (Current)</option>
-                  <option value="2024-2025">2024-2025</option>
+                  <option value="2026/2027">2026/2027</option>
                 </select>
               </div>
 
@@ -293,6 +404,26 @@ function handleAddAssignment() {
   -webkit-overflow-scrolling: touch;
   flex: 1 1 0%;
   box-sizing: border-box;
+}
+
+.alert-box-success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.78125rem;
+  margin-bottom: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.alert-icon-svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: #16a34a;
 }
 
 .alert-box-error {

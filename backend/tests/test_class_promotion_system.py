@@ -234,7 +234,7 @@ def test_complete_class_promotion_system(admin_token, teacher_token):
     print("\n[TEST 1-3] Testing Individual Class Change (Mohamed Ali Mire: Form 5 -> Form 6)...")
     ind_payload = {
         "new_class_id": form_classes[6].id,
-        "academic_year": "2027/2028",
+        "academic_year": "2026/2027",
         "reason": "Annual Academic Progression",
         "is_promotion": True
     }
@@ -247,11 +247,11 @@ def test_complete_class_promotion_system(admin_token, teacher_token):
     ind_data = ind_res.json()
     print(f"[OK] Response: {ind_data['message']} (Batch Code: {ind_data['batch_code']})")
     assert ind_data["new_class_name"] == "Form 6"
-    assert ind_data["academic_year"] == "2027/2028"
+    assert ind_data["academic_year"] == "2026/2027"
 
     # Verify Historical Record in Database:
     # 1. Enrollment in 2026/2027 must remain Form 5!
-    # 2. Enrollment in 2027/2028 must be Form 6!
+    # 2. Enrollment in 2026/2027 must be Form 6!
     db = SessionLocal()
     try:
         enr_2026 = db.query(StudentEnrollment).filter(
@@ -265,12 +265,12 @@ def test_complete_class_promotion_system(admin_token, teacher_token):
 
         enr_2027 = db.query(StudentEnrollment).filter(
             StudentEnrollment.student_id == mohamed_student.id,
-            StudentEnrollment.academic_year == "2027/2028"
+            StudentEnrollment.academic_year == "2026/2027"
         ).first()
-        assert enr_2027 is not None, "2027/2028 enrollment was not created!"
-        assert enr_2027.class_id == form_classes[6].id, "2027/2028 enrollment class is not Form 6!"
-        assert enr_2027.status == "ACTIVE", "2027/2028 enrollment must be ACTIVE!"
-        print("[OK] New 2027/2028 enrollment verified in PostgreSQL (Form 6).")
+        assert enr_2027 is not None, "2026/2027 enrollment was not created!"
+        assert enr_2027.class_id == form_classes[6].id, "2026/2027 enrollment class is not Form 6!"
+        assert enr_2027.status == "ACTIVE", "2026/2027 enrollment must be ACTIVE!"
+        print("[OK] New 2026/2027 enrollment verified in PostgreSQL (Form 6).")
     finally:
         db.close()
 
@@ -279,7 +279,7 @@ def test_complete_class_promotion_system(admin_token, teacher_token):
     # --------------------------------------------------------------------------
     print("\n[TEST 4-8] Testing Suggested Mappings & Bulk Class Promotion...")
     mappings_res = client.get(
-        "/api/v1/class-promotions/suggested-mappings?source_year=2026/2027&target_year=2027/2028",
+        "/api/v1/class-promotions/suggested-mappings?source_year=2026/2027&target_year=2026/2027",
         headers=admin_headers
     )
     assert mappings_res.status_code == 200, f"Suggested mappings failed: {mappings_res.text}"
@@ -308,7 +308,7 @@ def test_complete_class_promotion_system(admin_token, teacher_token):
     # Test Preview API
     preview_res = client.post("/api/v1/class-promotions/preview", json={
         "source_academic_year": "2026/2027",
-        "target_academic_year": "2027/2028",
+        "target_academic_year": "2026/2027",
         "mappings": bulk_mappings
     }, headers=admin_headers)
     assert preview_res.status_code == 200, f"Preview failed: {preview_res.text}"
@@ -319,9 +319,9 @@ def test_complete_class_promotion_system(admin_token, teacher_token):
     # Execute Bulk Promotion
     bulk_res = client.post("/api/v1/class-promotions/bulk", json={
         "source_academic_year": "2026/2027",
-        "target_academic_year": "2027/2028",
+        "target_academic_year": "2026/2027",
         "mappings": bulk_mappings,
-        "reason": "Annual Hawlwadaag School Promotion 2026/2027 -> 2027/2028"
+        "reason": "Annual Hawlwadaag School Promotion 2026/2027 -> 2026/2027"
     }, headers=admin_headers)
     assert bulk_res.status_code == 201, f"Bulk promotion failed: {bulk_res.text}"
     bulk_data = bulk_res.json()
@@ -339,7 +339,7 @@ def test_complete_class_promotion_system(admin_token, teacher_token):
     # Duplicate promotion attempt for the same target year -> must be rejected
     dup_res = client.post("/api/v1/class-promotions/bulk", json={
         "source_academic_year": "2026/2027",
-        "target_academic_year": "2027/2028",
+        "target_academic_year": "2026/2027",
         "mappings": bulk_mappings
     }, headers=admin_headers)
     dup_err = dup_res.json().get("error", {}).get("message") or dup_res.json().get("detail", "")
@@ -357,7 +357,7 @@ def test_complete_class_promotion_system(admin_token, teacher_token):
     # Source == Destination class rejection
     same_class_res = client.post("/api/v1/class-promotions/bulk", json={
         "source_academic_year": "2026/2027",
-        "target_academic_year": "2027/2028",
+        "target_academic_year": "2026/2027",
         "mappings": [{"from_class_id": form_classes[3].id, "to_class_id": form_classes[3].id, "action": "PROMOTE"}]
     }, headers=admin_headers)
     assert same_class_res.status_code == 400
@@ -369,7 +369,7 @@ def test_complete_class_promotion_system(admin_token, teacher_token):
     print("\n[TEST 12-13] Testing Authorization (Teacher & Student must receive 403)...")
     teacher_try = client.post("/api/v1/class-promotions/bulk", json={
         "source_academic_year": "2026/2027",
-        "target_academic_year": "2027/2028",
+        "target_academic_year": "2026/2027",
         "mappings": bulk_mappings
     }, headers=teacher_headers)
     assert teacher_try.status_code == 403, f"Teacher promotion attempt expected 403, got {teacher_try.status_code}"
@@ -451,13 +451,13 @@ def test_complete_class_promotion_system(admin_token, teacher_token):
     # TEST 19: Student Portal Academic Year Filter
     # --------------------------------------------------------------------------
     print("\n[TEST 19] Testing Student Portal Academic Year Scoping...")
-    # When student queries 2027/2028: class must be Form 6
-    class_2027_res = client.get("/api/v1/student-portal/class?academic_year=2027/2028", headers=student_headers)
+    # When student queries 2026/2027: class must be Form 6
+    class_2027_res = client.get("/api/v1/student-portal/class?academic_year=2026/2027", headers=student_headers)
     assert class_2027_res.status_code == 200, f"Student portal failed: {class_2027_res.text}"
     class_2027_data = class_2027_res.json()
     assert class_2027_data["school_class"]["name"] == "Form 6"
-    assert class_2027_data["academic_year"] == "2027/2028"
-    print("[OK] Student portal for 2027/2028 correctly displays Form 6.")
+    assert class_2027_data["academic_year"] == "2026/2027"
+    print("[OK] Student portal for 2026/2027 correctly displays Form 6.")
 
     # When student queries 2026/2027: class must be Form 5
     class_2026_res = client.get("/api/v1/student-portal/class?academic_year=2026/2027", headers=student_headers)
@@ -486,12 +486,12 @@ def test_complete_class_promotion_system(admin_token, teacher_token):
         rb_batch = db.query(ClassPromotionBatch).filter(ClassPromotionBatch.id == recent_batch["id"]).first()
         assert rb_batch.status == "ROLLED_BACK"
 
-        # Check that target enrollments for 2027/2028 created by that batch are removed
+        # Check that target enrollments for 2026/2027 created by that batch are removed
         # (excluding Mohamed who was promoted in earlier individual test)
         other_student = students_by_form[1][0]
         other_enr_2027 = db.query(StudentEnrollment).filter(
             StudentEnrollment.student_id == other_student.id,
-            StudentEnrollment.academic_year == "2027/2028"
+            StudentEnrollment.academic_year == "2026/2027"
         ).first()
         assert other_enr_2027 is None, "Target enrollment should be deleted by rollback!"
 

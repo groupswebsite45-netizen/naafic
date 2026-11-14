@@ -44,7 +44,8 @@ import ExamProfileView from '../views/admin/exams/ExamProfileView.vue';
 import AdminResultsManagementView from '../views/admin/results/AdminResultsManagementView.vue';
 import ClassResultDetailView from '../views/admin/exams/results/ClassResultDetailView.vue';
 import NotificationsView from '../views/admin/notifications/NotificationsView.vue';
-
+import FormMasterManagementView from '../views/admin/form_masters/FormMasterManagementView.vue';
+import AdminAttendanceView from '../views/admin/attendance/AdminAttendanceView.vue';
 
 // Teacher Views
 import TeacherDashboardView from '../views/teacher/TeacherDashboardView.vue';
@@ -53,6 +54,11 @@ import TeacherStudentsView from '../views/teacher/TeacherStudentsView.vue';
 import TeacherAttendanceView from '../views/teacher/TeacherAttendanceView.vue';
 import TeacherTimetableView from '../views/teacher/TeacherTimetableView.vue';
 import TeacherExamsView from '../views/teacher/TeacherExamsView.vue';
+import FormMasterDashboardView from '../views/teacher/form_master/FormMasterDashboardView.vue';
+import FormMasterResultsView from '../views/teacher/form_master/FormMasterResultsView.vue';
+import FormMasterAttendanceView from '../views/teacher/form_master/FormMasterAttendanceView.vue';
+import FormMasterFeesView from '../views/teacher/form_master/FormMasterFeesView.vue';
+import FormMasterStudentsView from '../views/teacher/form_master/FormMasterStudentsView.vue';
 
 // Student Views
 import StudentDashboardView from '../views/student/StudentDashboardView.vue';
@@ -210,6 +216,18 @@ const routes: Array<RouteRecordRaw> = [
         meta: { title: 'Teacher Profile' },
       },
       {
+        path: 'form-masters',
+        name: 'admin-form-masters',
+        component: FormMasterManagementView,
+        meta: { title: 'Form Master Management' },
+      },
+      {
+        path: 'attendance',
+        name: 'admin-attendance',
+        component: AdminAttendanceView,
+        meta: { title: 'Attendance Monitoring & Absence Reports' },
+      },
+      {
         path: 'students',
         name: 'admin-students',
         component: StudentsView,
@@ -337,6 +355,41 @@ const routes: Array<RouteRecordRaw> = [
         name: 'teacher-exams',
         component: TeacherExamsView,
         meta: { title: 'Exams & Marks Entry' },
+      },
+      // Dedicated Form Master Routes
+      {
+        path: 'form-classes',
+        redirect: '/teacher/form-classes/dashboard',
+      },
+      {
+        path: 'form-classes/dashboard',
+        name: 'teacher-form-dashboard',
+        component: FormMasterDashboardView,
+        meta: { title: 'Form Master Dashboard' },
+      },
+      {
+        path: 'form-classes/results',
+        name: 'teacher-form-results',
+        component: FormMasterResultsView,
+        meta: { title: 'Academic Results Monitoring' },
+      },
+      {
+        path: 'form-classes/attendance',
+        name: 'teacher-form-attendance',
+        component: FormMasterAttendanceView,
+        meta: { title: 'Class Attendance Monitoring' },
+      },
+      {
+        path: 'form-classes/fees',
+        name: 'teacher-form-fees',
+        component: FormMasterFeesView,
+        meta: { title: 'Student Fees Monitoring' },
+      },
+      {
+        path: 'form-classes/students',
+        name: 'teacher-form-students',
+        component: FormMasterStudentsView,
+        meta: { title: 'Form Class Students' },
       },
     ],
   },

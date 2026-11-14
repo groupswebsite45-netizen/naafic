@@ -10,7 +10,7 @@ from app.models.school_class import SchoolClass
 
 
 def _year_variants(academic_year: Optional[str]) -> List[str]:
-    """Return both hyphen and slash normalized variants of an academic year, e.g. 2026/2027 and 2026-2027."""
+    """Return normalized academic year variants."""
     if not academic_year:
         return []
     cleaned = academic_year.strip()

@@ -27,6 +27,7 @@ class Teacher(Base, TimestampMixin):
     user = relationship("User", foreign_keys=[user_id])
     assignments = relationship("TeacherAssignment", back_populates="teacher", cascade="all, delete-orphan")
     timetables = relationship("Timetable", back_populates="teacher")
+    form_master_assignments = relationship("FormMasterAssignment", back_populates="teacher", cascade="all, delete-orphan")
 
     @property
     def full_name(self) -> str:

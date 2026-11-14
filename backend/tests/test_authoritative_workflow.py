@@ -64,7 +64,7 @@ def test_full_authoritative_result_workflow():
         exam_payload_valid = {
             "name": "Mid-Term Somali Grade 7-A Test 2025",
             "exam_type": "Mid-Term",
-            "academic_year": "2025/2026",
+            "academic_year": "2026/2027",
             "class_id": 31,
             "subject_id": 22,
             "start_date": "2025-10-15",
@@ -75,7 +75,7 @@ def test_full_authoritative_result_workflow():
 
         # Check if already exists from prior test runs, if so clean up for isolated test
         old_exam = db.query(Exam).filter(
-            Exam.academic_year == "2025/2026",
+            Exam.academic_year == "2026/2027",
             Exam.class_id == 31,
             Exam.subject_id == 22,
             Exam.name == exam_payload_valid["name"]
@@ -94,7 +94,7 @@ def test_full_authoritative_result_workflow():
         exam_payload_invalid = {
             "name": "Mid-Term Somali Grade 8-A Invalid",
             "exam_type": "Mid-Term",
-            "academic_year": "2025/2026",
+            "academic_year": "2026/2027",
             "class_id": 32,  # Fadumo does NOT teach Somali in Grade 8-A
             "subject_id": 22,
             "start_date": "2025-10-15",
@@ -150,7 +150,7 @@ def test_full_authoritative_result_workflow():
         # TEST 5: Admin opens Results Management and verifies submitted result appears
         res_admin_classes = client.get(
             "/api/v1/results/classes",
-            params={"academic_year": "2025/2026", "exam_name": exam_payload_valid["name"]},
+            params={"academic_year": "2026/2027", "exam_name": exam_payload_valid["name"]},
             headers=headers_admin
         )
         assert res_admin_classes.status_code == 200
@@ -180,7 +180,7 @@ def test_full_authoritative_result_workflow():
         # Find enrolled student in Grade 7-A with a portal account
         student_in_class = db.query(Student).join(StudentEnrollment).filter(
             StudentEnrollment.class_id == 31,
-            StudentEnrollment.academic_year == "2025/2026",
+            StudentEnrollment.academic_year == "2026/2027",
             Student.user_id.isnot(None)
         ).first()
 

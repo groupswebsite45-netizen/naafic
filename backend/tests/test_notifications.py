@@ -130,7 +130,7 @@ def test_attendance_alerts_grouping_and_personalization(client, admin_token):
         class_id=school_class.id,
         subject_id=1,
         teacher_id=1,
-        academic_year="2025/2026",
+        academic_year="2026/2027",
         date=test_date,
         period="1",
         status="ABSENT"

@@ -32,7 +32,7 @@ const successMessage = ref('')
 // Dropdowns & master data
 const availableClasses = ref<any[]>([])
 const availableStudents = ref<any[]>([])
-const academicYears = ref<string[]>(['2026/2027', '2025/2026', '2024/2025'])
+const academicYears = ref<string[]>(['2026/2027'])
 
 // Dedicated Tab 0: Fee-Eligible Students (Single Source of Truth)
 const eligibleStudentsData = ref<FeeEligibleStudentsResponse>({

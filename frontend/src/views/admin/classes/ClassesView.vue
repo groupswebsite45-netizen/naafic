@@ -46,7 +46,7 @@ const filters = reactive({
 });
 
 const isFilterDrawerOpen = ref(false);
-const availableYears = ref<string[]>(['2025-2026', '2026/2027', '2027/2028']);
+const availableYears = ref<string[]>(['2026/2027']);
 
 // Modal States
 const isFormModalOpen = ref(false);

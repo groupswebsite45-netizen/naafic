@@ -32,7 +32,7 @@ const activeMainTab = ref<MainTabType>('overview');
 // GLOBAL FILTERS STATE
 // =============================================================================
 const filterOptions = ref<ResultFilterOptions>({
-  academic_years: ['2026/2027', '2025/2026'],
+  academic_years: ['2026/2027'],
   selected_academic_year: '2026/2027',
   exam_names: [],
   teachers: [],

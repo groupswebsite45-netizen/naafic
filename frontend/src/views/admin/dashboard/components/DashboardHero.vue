@@ -15,7 +15,7 @@ const { locale } = useI18n();
 withDefaults(defineProps<Props>(), {
   adminName: 'Administrator',
   academicYear: '2026/2027',
-  academicYears: () => ['2026/2027', '2025/2026'],
+  academicYears: () => ['2026/2027'],
   schoolName: 'Educational Institution',
   schoolCode: 'EMS-001',
 });

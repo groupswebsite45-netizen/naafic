@@ -18,7 +18,11 @@ from app.api.v1.routes.results import router as results_router
 from app.api.v1.routes.notifications import router as notifications_router
 from app.api.v1.routes.teacher_portal import router as teacher_portal_router, teacher_alias_router
 from app.api.v1.routes.teacher_attendance import router as teacher_attendance_router
+from app.api.v1.routes.admin_attendance import router as admin_attendance_router
+from app.api.v1.routes.admin_teacher_attendance import router as admin_teacher_attendance_router
 from app.api.v1.routes.student_portal import router as student_portal_router
+from app.api.v1.routes.form_master_admin import router as form_master_admin_router
+from app.api.v1.routes.form_master_portal import router as form_master_portal_router
 
 api_v1_router = APIRouter(prefix="/api/v1")
 
@@ -44,11 +48,17 @@ api_v1_router.include_router(fees_router, prefix="/admin")
 api_v1_router.include_router(exams_router)
 api_v1_router.include_router(results_router)
 api_v1_router.include_router(notifications_router)
+api_v1_router.include_router(form_master_admin_router)
+api_v1_router.include_router(form_master_admin_router, prefix="/admin")
+api_v1_router.include_router(admin_attendance_router)
+api_v1_router.include_router(admin_teacher_attendance_router)
 
 # Dedicated Portals & Aliases
 api_v1_router.include_router(teacher_portal_router)
 api_v1_router.include_router(teacher_alias_router)
 api_v1_router.include_router(teacher_attendance_router)
+api_v1_router.include_router(form_master_portal_router)
+api_v1_router.include_router(form_master_portal_router, prefix="/teacher-portal")
 api_v1_router.include_router(student_portal_router)
 
 

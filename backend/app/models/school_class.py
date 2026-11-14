@@ -14,7 +14,7 @@ class SchoolClass(Base, TimestampMixin):
     division = Column(String(20), default="PRIMARY", nullable=False, index=True)  # "PRIMARY", "SECONDARY"
     level = Column(String(50), nullable=False, index=True)  # "Grade 1".."Grade 8", "Form 1".."Form 4"
     section = Column(String(50), nullable=True, index=True)  # "A", "B", "C", "D", "E"...
-    academic_year = Column(String(50), nullable=False, index=True)  # e.g., "2026-2027"
+    academic_year = Column(String(50), nullable=False, default="2026/2027", index=True)  # e.g., "2026/2027"
     capacity = Column(Integer, default=40, nullable=False)
     description = Column(Text, nullable=True)
     status = Column(String(20), default="ACTIVE", nullable=False)  # "ACTIVE", "INACTIVE", "ARCHIVED"
@@ -25,6 +25,7 @@ class SchoolClass(Base, TimestampMixin):
     timetables = relationship("Timetable", back_populates="school_class", cascade="all, delete-orphan")
     fee_structures = relationship("FeeStructure", back_populates="school_class")
     exams = relationship("Exam", back_populates="school_class", cascade="all, delete-orphan")
+    form_master_assignments = relationship("FormMasterAssignment", back_populates="school_class", cascade="all, delete-orphan")
 
     __table_args__ = (
         UniqueConstraint("academic_year", "division", "level", "section", name="uq_class_academic_year_div_level_sec"),

@@ -31,7 +31,7 @@ const selectedAttendanceStudentIds = ref<number[]>([]);
 const expandedAttendanceClasses = ref<Record<number, boolean>>({});
 
 // Result Alerts Tab State
-const resultAcademicYear = ref<string>('2025/2026');
+const resultAcademicYear = ref<string>('2026/2027');
 const selectedResultStudentIds = ref<number[]>([]);
 const selectedResultBatchId = ref<number | null>(null);
 
@@ -215,7 +215,7 @@ const renderedSinglePreviewMessage = computed(() => {
   msg = msg.replace(/\{\{school_name\}\}/g, schoolName);
   msg = msg.replace(/\{\{date\}\}/g, new Date().toLocaleDateString('so-SO', { day: 'numeric', month: 'long', year: 'numeric' }));
   msg = msg.replace(/\{\{exam_name\}\}/g, 'Imtixaanka Guud');
-  msg = msg.replace(/\{\{academic_year\}\}/g, '2025/2026');
+  msg = msg.replace(/\{\{academic_year\}\}/g, '2026/2027');
   msg = msg.replace(/\{\{fee_balance\}\}/g, '$50.00');
   return msg;
 });
@@ -1203,7 +1203,7 @@ watch(resultAcademicYear, () => {
         <div class="control-left">
           <div class="control-date-wrap">
             <label class="control-label">Academic Year:</label>
-            <input v-model="resultAcademicYear" type="text" class="date-input" placeholder="2025/2026" />
+            <input v-model="resultAcademicYear" type="text" class="date-input" placeholder="2026/2027" />
           </div>
 
           <div class="selection-summary" v-if="store.resultAlerts">

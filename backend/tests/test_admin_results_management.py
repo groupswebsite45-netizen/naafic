@@ -53,7 +53,7 @@ def test_admin_results_management_workflow_and_isolation(client, db_session):
     16. Teacher corrects returned submission and resubmits.
     17. Admin releases corrected submission.
     """
-    academic_year = "2026-2027"
+    academic_year = "2026/2027"
     exam_name = "Admin Redesign Mid-Term 2026"
 
     # 1. Admin actor
@@ -405,7 +405,7 @@ def test_twelve_subjects_class_results_management_and_release(client, db_session
     Test Scenario for Class with 12 Subjects and 30 Students:
     - 1 Class (Grade 7)
     - 12 distinct Subjects
-    - 1 Academic Year (2026-2027)
+    - 1 Academic Year (2026/2027)
     - 1 Exam Series (Mid-Term Examination 2026/2027)
     - 30 Students (360 total potential student-subject result entries)
     - 12 distinct Result Submissions
@@ -424,7 +424,7 @@ def test_twelve_subjects_class_results_management_and_release(client, db_session
     11. Admin marks view is 100% READ-ONLY.
     12. Student name search, admission number search, and performance filters (Passed/Failed) work on student score matrix.
     """
-    academic_year = "2026-2027"
+    academic_year = "2026/2027"
     exam_series_name = "Mid-Term Examination 2026/2027"
 
     # 1. Admin actor
@@ -813,7 +813,7 @@ def test_class_first_zero_submission_and_summary_scenarios(client, db_session):
     3. No subjects are omitted or hidden.
     4. Class-level release is disabled.
     """
-    academic_year = "2026-2027"
+    academic_year = "2026/2027"
     exam_series_name = "Final Examination 2026"
 
     # Admin actor

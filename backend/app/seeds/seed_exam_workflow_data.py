@@ -22,7 +22,7 @@ from app.core.grading import calculate_grade
 def seed_exam_workflow():
     db = SessionLocal()
     try:
-        academic_year = "2025-2026"
+        academic_year = "2026/2027"
         exam_name = "Final Examination 2026"
 
         # 1. Ensure Admin User

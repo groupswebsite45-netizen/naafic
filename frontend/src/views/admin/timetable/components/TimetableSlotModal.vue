@@ -23,6 +23,7 @@ const props = defineProps<{
   days: string[];
   rooms: string[];
   isSubmitting: boolean;
+  submitError?: string;
 }>();
 
 const emit = defineEmits<{
@@ -34,7 +35,7 @@ const form = reactive({
   class_id: 0,
   subject_id: 0,
   teacher_id: 0,
-  academic_year: '2025-2026',
+  academic_year: '2026/2027',
   day_of_week: 'Monday',
   start_time: '08:00',
   end_time: '09:00',
@@ -45,6 +46,14 @@ const form = reactive({
 const formErrors = reactive<Record<string, string>>({});
 const detectedConflicts = ref<TimetableConflictDetail[]>([]);
 const isCheckingConflict = ref(false);
+
+function onClassChange() {
+  const chosen = props.classes.find((c) => c.id === Number(form.class_id));
+  if (chosen && chosen.academic_year) {
+    form.academic_year = chosen.academic_year;
+  }
+  runConflictCheck();
+}
 
 watch(
   () => props.isOpen,
@@ -64,10 +73,12 @@ watch(
         form.room = props.slot.room || props.slot.room_number || '';
         form.status = props.slot.status || 'ACTIVE';
       } else {
-        form.class_id = props.defaultClassId || (props.classes[0]?.id ?? 0);
+        const initialClassId = props.defaultClassId || (props.classes[0]?.id ?? 0);
+        form.class_id = initialClassId;
+        const initialClass = props.classes.find((c) => c.id === initialClassId);
         form.subject_id = props.subjects[0]?.id ?? 0;
         form.teacher_id = props.defaultTeacherId || 0;
-        form.academic_year = props.academicYear || '2025-2026';
+        form.academic_year = initialClass?.academic_year || props.academicYear || '2026/2027';
         form.day_of_week = props.defaultDay || props.days[0] || 'Monday';
         form.start_time = '08:00';
         form.end_time = '09:00';
@@ -187,6 +198,19 @@ function handleSubmit() {
         </button>
       </div>
 
+      <!-- Submit Error Alert in Modal -->
+      <div v-if="submitError" class="modal-conflict-warning" style="background: #fef2f2; border-color: #fca5a5; color: #991b1b;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="warning-icon" style="color: #ef4444;">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <div class="warning-texts">
+          <span class="warning-heading">Error Saving Slot:</span>
+          <p class="warning-detail" style="color: #b91c1c;">{{ submitError }}</p>
+        </div>
+      </div>
+
       <!-- Live Conflict Alert in Modal -->
       <div v-if="detectedConflicts.length > 0" class="modal-conflict-warning">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="warning-icon">
@@ -218,7 +242,7 @@ function handleSubmit() {
                   type="text"
                   class="form-input"
                   :class="{ 'has-error': formErrors.academic_year }"
-                  placeholder="2025-2026"
+                  placeholder="2026/2027"
                   @blur="runConflictCheck"
                 />
               </div>
@@ -290,7 +314,7 @@ function handleSubmit() {
                   v-model="form.class_id"
                   class="form-select"
                   :class="{ 'has-error': formErrors.class_id }"
-                  @change="runConflictCheck"
+                  @change="onClassChange"
                 >
                   <option :value="0" disabled>Select class...</option>
                   <option v-for="c in classes" :key="c.id" :value="c.id">
@@ -394,7 +418,7 @@ function handleSubmit() {
           <button
             type="submit"
             class="btn-submit"
-            :disabled="isSubmitting || isCheckingConflict"
+            :disabled="isSubmitting"
           >
             <svg
               v-if="isSubmitting"

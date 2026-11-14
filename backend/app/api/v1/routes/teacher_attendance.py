@@ -13,6 +13,7 @@ from app.schemas.attendance import (
     TeacherSaveAttendancePayload,
     TeacherAttendanceSessionItem,
     TeacherAttendanceSummaryResponse,
+    StudentAttendanceHistoryDetailResponse,
 )
 
 router = APIRouter(prefix="/teacher-portal/attendance", tags=["Teacher Attendance Management"])
@@ -24,11 +25,17 @@ router = APIRouter(prefix="/teacher-portal/attendance", tags=["Teacher Attendanc
     summary="Get assigned classes, subjects, and academic years for attendance taking"
 )
 def get_attendance_options(
+    academic_year: Optional[str] = Query(None, description="Academic year filter"),
+    class_id: Optional[int] = Query(None, description="Class ID filter to load class-specific subjects"),
     current_teacher: User = Depends(get_current_active_teacher),
     db: Session = Depends(get_db)
 ):
     service = TeacherAttendanceService(db)
-    return service.get_filter_options(current_teacher)
+    return service.get_filter_options(
+        current_teacher,
+        academic_year=academic_year,
+        class_id=class_id,
+    )
 
 
 @router.get(
@@ -40,7 +47,7 @@ def get_attendance_roster(
     class_id: int = Query(..., description="Class ID"),
     subject_id: int = Query(..., description="Subject ID"),
     attendance_date: date = Query(..., alias="date", description="Date (YYYY-MM-DD)"),
-    academic_year: Optional[str] = Query(None, description="Academic Year e.g. 2025-2026"),
+    academic_year: Optional[str] = Query(None, description="Academic Year e.g. 2026/2027"),
     period: Optional[str] = Query(None, description="Class period e.g. 08:00 - 09:00"),
     current_teacher: User = Depends(get_current_active_teacher),
     db: Session = Depends(get_db)
@@ -73,11 +80,14 @@ def save_attendance(
 @router.get(
     "/history",
     response_model=List[TeacherAttendanceSessionItem],
-    summary="Get historical attendance sessions for assigned classes"
+    summary="Get historical attendance sessions for assigned classes and subjects"
 )
 def get_attendance_history(
     class_id: Optional[int] = Query(None, description="Filter by Class ID"),
+    subject_id: Optional[int] = Query(None, description="Filter by Subject ID"),
     academic_year: Optional[str] = Query(None, description="Filter by Academic Year"),
+    month: Optional[int] = Query(None, ge=1, le=12, description="Filter by Month (1-12)"),
+    attendance_date: Optional[date] = Query(None, alias="date", description="Filter by specific date"),
     current_teacher: User = Depends(get_current_active_teacher),
     db: Session = Depends(get_db)
 ):
@@ -85,6 +95,33 @@ def get_attendance_history(
     return service.get_attendance_history(
         user=current_teacher,
         class_id=class_id,
+        subject_id=subject_id,
+        academic_year=academic_year,
+        month=month,
+        attendance_date=attendance_date
+    )
+
+
+@router.get(
+    "/students/{student_id}/breakdown",
+    response_model=StudentAttendanceHistoryDetailResponse,
+    summary="Get detailed subject-by-subject attendance breakdown and history for an enrolled student"
+)
+@router.get(
+    "/students/{student_id}/history",
+    response_model=StudentAttendanceHistoryDetailResponse,
+    include_in_schema=False
+)
+def get_student_attendance_breakdown(
+    student_id: int,
+    academic_year: Optional[str] = Query(None, description="Academic Year filter"),
+    current_teacher: User = Depends(get_current_active_teacher),
+    db: Session = Depends(get_db)
+):
+    service = TeacherAttendanceService(db)
+    return service.get_student_breakdown(
+        user=current_teacher,
+        student_id=student_id,
         academic_year=academic_year
     )
 

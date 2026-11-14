@@ -11,6 +11,9 @@ from app.schemas.teacher import (
     TeacherUpdate,
     TeacherResponse,
     TeacherAssignmentCreate,
+    TeacherAssignmentUpdate,
+    TeacherBulkAssignmentCreate,
+    TeacherAssignmentCheckResponse,
     TeacherAssignmentResponse,
     TeacherSummary,
     TeacherFullProfile,
@@ -67,6 +70,60 @@ def list_teachers(
         limit=limit
     )
     return teachers
+
+
+@router.get(
+    "/assignments/check",
+    response_model=TeacherAssignmentCheckResponse,
+    summary="Check if a subject in a class already has an assigned teacher (Admin only)"
+)
+def check_assignment_availability(
+    class_id: int,
+    subject_id: int,
+    academic_year: str,
+    teacher_id: Optional[int] = None,
+    exclude_assignment_id: Optional[int] = None,
+    current_admin: User = Depends(get_current_active_admin),
+    db: Session = Depends(get_db)
+):
+    service = TeacherService(db)
+    return service.check_assignment_availability(
+        class_id=class_id,
+        subject_id=subject_id,
+        academic_year=academic_year,
+        teacher_id=teacher_id,
+        exclude_assignment_id=exclude_assignment_id
+    )
+
+
+@router.post(
+    "/assignments/bulk",
+    response_model=List[TeacherAssignmentResponse],
+    status_code=status.HTTP_201_CREATED,
+    summary="Bulk assign teachers to classes and subjects (Admin only)"
+)
+def bulk_assign_teachers(
+    payload: TeacherBulkAssignmentCreate,
+    current_admin: User = Depends(get_current_active_admin),
+    db: Session = Depends(get_db)
+):
+    service = TeacherService(db)
+    return service.bulk_assign(payload.assignments, teacher_id=payload.teacher_id, user_id=current_admin.id)
+
+
+@router.put(
+    "/assignments/{assignment_id}",
+    response_model=TeacherAssignmentResponse,
+    summary="Update teacher assignment (Admin only)"
+)
+def update_assignment(
+    assignment_id: int,
+    payload: TeacherAssignmentUpdate,
+    current_admin: User = Depends(get_current_active_admin),
+    db: Session = Depends(get_db)
+):
+    service = TeacherService(db)
+    return service.update_assignment(assignment_id, payload, user_id=current_admin.id)
 
 
 @router.get(
@@ -177,6 +234,39 @@ def assign_class_subject(
 ):
     service = TeacherService(db)
     return service.assign_class_subject(teacher_id, payload, user_id=current_admin.id)
+
+
+@router.post(
+    "/{teacher_id}/assignments/bulk",
+    response_model=List[TeacherAssignmentResponse],
+    status_code=status.HTTP_201_CREATED,
+    summary="Bulk assign classes and subjects to a teacher (Admin only)"
+)
+def bulk_assign_to_teacher(
+    teacher_id: int,
+    payload: TeacherBulkAssignmentCreate,
+    current_admin: User = Depends(get_current_active_admin),
+    db: Session = Depends(get_db)
+):
+    service = TeacherService(db)
+    return service.bulk_assign(payload.assignments, teacher_id=teacher_id, user_id=current_admin.id)
+
+
+@router.put(
+    "/{teacher_id}/assignments/{assignment_id}",
+    response_model=TeacherAssignmentResponse,
+    summary="Update teacher assignment for specific teacher (Admin only)"
+)
+def update_teacher_assignment(
+    teacher_id: int,
+    assignment_id: int,
+    payload: TeacherAssignmentUpdate,
+    current_admin: User = Depends(get_current_active_admin),
+    db: Session = Depends(get_db)
+):
+    service = TeacherService(db)
+    payload.teacher_id = teacher_id
+    return service.update_assignment(assignment_id, payload, user_id=current_admin.id)
 
 
 @router.delete(

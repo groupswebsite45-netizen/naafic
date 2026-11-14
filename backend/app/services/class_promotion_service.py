@@ -124,22 +124,8 @@ class ClassPromotionService:
         }
 
     def _next_academic_year(self, current_year: str) -> str:
-        """
-        Calculate next academic year string preserving formatting.
-        Examples:
-          '2026/2027' -> '2027/2028'
-          '2026-2027' -> '2027-2028'
-        """
-        if '/' in current_year:
-            parts = current_year.strip().split('/')
-            if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
-                return f"{int(parts[0]) + 1}/{int(parts[1]) + 1}"
-        elif '-' in current_year:
-            parts = current_year.strip().split('-')
-            if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
-                return f"{int(parts[0]) + 1}-{int(parts[1]) + 1}"
-        now_year = datetime.now().year
-        return f"{now_year}/{now_year + 1}"
+        """Academic year is strictly unified to 2026/2027 across the entire system."""
+        return "2026/2027"
 
     def _build_year_filter(self, year_str: str):
         """Build SQLAlchemy filter matching both 'YYYY/YYYY' and 'YYYY-YYYY'."""
@@ -174,12 +160,9 @@ class ClassPromotionService:
         # Discover distinct academic years
         class_years = [c.academic_year for c in all_active_classes if c.academic_year]
         enr_years = [y[0] for y in self.db.query(StudentEnrollment.academic_year).distinct().all() if y[0]]
-        all_years = sorted(list(set(class_years + enr_years)), reverse=True)
-        if not all_years:
-            all_years = ["2026/2027", "2027/2028"]
-
-        resolved_source_year = source_year or (all_years[0] if all_years else "2026/2027")
-        resolved_target_year = target_year or self._next_academic_year(resolved_source_year)
+        all_years = ["2026/2027"]
+        resolved_source_year = "2026/2027"
+        resolved_target_year = "2026/2027"
 
         # Parse all classes
         parsed_classes = [self._parse_class_info(c) for c in all_active_classes]
@@ -367,12 +350,6 @@ class ClassPromotionService:
         source_year = payload.source_academic_year.strip()
         target_year = payload.target_academic_year.strip()
 
-        if source_year == target_year:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Source and Target academic years cannot be the same for promotion."
-            )
-
         class_summaries: List[ClassMappingPreviewSummary] = []
         student_previews: List[StudentPromotionPreviewItem] = []
         validation_errors: List[str] = []
@@ -502,7 +479,7 @@ class ClassPromotionService:
                         .first()
                     )
 
-                    if existing_target_enr:
+                    if existing_target_enr and (source_year != target_year or existing_target_enr.id != enr.id):
                         is_valid = False
                         student_status = "ALREADY_ENROLLED"
                         tgt_name = (
@@ -612,12 +589,6 @@ class ClassPromotionService:
         source_year = payload.source_academic_year.strip()
         target_year = payload.target_academic_year.strip()
         reason = payload.reason or "Annual Bulk Class Promotion"
-
-        if source_year == target_year:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Source and Target academic years cannot be identical."
-            )
 
         batch_code = self.repo.generate_batch_code(target_year)
 
@@ -747,26 +718,30 @@ class ClassPromotionService:
                             )
                             .first()
                         )
-                        if existing:
+                        if existing and (source_year != target_year or existing.id != enr.id):
                             raise ValueError(
                                 f"Student {student.full_name} ({student.admission_number}) already enrolled for {target_year}."
                             )
 
                     if student_action in ["PROMOTE", "TRANSFER"] and resolved_dest_class:
-                        # 1. Update source enrollment
-                        enr.status = "PROMOTED"
+                        if source_year == target_year and existing and existing.id == enr.id:
+                            enr.class_id = resolved_dest_class.id
+                            new_enr = enr
+                        else:
+                            # 1. Update source enrollment
+                            enr.status = "PROMOTED"
 
-                        # 2. Create new enrollment in target class
-                        new_enr = StudentEnrollment(
-                            student_id=student.id,
-                            class_id=resolved_dest_class.id,
-                            academic_year=target_year,
-                            roll_number=enr.roll_number,
-                            start_date=datetime.now(timezone.utc).date(),
-                            status="ACTIVE"
-                        )
-                        self.db.add(new_enr)
-                        self.db.flush()
+                            # 2. Create new enrollment in target class
+                            new_enr = StudentEnrollment(
+                                student_id=student.id,
+                                class_id=resolved_dest_class.id,
+                                academic_year=target_year,
+                                roll_number=enr.roll_number,
+                                start_date=datetime.now(timezone.utc).date(),
+                                status="ACTIVE"
+                            )
+                            self.db.add(new_enr)
+                            self.db.flush()
 
                         # 3. Create audit record
                         rec = ClassPromotionRecord(

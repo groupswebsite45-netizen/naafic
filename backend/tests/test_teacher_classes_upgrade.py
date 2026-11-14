@@ -102,12 +102,12 @@ def test_academic_year_filtering_and_status():
     token = get_teacher_token("teacher.ahmed")
     headers = {"Authorization": f"Bearer {token}"}
 
-    # Filter by 2025-2026 or 2025/2026
-    res = client.get("/api/v1/teacher-portal/classes?academic_year=2025-2026", headers=headers)
+    # Filter by 2026/2027 or 2026/2027
+    res = client.get("/api/v1/teacher-portal/classes?academic_year=2026/2027", headers=headers)
     assert res.status_code == 200
     data = res.json()
     for item in data:
-        assert item["academic_year"] in ["2025-2026", "2025/2026"]
+        assert item["academic_year"] in ["2026/2027", "2026/2027"]
         assert item["display_status"] in ["ACTIVE", "HISTORICAL", "INACTIVE"]
 
 

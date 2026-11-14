@@ -24,7 +24,7 @@ EXAM_TYPE_NORMALIZATION = {
 class ExamBase(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     exam_type: str = Field(..., description="MID_TERM, FINAL, MONTHLY, QUIZ")
-    academic_year: str = Field(..., min_length=4, max_length=50)
+    academic_year: str = Field(default="2026/2027", min_length=4, max_length=50)
     class_id: int
     subject_id: int
     start_date: date
@@ -57,7 +57,7 @@ class ExamCreate(ExamBase):
 class ExamBatchCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     exam_type: str = Field(..., description="MID_TERM, FINAL, MONTHLY, QUIZ")
-    academic_year: str = Field(..., min_length=4, max_length=50)
+    academic_year: str = Field(default="2026/2027", min_length=4, max_length=50)
     class_ids: List[int] = Field(..., min_length=1)
     subject_ids: List[int] = Field(..., min_length=1)
     start_date: date

@@ -121,6 +121,22 @@ def test_teacher_save_attendance_postgresql_persistence(teacher_auth):
     target_subject = next((s for s in opts["subjects"] if s["class_id"] == target_class["id"]), opts["subjects"][0])
     today_str = date.today().isoformat()
 
+    # Clean up any existing records for today's test
+    db_clean = SessionLocal()
+    from app.models.attendance import AttendanceSubmission
+    db_clean.query(Attendance).filter(
+        Attendance.class_id == target_class["id"],
+        Attendance.subject_id == target_subject["id"],
+        Attendance.date == date.today()
+    ).delete(synchronize_session=False)
+    db_clean.query(AttendanceSubmission).filter(
+        AttendanceSubmission.class_id == target_class["id"],
+        AttendanceSubmission.subject_id == target_subject["id"],
+        AttendanceSubmission.date == date.today()
+    ).delete(synchronize_session=False)
+    db_clean.commit()
+    db_clean.close()
+
     roster = client.get(
         f"/api/v1/teacher-portal/attendance/roster?class_id={target_class['id']}&subject_id={target_subject['id']}&date={today_str}",
         headers=headers
@@ -165,6 +181,11 @@ def test_teacher_save_attendance_postgresql_persistence(teacher_auth):
     assert saved_absent.status == "ABSENT"
     assert saved_absent.remarks == "Sick with flu"
     db.close()
+
+    # Second submission attempt for same day/class/subject must be rejected
+    dup_res = client.post("/api/v1/teacher-portal/attendance/save", json=payload, headers=headers)
+    assert dup_res.status_code == 400
+    assert "Attendance Already Submitted" in dup_res.text
 
 
 def test_teacher_attendance_future_date_rejected(teacher_auth):

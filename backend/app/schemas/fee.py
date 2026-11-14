@@ -11,7 +11,7 @@ from app.schemas.school_class import SchoolClassResponse
 
 class FeeStructureBase(BaseModel):
     name: str = Field(..., min_length=2, max_length=100, description="e.g. Monthly Tuition Fee")
-    academic_year: str = Field(..., min_length=4, max_length=50, description="e.g. 2026/2027")
+    academic_year: str = Field(default="2026/2027", min_length=4, max_length=50, description="e.g. 2026/2027")
     class_id: Optional[int] = Field(None, description="Optional class filter; null for all classes")
     education_level: Optional[str] = Field(None, description="PRIMARY, SECONDARY, or ALL")
     amount: Decimal = Field(..., gt=0, description="Standard fee amount in USD")

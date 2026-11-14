@@ -66,7 +66,7 @@ def test_class_management_features():
         "name": f"Grade 10 Delta {rand_num}",
         "code": class_code,
         "section": "Delta Stream",
-        "academic_year": "2025-2026",
+        "academic_year": "2026/2027",
         "capacity": 35,
         "description": "Secondary school Grade 10 Delta stream",
         "status": "ACTIVE"
@@ -82,7 +82,7 @@ def test_class_management_features():
     dup_code_res = client.post("/api/v1/classes", json={
         "name": "Different Class Name",
         "code": class_code,
-        "academic_year": "2025-2026",
+        "academic_year": "2026/2027",
         "capacity": 30
     }, headers=headers)
     assert dup_code_res.status_code == 409, f"Duplicate code was not rejected: {dup_code_res.status_code}"
@@ -93,7 +93,7 @@ def test_class_management_features():
         "name": f"Grade 10 Delta {rand_num}",
         "code": f"DIFF-{rand_num}",
         "section": "Delta Stream",
-        "academic_year": "2025-2026",
+        "academic_year": "2026/2027",
         "capacity": 30
     }, headers=headers)
     assert dup_combo_res.status_code == 409, f"Duplicate name/section/year was not rejected: {dup_combo_res.status_code}"
@@ -122,10 +122,10 @@ def test_class_management_features():
 
     enroll_payload = {
         "student_id": student_id,
-        "academic_year": "2025-2026"
+        "academic_year": "2026/2027"
     }
     enroll_res = client.post(f"/api/v1/classes/{class_id}/students", json=enroll_payload, headers=headers)
-    # If student is already enrolled in another class for 2025-2026, it should reject with 409
+    # If student is already enrolled in another class for 2026/2027, it should reject with 409
     if enroll_res.status_code == 409:
         print(f"[OK] Student {student_id} already enrolled in another class; duplicate enrollment properly prevented.")
     else:
@@ -146,7 +146,7 @@ def test_class_management_features():
     assign_payload = {
         "teacher_id": teacher_id,
         "subject_id": subject_id,
-        "academic_year": "2025-2026"
+        "academic_year": "2026/2027"
     }
     assign_res = client.post(f"/api/v1/classes/{class_id}/teachers", json=assign_payload, headers=headers)
     assert assign_res.status_code == 201, f"Teacher assignment failed: {assign_res.text}"

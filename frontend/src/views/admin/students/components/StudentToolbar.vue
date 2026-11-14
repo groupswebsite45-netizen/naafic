@@ -15,7 +15,7 @@ const props = withDefaults(
   }>(),
   {
     academicYear: '',
-    availableYears: () => ['2026/2027', '2025/2026', '2027/2028'],
+    availableYears: () => ['2026/2027'],
   }
 );
 

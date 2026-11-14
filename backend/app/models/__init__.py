@@ -20,12 +20,14 @@ from app.models.exam import Exam, ExamResult, ExamDeadlineExtension
 from app.models.result_submission import ResultSubmission
 from app.models.result_release import ResultReleaseBatch
 from app.models.student_result_view import StudentResultView
-from app.models.attendance import Attendance
+from app.models.attendance import Attendance, AttendanceSubmission
+from app.models.teacher_attendance import TeacherAttendance
 from app.models.notification import Notification, NotificationDelivery, NotificationTemplate
 from app.models.class_promotion import ClassPromotionBatch, ClassPromotionRecord
 from app.models.student_import_log import StudentImportLog
 from app.models.institution import Institution, Subscription, InstitutionPayment
 from app.models.inquiry import Inquiry
+from app.models.form_master import FormMasterAssignment
 
 __all__ = [
     "Base",
@@ -55,6 +57,8 @@ __all__ = [
     "ResultReleaseBatch",
     "StudentResultView",
     "Attendance",
+    "AttendanceSubmission",
+    "TeacherAttendance",
     "Notification",
     "NotificationDelivery",
     "NotificationTemplate",
@@ -64,5 +68,6 @@ __all__ = [
     "Subscription",
     "InstitutionPayment",
     "Inquiry",
+    "FormMasterAssignment",
 ]
 

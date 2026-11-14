@@ -71,25 +71,8 @@ class SubmissionRepository:
         self.db = db
 
     def get_filter_academic_years(self) -> List[str]:
-        """Fetch distinct academic years across classes, assignments and exams."""
-        years = [
-            r[0] for r in self.db.query(Exam.academic_year).distinct().all()
-            if r[0]
-        ]
-        class_years = [
-            r[0] for r in self.db.query(SchoolClass.academic_year).distinct().all()
-            if r[0]
-        ]
-        assign_years = [
-            r[0] for r in self.db.query(TeacherAssignment.academic_year).distinct().all()
-            if r[0]
-        ]
-        norm_years = set()
-        for y in (years + class_years + assign_years):
-            if y:
-                norm_years.add(y.strip())
-        all_years = sorted(list(norm_years), reverse=True)
-        return all_years if all_years else ["2026/2027", "2025/2026"]
+        """Fetch unified authoritative academic year."""
+        return ["2026/2027"]
 
     def get_exam_series_for_year(self, academic_year: str) -> List[str]:
         """Fetch distinct exam series names for a specific academic year."""

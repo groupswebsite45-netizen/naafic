@@ -266,7 +266,7 @@ class TeacherPortalService:
 
         # Retrieve current active academic year from system settings
         setting = self.db.query(SystemSetting).filter(SystemSetting.key == "academic_year_current").first()
-        current_year = setting.value.strip() if setting else "2025-2026"
+        current_year = setting.value.strip() if setting else "2026/2027"
 
         query = self.db.query(TeacherAssignment).filter(
             TeacherAssignment.teacher_id == teacher.id,

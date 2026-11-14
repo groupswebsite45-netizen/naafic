@@ -87,7 +87,7 @@ def teacher_and_tokens(db_session):
 
     # Class Grade 7 - A
     g7_a = db_session.query(SchoolClass).filter(
-        SchoolClass.academic_year.in_(["2026/2027", "2026-2027"]),
+        SchoolClass.academic_year.in_(["2026/2027", "2026/2027"]),
         SchoolClass.level == "Grade 7",
         SchoolClass.section == "A"
     ).first()

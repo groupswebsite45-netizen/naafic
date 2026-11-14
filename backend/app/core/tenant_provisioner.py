@@ -190,7 +190,7 @@ def provision_tenant_schema_and_admin(
             "city": institution_info.get("city", "Mogadishu"),
             "address": institution_info.get("address", ""),
             "currency": "USD",
-            "active_academic_year": "2026-2027",
+            "active_academic_year": "2026/2027",
             "timezone": "Africa/Mogadishu",
         }
 

@@ -31,8 +31,8 @@ withDefaults(defineProps<Props>(), {
           <p class="widget-sub">Daily student presence tracking</p>
         </div>
       </div>
-      <router-link to="/admin/teachers" class="widget-link">
-        Faculty Portal &rarr;
+      <router-link to="/admin/attendance" class="widget-link">
+        Attendance Monitoring &rarr;
       </router-link>
     </div>
 

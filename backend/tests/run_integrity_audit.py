@@ -84,7 +84,7 @@ def audit_two_student_isolation_and_idor():
     
     # Ensure Class exists
     cls_res = requests.post(f"{BASE_URL}/classes", json={
-        "name": "AUDIT Class 8A", "code": "AUDIT-CLS-8A", "academic_year": "2026-2027", "capacity": 30
+        "name": "AUDIT Class 8A", "code": "AUDIT-CLS-8A", "academic_year": "2026/2027", "capacity": 30
     }, headers=admin_headers)
     cls_id = cls_res.json()["id"]
     
@@ -92,7 +92,7 @@ def audit_two_student_isolation_and_idor():
     stu_a_res = requests.post(f"{BASE_URL}/students", json={
         "admission_number": "AUDIT-ADM-A", "first_name": "Student", "last_name": "Alpha",
         "gender": "Male", "guardian_name": "Guardian A", "guardian_phone": "+252615000010",
-        "status": "ACTIVE", "initial_class_id": cls_id, "academic_year": "2026-2027",
+        "status": "ACTIVE", "initial_class_id": cls_id, "academic_year": "2026/2027",
         "create_portal_account": True, "portal_username": "audit.student.a", "portal_password": "Password@123"
     }, headers=admin_headers)
     
@@ -100,7 +100,7 @@ def audit_two_student_isolation_and_idor():
     stu_b_res = requests.post(f"{BASE_URL}/students", json={
         "admission_number": "AUDIT-ADM-B", "first_name": "Student", "last_name": "Beta",
         "gender": "Female", "guardian_name": "Guardian B", "guardian_phone": "+252615000011",
-        "status": "ACTIVE", "initial_class_id": cls_id, "academic_year": "2026-2027",
+        "status": "ACTIVE", "initial_class_id": cls_id, "academic_year": "2026/2027",
         "create_portal_account": True, "portal_username": "audit.student.b", "portal_password": "Password@123"
     }, headers=admin_headers)
     
@@ -139,22 +139,22 @@ def audit_mark_validations():
     }, headers=admin_headers)
     tch_id = tch_res.json()["id"]
     
-    cls_res = requests.post(f"{BASE_URL}/classes", json={"name": "Audit Class 9", "code": "AUD-9A", "academic_year": "2026-2027"}, headers=admin_headers)
+    cls_res = requests.post(f"{BASE_URL}/classes", json={"name": "Audit Class 9", "code": "AUD-9A", "academic_year": "2026/2027"}, headers=admin_headers)
     cls_id = cls_res.json()["id"]
     
     sub_res = requests.post(f"{BASE_URL}/subjects", json={"name": "Audit Science", "code": "AUD-SCI-01", "department": "Science"}, headers=admin_headers)
     sub_id = sub_res.json()["id"]
     
-    requests.post(f"{BASE_URL}/teachers/{tch_id}/assignments", json={"class_id": cls_id, "subject_id": sub_id, "academic_year": "2026-2027"}, headers=admin_headers)
+    requests.post(f"{BASE_URL}/teachers/{tch_id}/assignments", json={"class_id": cls_id, "subject_id": sub_id, "academic_year": "2026/2027"}, headers=admin_headers)
     
     stu_res = requests.post(f"{BASE_URL}/students", json={
         "admission_number": "AUDIT-ADM-V", "first_name": "Validation", "last_name": "Student",
-        "gender": "Male", "initial_class_id": cls_id, "academic_year": "2026-2027"
+        "gender": "Male", "initial_class_id": cls_id, "academic_year": "2026/2027"
     }, headers=admin_headers)
     stu_id = stu_res.json()["id"]
     
     ex_res = requests.post(f"{BASE_URL}/exams", json={
-        "name": "Audit Mark Validation Exam", "exam_type": "Midterm", "academic_year": "2026-2027",
+        "name": "Audit Mark Validation Exam", "exam_type": "Midterm", "academic_year": "2026/2027",
         "class_id": cls_id, "subject_id": sub_id, "start_date": date.today().isoformat(),
         "end_date": date.today().isoformat(), "max_marks": 100.0, "pass_marks": 50.0
     }, headers=admin_headers)
@@ -214,17 +214,17 @@ def audit_teacher_authorization_scoping():
         "create_portal_account": True, "portal_username": "audit.tchb", "portal_password": "Password@123"
     }, headers=admin_headers).json()
     
-    cls_a = requests.post(f"{BASE_URL}/classes", json={"name": "Scoping Class A", "code": "SCP-A", "academic_year": "2026-2027"}, headers=admin_headers).json()
-    cls_b = requests.post(f"{BASE_URL}/classes", json={"name": "Scoping Class B", "code": "SCP-B", "academic_year": "2026-2027"}, headers=admin_headers).json()
+    cls_a = requests.post(f"{BASE_URL}/classes", json={"name": "Scoping Class A", "code": "SCP-A", "academic_year": "2026/2027"}, headers=admin_headers).json()
+    cls_b = requests.post(f"{BASE_URL}/classes", json={"name": "Scoping Class B", "code": "SCP-B", "academic_year": "2026/2027"}, headers=admin_headers).json()
     
     sub_a = requests.post(f"{BASE_URL}/subjects", json={"name": "Scoping Subject A", "code": "SCP-SUB-A", "department": "A"}, headers=admin_headers).json()
     sub_b = requests.post(f"{BASE_URL}/subjects", json={"name": "Scoping Subject B", "code": "SCP-SUB-B", "department": "B"}, headers=admin_headers).json()
     
     # Assign Teacher A to Class A / Subject A ONLY
-    requests.post(f"{BASE_URL}/teachers/{tch_a['id']}/assignments", json={"class_id": cls_a["id"], "subject_id": sub_a["id"], "academic_year": "2026-2027"}, headers=admin_headers)
+    requests.post(f"{BASE_URL}/teachers/{tch_a['id']}/assignments", json={"class_id": cls_a["id"], "subject_id": sub_a["id"], "academic_year": "2026/2027"}, headers=admin_headers)
     
     # Assign Teacher B to Class B / Subject B ONLY
-    requests.post(f"{BASE_URL}/teachers/{tch_b['id']}/assignments", json={"class_id": cls_b["id"], "subject_id": sub_b["id"], "academic_year": "2026-2027"}, headers=admin_headers)
+    requests.post(f"{BASE_URL}/teachers/{tch_b['id']}/assignments", json={"class_id": cls_b["id"], "subject_id": sub_b["id"], "academic_year": "2026/2027"}, headers=admin_headers)
     
     # Teacher A login
     tok_a = requests.post(f"{BASE_URL}/auth/login", json={"identifier": "audit.tcha", "password": "Password@123"}).json()["access_token"]

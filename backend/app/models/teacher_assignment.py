@@ -12,7 +12,7 @@ class TeacherAssignment(Base, TimestampMixin):
     teacher_id = Column(Integer, ForeignKey("teachers.id", ondelete="CASCADE"), nullable=False, index=True)
     class_id = Column(Integer, ForeignKey("classes.id", ondelete="CASCADE"), nullable=False, index=True)
     subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False, index=True)
-    academic_year = Column(String(50), nullable=False, index=True)  # e.g., "2025-2026"
+    academic_year = Column(String(50), nullable=False, default="2026/2027", index=True)  # e.g., "2026/2027"
     status = Column(String(20), default="ACTIVE", nullable=False)
 
     # Relationships
@@ -53,7 +53,7 @@ class TeacherAssignment(Base, TimestampMixin):
         return self.subject.department if (self.subject and self.subject.department) else ""
 
     __table_args__ = (
-        UniqueConstraint("teacher_id", "class_id", "subject_id", "academic_year", name="uq_teacher_class_subject_year"),
+        UniqueConstraint("class_id", "subject_id", "academic_year", name="uq_class_subject_academic_year"),
     )
 
     def __repr__(self) -> str:

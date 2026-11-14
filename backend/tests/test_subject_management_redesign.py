@@ -117,7 +117,7 @@ def test_subject_management_features():
 
     assign_payload = {
         "class_id": class_id,
-        "academic_year": "2025-2026",
+        "academic_year": "2026/2027",
         "teacher_id": teacher_id
     }
     assign_res = client.post(f"/api/v1/subjects/{subject_id}/classes", json=assign_payload, headers=headers)

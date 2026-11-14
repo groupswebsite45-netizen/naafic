@@ -242,19 +242,8 @@ class TimetableRepository(BaseRepository[Timetable]):
 
     def get_filter_options(self, academic_year: Optional[str] = None) -> TimetableFilterOptions:
         """Get distinct filter options from PostgreSQL."""
-        # 1. Distinct academic years from timetables and classes
-        t_years = [y[0] for y in self.db.query(distinct(Timetable.academic_year)).all() if y[0]]
-        c_years = [y[0] for y in self.db.query(distinct(SchoolClass.academic_year)).all() if y[0]]
-        raw_years = t_years + c_years + ["2026/2027", "2025/2026"]
-        
-        # Deduplicate while preserving format
-        seen_norm = set()
-        clean_years = []
-        for yr in sorted(raw_years, reverse=True):
-            norm = yr.replace("-", "/")
-            if norm not in seen_norm:
-                seen_norm.add(norm)
-                clean_years.append(yr)
+        # 1. Authoritative academic year
+        clean_years = ["2026/2027"]
 
         # 2. Days of week standard list
         days_of_week = [

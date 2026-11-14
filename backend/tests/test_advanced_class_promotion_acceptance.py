@@ -64,7 +64,7 @@ def test_acceptance_criteria_1_to_14(auth_headers):
         if test_student_ids:
             db.query(StudentEnrollment).filter(
                 StudentEnrollment.student_id.in_(test_student_ids),
-                StudentEnrollment.academic_year == "2027/2028"
+                StudentEnrollment.academic_year == "2026/2027"
             ).delete(synchronize_session=False)
 
             db.query(StudentEnrollment).filter(
@@ -101,7 +101,7 @@ def test_acceptance_criteria_1_to_14(auth_headers):
         # ----------------------------------------------------------------------
         pri_res = client.get(
             "/api/v1/class-promotions/suggested-mappings",
-            params={"source_year": "2026/2027", "target_year": "2027/2028", "education_level": "PRIMARY"},
+            params={"source_year": "2026/2027", "target_year": "2026/2027", "education_level": "PRIMARY"},
             headers=auth_headers
         )
         assert pri_res.status_code == 200
@@ -114,7 +114,7 @@ def test_acceptance_criteria_1_to_14(auth_headers):
 
         sec_res = client.get(
             "/api/v1/class-promotions/suggested-mappings",
-            params={"source_year": "2026/2027", "target_year": "2027/2028", "education_level": "SECONDARY"},
+            params={"source_year": "2026/2027", "target_year": "2026/2027", "education_level": "SECONDARY"},
             headers=auth_headers
         )
         assert sec_res.status_code == 200
@@ -188,7 +188,7 @@ def test_acceptance_criteria_1_to_14(auth_headers):
                 "/api/v1/class-promotions/preview",
                 json={
                     "source_academic_year": "2026/2027",
-                    "target_academic_year": "2027/2028",
+                    "target_academic_year": "2026/2027",
                     "mappings": [
                         {"from_class_id": g4e["from_class_id"], "to_class_id": None, "action": "PROMOTE"}
                     ]
@@ -212,7 +212,7 @@ def test_acceptance_criteria_1_to_14(auth_headers):
         ).first()
 
         c_g5a = db.query(SchoolClass).filter(
-            SchoolClass.academic_year == "2027/2028",
+            SchoolClass.academic_year == "2026/2027",
             SchoolClass.level == "Grade 5",
             SchoolClass.section == "A"
         ).first()
@@ -240,7 +240,7 @@ def test_acceptance_criteria_1_to_14(auth_headers):
                 "from_class_id": c_g4a.id,
                 "to_class_id": c_g5a.id,
                 "source_academic_year": "2026/2027",
-                "target_academic_year": "2027/2028",
+                "target_academic_year": "2026/2027",
                 "action": "PROMOTE",
                 "reason": "Test Single Class Promotion Grade 4A"
             },
@@ -267,7 +267,7 @@ def test_acceptance_criteria_1_to_14(auth_headers):
             "/api/v1/class-promotions/preview",
             json={
                 "source_academic_year": "2026/2027",
-                "target_academic_year": "2027/2028",
+                "target_academic_year": "2026/2027",
                 "mappings": [
                     {"from_class_id": c_g4a.id, "to_class_id": c_g5a.id, "action": "PROMOTE"}
                 ]
@@ -285,7 +285,7 @@ def test_acceptance_criteria_1_to_14(auth_headers):
         # Classmates in Grade 4B must remain in Grade 4B!
         # ----------------------------------------------------------------------
         c_g5b = db.query(SchoolClass).filter(
-            SchoolClass.academic_year == "2027/2028",
+            SchoolClass.academic_year == "2026/2027",
             SchoolClass.level == "Grade 5",
             SchoolClass.section == "B"
         ).first()
@@ -299,7 +299,7 @@ def test_acceptance_criteria_1_to_14(auth_headers):
             json={
                 "student_id": one_g4b_student_id,
                 "source_academic_year": "2026/2027",
-                "target_academic_year": "2027/2028",
+                "target_academic_year": "2026/2027",
                 "action": "PROMOTE",
                 "target_class_id": c_g5b.id,
                 "reason": "Individual student promotion test"
@@ -314,7 +314,7 @@ def test_acceptance_criteria_1_to_14(auth_headers):
         # Check target enrollment of the selected student
         new_ind_enr = db.query(StudentEnrollment).filter(
             StudentEnrollment.student_id == one_g4b_student_id,
-            StudentEnrollment.academic_year == "2027/2028",
+            StudentEnrollment.academic_year == "2026/2027",
             StudentEnrollment.class_id == c_g5b.id
         ).first()
         assert new_ind_enr is not None
@@ -324,7 +324,7 @@ def test_acceptance_criteria_1_to_14(auth_headers):
         for other_id in other_g4b_student_ids:
             other_target_enr = db.query(StudentEnrollment).filter(
                 StudentEnrollment.student_id == other_id,
-                StudentEnrollment.academic_year == "2027/2028"
+                StudentEnrollment.academic_year == "2026/2027"
             ).first()
             assert other_target_enr is None, f"Classmate {other_id} must not have been promoted!"
 
@@ -389,7 +389,7 @@ def test_acceptance_criteria_1_to_14(auth_headers):
         # Verify target enrollment was removed and old enrollment restored to ACTIVE
         rolled_target_enr = db.query(StudentEnrollment).filter(
             StudentEnrollment.student_id == one_g4b_student_id,
-            StudentEnrollment.academic_year == "2027/2028"
+            StudentEnrollment.academic_year == "2026/2027"
         ).first()
         assert rolled_target_enr is None, "Target enrollment must be removed after rollback."
 

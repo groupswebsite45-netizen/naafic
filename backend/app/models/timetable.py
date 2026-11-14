@@ -12,7 +12,7 @@ class Timetable(Base, TimestampMixin):
     class_id = Column(Integer, ForeignKey("classes.id", ondelete="CASCADE"), nullable=False, index=True)
     subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False, index=True)
     teacher_id = Column(Integer, ForeignKey("teachers.id", ondelete="SET NULL"), nullable=True, index=True)
-    academic_year = Column(String(50), nullable=False, index=True)  # e.g., "2025-2026"
+    academic_year = Column(String(50), nullable=False, default="2026/2027", index=True)  # e.g., "2026/2027"
     day_of_week = Column(String(20), nullable=False, index=True)  # "Monday", "Tuesday", etc.
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)

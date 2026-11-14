@@ -509,7 +509,8 @@ export interface TimetableSetting {
   school_id?: number;
   academic_year: string;
   education_level?: string | null;
-  school_days: string[];
+  school_days: string[] | string;
+  days_list?: string[];
   start_time: string;
   end_time: string;
   period_duration_minutes: number;

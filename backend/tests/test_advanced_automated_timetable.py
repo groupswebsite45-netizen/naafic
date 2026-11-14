@@ -36,7 +36,7 @@ def test_complete_automated_timetable_system():
     # 2. Inspect active classes with teacher assignments
     db = SessionLocal()
     try:
-        # Find a class with assignments in 2026/2027 or 2025-2026
+        # Find a class with assignments in 2026/2027 or 2026/2027
         target_assignment = (
             db.query(TeacherAssignment)
             .filter(TeacherAssignment.status == "ACTIVE")

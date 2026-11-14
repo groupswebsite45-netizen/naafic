@@ -76,6 +76,7 @@ const isEditing = ref(false);
 const activeTeacher = ref<Teacher | null>(null);
 
 const isAssignModalOpen = ref(false);
+const assignmentError = ref('');
 const isPortalModalOpen = ref(false);
 
 // Debounce timer for search input
@@ -213,6 +214,7 @@ function openEditModal(teacher: Teacher) {
 
 function openAssignModal(teacher: Teacher) {
   activeTeacher.value = teacher;
+  assignmentError.value = '';
   isAssignModalOpen.value = true;
 }
 
@@ -245,13 +247,17 @@ async function handleSaveTeacher(payload: CreateTeacherPayload) {
 async function handleSaveAssignment(payload: AssignTeacherPayload) {
   if (!activeTeacher.value) return;
   isSubmitting.value = true;
+  assignmentError.value = '';
   try {
     await teacherService.assignTeacher(activeTeacher.value.id, payload);
     successMessage.value = 'Teaching allocation added successfully.';
-    isAssignModalOpen.value = false;
+    // Refresh active teacher assignments inside modal without closing it
+    const updated = await teacherService.getTeacherById(activeTeacher.value.id);
+    activeTeacher.value = updated;
     await Promise.all([loadTeachers(), loadSummary()]);
   } catch (err: any) {
-    alert(err.response?.data?.detail || 'Failed to allocate teacher to class.');
+    const errorDetail = err.response?.data?.detail || 'Failed to allocate teacher to class.';
+    assignmentError.value = errorDetail;
   } finally {
     isSubmitting.value = false;
   }
@@ -497,6 +503,7 @@ onMounted(() => {
       :available-classes="availableClasses"
       :available-subjects="availableSubjects"
       :is-submitting="isSubmitting"
+      :error-message="assignmentError"
       @close="isAssignModalOpen = false"
       @assign="handleSaveAssignment"
       @remove-assignment="handleRemoveAssignment"

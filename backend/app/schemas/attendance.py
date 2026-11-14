@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from typing import List, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class AttendanceRecordResponse(BaseModel):
@@ -24,7 +24,8 @@ class SubjectAttendanceSummary(BaseModel):
     total_classes: int
     present_count: int
     absent_count: int
-    excused_count: int
+    late_count: int = 0
+    excused_count: int = 0
     attendance_percentage: float
 
 
@@ -32,7 +33,8 @@ class AttendanceOverallSummary(BaseModel):
     total_classes: int
     present_count: int
     absent_count: int
-    excused_count: int
+    late_count: int = 0
+    excused_count: int = 0
     attendance_percentage: float
 
 
@@ -41,6 +43,34 @@ class StudentAttendancePortalResponse(BaseModel):
     summary: AttendanceOverallSummary
     by_subject: List[SubjectAttendanceSummary]
     history: List[AttendanceRecordResponse]
+
+
+class StudentSubjectAttendanceBreakdown(BaseModel):
+    subject_id: int
+    subject_name: str
+    subject_code: Optional[str] = None
+    present_count: int
+    absent_count: int
+    late_count: int = 0
+    excused_count: int = 0
+    total_sessions: int
+    attendance_percentage: float
+
+
+class StudentAttendanceHistoryDetailResponse(BaseModel):
+    student_id: int
+    student_name: str
+    admission_number: str
+    class_id: int
+    class_name: str
+    academic_year: str
+    total_sessions: int
+    total_present: int
+    total_absent: int
+    total_late: int
+    overall_percentage: float
+    by_subject: List[StudentSubjectAttendanceBreakdown]
+    records: List[AttendanceRecordResponse]
 
 
 # =============================================================================
@@ -59,6 +89,7 @@ class TeacherAttendanceSubjectOption(BaseModel):
     name: str
     code: str
     class_id: int
+    academic_year: Optional[str] = None
 
 
 class TeacherAttendanceOptionsResponse(BaseModel):
@@ -86,9 +117,13 @@ class TeacherAttendanceRosterResponse(BaseModel):
     date: date
     period: Optional[str] = None
     is_recorded: bool = False
+    is_locked: bool = False
+    submitted_at: Optional[datetime] = None
+    submitted_by_name: Optional[str] = None
     total_students: int = 0
     present_count: int = 0
     absent_count: int = 0
+    late_count: int = 0
     students: List[StudentAttendanceRosterItem] = []
 
 
@@ -106,6 +141,13 @@ class TeacherSaveAttendancePayload(BaseModel):
     period: Optional[str] = None
     entries: List[StudentAttendanceEntry]
 
+    @field_validator("date")
+    @classmethod
+    def validate_date_not_future(cls, v: date) -> date:
+        if v > date.today():
+            raise ValueError(f"Attendance cannot be recorded for future dates (Today is {date.today().isoformat()}).")
+        return v
+
 
 class TeacherAttendanceSessionItem(BaseModel):
     session_key: str
@@ -119,6 +161,7 @@ class TeacherAttendanceSessionItem(BaseModel):
     total_students: int
     present_count: int
     absent_count: int
+    late_count: int = 0
     attendance_percentage: float
     recorded_at: Optional[datetime] = None
 
@@ -140,6 +183,7 @@ class TeacherStudentAttendanceSummaryItem(BaseModel):
     total_sessions: int
     present_count: int
     absent_count: int
+    late_count: int = 0
     excused_count: int
     attendance_percentage: float
     absent_history: List[AbsentRecordDetail] = []

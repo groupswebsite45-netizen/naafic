@@ -9,7 +9,7 @@ class SchoolClassBase(BaseModel):
     division: str = Field(default="PRIMARY", description="PRIMARY or SECONDARY")
     level: Optional[str] = Field(default="Grade 7", description="Grade 1..Grade 8 or Form 1..Form 4")
     section: Optional[str] = Field(default="A", description="A, B, C, D, E...")
-    academic_year: str = Field(..., min_length=4, max_length=50)
+    academic_year: str = Field(default="2026/2027", min_length=4, max_length=50)
     capacity: int = Field(default=40, ge=1, le=200)
     description: Optional[str] = None
     status: str = Field(default="ACTIVE")

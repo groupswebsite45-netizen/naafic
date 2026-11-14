@@ -39,7 +39,7 @@ class E2ETestRunner:
         
         self.class_name = "TEST Grade 7A"
         self.class_code = "TEST-CLS-001"
-        self.academic_year = "2026-2027"
+        self.academic_year = "2026/2027"
         
         self.subject_name = "TEST Mathematics"
         self.subject_code = "TEST-MAT-001"

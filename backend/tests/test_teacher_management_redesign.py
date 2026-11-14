@@ -105,10 +105,11 @@ def test_teacher_management_features():
 
     # 6. Test Additional Assignment Allocation and Duplicate Prevention
     if class_id and subject_id:
+        test_academic_year = f"20{30 + (rand_num % 40)}-20{31 + (rand_num % 40)}"
         assign_payload = {
             "class_id": class_id,
             "subject_id": subject_id,
-            "academic_year": "2025-2026"
+            "academic_year": test_academic_year
         }
         # First assignment
         assign_res = client.post(f"/api/v1/teachers/{teacher_id}/assignments", json=assign_payload, headers=headers)

@@ -11,7 +11,7 @@ class StudentEnrollment(Base, TimestampMixin):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False, index=True)
     class_id = Column(Integer, ForeignKey("classes.id", ondelete="RESTRICT"), nullable=False, index=True)
-    academic_year = Column(String(50), nullable=False, index=True)  # e.g., "2025-2026"
+    academic_year = Column(String(50), nullable=False, default="2026/2027", index=True)  # e.g., "2026/2027"
     roll_number = Column(String(50), nullable=True)
     start_date = Column(Date, nullable=True)
     end_date = Column(Date, nullable=True)

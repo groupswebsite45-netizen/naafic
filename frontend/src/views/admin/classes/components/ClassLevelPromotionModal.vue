@@ -23,7 +23,7 @@ const errorMessage = ref('');
 const form = reactive({
   target_class_id: 0,
   source_academic_year: '2026/2027',
-  target_academic_year: '2027/2028',
+  target_academic_year: '2026/2027',
   reason: 'Annual Class-Level Promotion',
 });
 
@@ -48,15 +48,8 @@ watch(
       previewStudents.value = [];
       totalAffected.value = 0;
 
-      form.source_academic_year = props.sourceClass.academic_year || '2026/2027';
-      // Calculate next academic year
-      const parts = form.source_academic_year.split(/[/ -]/);
-      if (parts.length >= 2 && !isNaN(Number(parts[0])) && !isNaN(Number(parts[1]))) {
-        const sep = form.source_academic_year.includes('/') ? '/' : '-';
-        form.target_academic_year = `${Number(parts[0]) + 1}${sep}${Number(parts[1]) + 1}`;
-      } else {
-        form.target_academic_year = '2027/2028';
-      }
+      form.source_academic_year = '2026/2027';
+      form.target_academic_year = '2026/2027';
 
       // Auto-suggest next class by level
       const match = props.sourceClass.name.match(/(\d+)/);
@@ -215,7 +208,7 @@ async function handleConfirmPromotion() {
           <input
             v-model="form.reason"
             type="text"
-            placeholder="e.g. Annual Academic Progression 2026-2027"
+            placeholder="e.g. Annual Academic Progression 2026/2027"
             class="form-control"
           />
         </div>

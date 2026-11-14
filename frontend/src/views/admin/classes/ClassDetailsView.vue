@@ -758,7 +758,7 @@ function handleToggleStatus() {
       :is-editing="true"
       :school-class="classProfile"
       :is-submitting="isSubmittingEdit"
-      :years="['2025-2026', '2026-2027', '2024-2025']"
+      :years="['2026/2027']"
       @close="isEditModalOpen = false"
       @save="handleSaveEdit"
     />
@@ -767,7 +767,7 @@ function handleToggleStatus() {
       :is-open="isEnrollModalOpen"
       :school-class="classProfile"
       :is-submitting="isSubmittingEnroll"
-      :years="['2025-2026', '2026-2027', '2024-2025']"
+      :years="['2026/2027']"
       @close="isEnrollModalOpen = false"
       @enroll="handleEnrollStudent"
     />
@@ -776,7 +776,7 @@ function handleToggleStatus() {
       :is-open="isAssignModalOpen"
       :school-class="classProfile"
       :is-submitting="isSubmittingAssign"
-      :years="['2025-2026', '2026-2027', '2024-2025']"
+      :years="['2026/2027']"
       @close="isAssignModalOpen = false"
       @assign="handleAssignTeacher"
     />

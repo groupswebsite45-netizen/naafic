@@ -120,7 +120,7 @@ class StudentPortalService:
         all_years = sorted(list(set(enr_years + att_years)), reverse=True)
         if not all_years and student.current_enrollment:
             all_years = [student.current_enrollment.academic_year]
-        return all_years or ["2026-2027", "2025-2026"]
+        return ["2026/2027"]
 
     def get_dashboard(self, user: User) -> StudentDashboardResponse:
         """Aggregate authenticated student dashboard metrics strictly from PostgreSQL."""
@@ -128,7 +128,7 @@ class StudentPortalService:
         profile = self.get_profile(user)
         active_enr = student.current_enrollment
         current_class = active_enr.school_class if active_enr else None
-        academic_year = active_enr.academic_year if active_enr else "2025-2026"
+        academic_year = active_enr.academic_year if active_enr else "2026/2027"
 
         # 1. Subjects count & Today's timetable
         subjects_count = 0
@@ -273,7 +273,7 @@ class StudentPortalService:
             enrollment = student.current_enrollment
 
         sc = enrollment.school_class if enrollment else None
-        year = enrollment.academic_year if enrollment else (academic_year or "2025-2026")
+        year = enrollment.academic_year if enrollment else (academic_year or "2026/2027")
 
         # Classmates count
         classmates_count = 0
@@ -452,15 +452,17 @@ class StudentPortalService:
                 base_query = filtered_query
 
         total_classes = base_query.count()
-        present_count = base_query.filter(Attendance.status.in_(["PRESENT", "LATE"])).count()
+        present_count = base_query.filter(Attendance.status == "PRESENT").count()
+        late_count = base_query.filter(Attendance.status == "LATE").count()
         absent_count = base_query.filter(Attendance.status.in_(["ABSENT", "UNEXCUSED"])).count()
         excused_count = base_query.filter(Attendance.status == "EXCUSED").count()
-        pct = round((present_count / total_classes * 100), 1) if total_classes > 0 else 0.0
+        pct = round(((present_count + late_count) / total_classes * 100), 1) if total_classes > 0 else 0.0
 
         overall_summary = AttendanceOverallSummary(
             total_classes=total_classes,
             present_count=present_count,
             absent_count=absent_count,
+            late_count=late_count,
             excused_count=excused_count,
             attendance_percentage=pct
         )
@@ -483,10 +485,11 @@ class StudentPortalService:
 
             sub_query = base_query.filter(Attendance.subject_id == s_id)
             sub_total = sub_query.count()
-            sub_present = sub_query.filter(Attendance.status.in_(["PRESENT", "LATE"])).count()
+            sub_present = sub_query.filter(Attendance.status == "PRESENT").count()
+            sub_late = sub_query.filter(Attendance.status == "LATE").count()
             sub_absent = sub_query.filter(Attendance.status.in_(["ABSENT", "UNEXCUSED"])).count()
             sub_excused = sub_query.filter(Attendance.status == "EXCUSED").count()
-            sub_pct = round((sub_present / sub_total * 100), 1) if sub_total > 0 else 0.0
+            sub_pct = round(((sub_present + sub_late) / sub_total * 100), 1) if sub_total > 0 else 0.0
 
             by_subject.append(
                 SubjectAttendanceSummary(
@@ -496,6 +499,7 @@ class StudentPortalService:
                     total_classes=sub_total,
                     present_count=sub_present,
                     absent_count=sub_absent,
+                    late_count=sub_late,
                     excused_count=sub_excused,
                     attendance_percentage=sub_pct
                 )
@@ -530,7 +534,7 @@ class StudentPortalService:
         ]
 
         return StudentAttendancePortalResponse(
-            academic_year=target_year or "2026-2027",
+            academic_year=target_year or "2026/2027",
             summary=overall_summary,
             by_subject=by_subject,
             history=history_items
@@ -584,7 +588,7 @@ class StudentPortalService:
         if not enrolled_class_ids:
             return []
 
-        # 2. Year normalization helper to bridge '2026/2027' vs '2026-2027'
+        # 2. Year normalization helper
         def _get_year_variants(yr: Optional[str]) -> List[str]:
             if not yr:
                 return []

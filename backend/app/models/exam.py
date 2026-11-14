@@ -12,7 +12,7 @@ class Exam(Base, TimestampMixin):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100), nullable=False, index=True)  # e.g., "Mid-Term Examination 2026"
     exam_type = Column(String(50), nullable=False)  # "Mid-Term", "Final", "Monthly Test", "Quiz"
-    academic_year = Column(String(50), nullable=False, index=True)  # e.g., "2025-2026"
+    academic_year = Column(String(50), nullable=False, default="2026/2027", index=True)  # e.g., "2026/2027"
     class_id = Column(Integer, ForeignKey("classes.id", ondelete="CASCADE"), nullable=False, index=True)
     subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False, index=True)
     start_date = Column(Date, nullable=False)

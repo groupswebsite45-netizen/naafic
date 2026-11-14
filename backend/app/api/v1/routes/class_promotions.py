@@ -30,7 +30,7 @@ router = APIRouter(prefix="/class-promotions", tags=["Class Promotion & Changes"
 )
 def get_suggested_mappings(
     source_year: Optional[str] = Query(None, description="Source academic year e.g. 2026/2027"),
-    target_year: Optional[str] = Query(None, description="Target academic year e.g. 2027/2028"),
+    target_year: Optional[str] = Query(None, description="Target academic year e.g. 2026/2027"),
     education_level: Optional[str] = Query(None, description="Filter level: PRIMARY or SECONDARY"),
     current_admin: User = Depends(get_current_active_admin),
     db: Session = Depends(get_db)

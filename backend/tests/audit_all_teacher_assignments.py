@@ -114,7 +114,7 @@ def audit_all_teachers():
             fake_exam = ExamCreate(
                 name="IDOR Test Exam",
                 exam_type="Mid-Term",
-                academic_year="2025/2026",
+                academic_year="2026/2027",
                 class_id=9999,
                 subject_id=23,
                 start_date=date(2026, 3, 1),

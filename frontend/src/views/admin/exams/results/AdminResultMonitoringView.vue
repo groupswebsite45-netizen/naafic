@@ -11,7 +11,7 @@ import ResultStatusBadge from '../../../../components/results/ResultStatusBadge.
 const router = useRouter();
 
 const academicYears = ref<string[]>([]);
-const selectedYear = ref<string>('2025-2026');
+const selectedYear = ref<string>('2026/2027');
 const examNames = ref<string[]>([]);
 const selectedExam = ref<string>('Final Examination 2026');
 

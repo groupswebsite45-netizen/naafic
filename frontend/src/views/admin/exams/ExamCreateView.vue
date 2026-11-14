@@ -18,7 +18,7 @@ const schedulingMode = ref<'single' | 'batch'>('single');
 const form = reactive({
   name: '',
   exam_type: 'FINAL',
-  academic_year: '2025/2026',
+  academic_year: '2026/2027',
   class_id: undefined as number | undefined,
   subject_id: undefined as number | undefined,
   start_date: new Date().toISOString().split('T')[0],
@@ -303,7 +303,7 @@ onMounted(() => {
             <label class="field-label">Academic Year <span class="req">*</span></label>
             <select v-model="form.academic_year" class="form-select" required>
               <option
-                v-for="y in filterOptions?.academic_years || ['2025/2026', '2026/2027']"
+                v-for="y in filterOptions?.academic_years || ['2026/2027']"
                 :key="y"
                 :value="y"
               >

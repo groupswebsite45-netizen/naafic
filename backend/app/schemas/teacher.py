@@ -9,14 +9,45 @@ class TeacherAssignmentBase(BaseModel):
     teacher_id: int
     class_id: int
     subject_id: int
-    academic_year: str
+    academic_year: str = "2026/2027"
     status: str = "ACTIVE"
 
 
 class TeacherAssignmentCreate(BaseModel):
     class_id: int
     subject_id: int
-    academic_year: str
+    academic_year: str = "2026/2027"
+
+
+class TeacherAssignmentUpdate(BaseModel):
+    teacher_id: Optional[int] = None
+    class_id: Optional[int] = None
+    subject_id: Optional[int] = None
+    academic_year: Optional[str] = None
+    status: Optional[str] = None
+
+
+class TeacherBulkAssignmentItem(BaseModel):
+    teacher_id: Optional[int] = None
+    class_id: int
+    subject_id: int
+    academic_year: str = "2026/2027"
+    status: str = "ACTIVE"
+
+
+class TeacherBulkAssignmentCreate(BaseModel):
+    teacher_id: Optional[int] = None
+    assignments: List[TeacherBulkAssignmentItem]
+
+
+class TeacherAssignmentCheckResponse(BaseModel):
+    is_assigned: bool
+    is_same_teacher: bool
+    available: bool
+    message: str
+    assignment_id: Optional[int] = None
+    teacher_id: Optional[int] = None
+    teacher_name: Optional[str] = None
 
 
 class TeacherAssignmentResponse(BaseModel):
@@ -87,6 +118,7 @@ class TeacherStatusUpdate(BaseModel):
 class TeacherResponse(TeacherBase):
     id: int
     user_id: Optional[int] = None
+    email: str
     full_name: str
     has_portal_access: bool = False
     created_at: datetime

@@ -87,6 +87,7 @@ async function openStudentHistory(student: TeacherAssignedStudent) {
         total_sessions: 0,
         present_count: 0,
         absent_count: 0,
+        late_count: 0,
         excused_count: 0,
         attendance_percentage: 100.0,
         absent_history: [],

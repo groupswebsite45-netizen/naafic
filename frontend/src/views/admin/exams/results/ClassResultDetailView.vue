@@ -19,7 +19,7 @@ const route = useRoute();
 const router = useRouter();
 
 const classId = computed(() => Number(route.params.classId));
-const academicYear = ref<string>((route.query.academic_year as string) || '2025-2026');
+const academicYear = ref<string>((route.query.academic_year as string) || '2026/2027');
 const examName = ref<string>((route.query.exam_name as string) || 'Final Examination 2026');
 
 const isLoading = ref(true);

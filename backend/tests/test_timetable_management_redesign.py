@@ -30,7 +30,7 @@ def test_timetable_management_features():
     print("[OK] Admin authenticated successfully.")
 
     # 2. Test Timetable Summary
-    sum_res = client.get("/api/v1/timetable/summary?academic_year=2025-2026", headers=headers)
+    sum_res = client.get("/api/v1/timetable/summary?academic_year=2026/2027", headers=headers)
     assert sum_res.status_code == 200, f"Summary failed: {sum_res.text}"
     summary = sum_res.json()
     print(f"[OK] Summary retrieved from PostgreSQL: {summary}")
@@ -69,7 +69,7 @@ def test_timetable_management_features():
     teacher2_id = teachers[1]["id"] if len(teachers) > 1 else teachers[0]["id"]
 
     test_day = "Saturday"
-    academic_year = "2025-2026"
+    academic_year = "2026/2027"
     test_room = "Test-Lab-909"
 
     # Clean up any previous test slots on this test day and room

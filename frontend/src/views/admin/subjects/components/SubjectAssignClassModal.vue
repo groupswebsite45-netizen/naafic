@@ -27,7 +27,7 @@ const isLoadingOptions = ref(false);
 const form = reactive({
   class_id: 0,
   teacher_id: 0,
-  academic_year: '2025-2026',
+  academic_year: '2026/2027',
   periods_per_week: 4,
 });
 
@@ -56,7 +56,7 @@ watch(
       Object.keys(formErrors).forEach((k) => delete formErrors[k]);
       form.class_id = 0;
       form.teacher_id = 0;
-      form.academic_year = '2025-2026';
+      form.academic_year = '2026/2027';
       form.periods_per_week = 4;
       loadOptions();
     }
@@ -80,8 +80,40 @@ function validateForm(): boolean {
   return isValid;
 }
 
-function handleSubmit() {
+async function checkDuplicateAssignment(): Promise<boolean> {
+  if (!props.subject?.id || !form.class_id || !form.academic_year) return true;
+
+  try {
+    const res = await teacherService.checkAssignment({
+      class_id: Number(form.class_id),
+      subject_id: props.subject.id,
+      academic_year: form.academic_year.trim(),
+      teacher_id: form.teacher_id ? Number(form.teacher_id) : undefined,
+    });
+    if (!res.available) {
+      formErrors.teacher_id = res.message || 'This subject is already assigned to another teacher in this class.';
+      formErrors.general = res.message || 'This subject is already assigned to another teacher in this class.';
+      return false;
+    }
+  } catch (err: any) {
+    console.warn('Assignment check failed:', err);
+  }
+  return true;
+}
+
+watch(
+  [() => form.class_id, () => form.teacher_id, () => form.academic_year],
+  () => {
+    if (form.class_id && form.academic_year) {
+      checkDuplicateAssignment();
+    }
+  }
+);
+
+async function handleSubmit() {
   if (!validateForm()) return;
+  const isAvailable = await checkDuplicateAssignment();
+  if (!isAvailable) return;
 
   emit('assign', {
     class_id: Number(form.class_id),
@@ -134,6 +166,11 @@ function handleSubmit() {
           </div>
 
           <div v-else class="form-grid">
+            <!-- General Duplicate Error Banner -->
+            <div v-if="formErrors.general" class="form-group full-width alert-box-error p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              <span>{{ formErrors.general }}</span>
+            </div>
+
             <!-- Class Selection -->
             <div class="form-group full-width">
               <label class="form-label" for="assign-class-select">
@@ -164,7 +201,7 @@ function handleSubmit() {
                 type="text"
                 class="form-input"
                 :class="{ 'has-error': formErrors.academic_year }"
-                placeholder="2025-2026"
+                placeholder="2026/2027"
               />
               <span v-if="formErrors.academic_year" class="error-msg">{{ formErrors.academic_year }}</span>
             </div>

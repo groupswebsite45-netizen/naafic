@@ -10,7 +10,7 @@ class TimetableBase(BaseModel):
     class_id: int
     subject_id: int
     teacher_id: Optional[int] = None
-    academic_year: str = Field(..., min_length=4, max_length=50)
+    academic_year: str = Field(default="2026/2027", min_length=4, max_length=50)
     day_of_week: str = Field(..., description="Saturday, Sunday, Monday, Tuesday, Wednesday, Thursday, Friday")
     start_time: time
     end_time: time

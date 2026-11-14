@@ -264,7 +264,7 @@ onMounted(() => {
             <span class="hero-stat-val text-blue">
               {{ profile.current_class ? profile.current_class.name : 'Unassigned' }}
             </span>
-            <span class="hero-stat-sub">{{ profile.current_class?.academic_year || 'Academic Year 2025-2026' }}</span>
+            <span class="hero-stat-sub">{{ profile.current_class?.academic_year || 'Academic Year 2026/2027' }}</span>
           </div>
 
           <div class="hero-stat-card">

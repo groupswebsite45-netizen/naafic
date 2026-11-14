@@ -173,8 +173,7 @@ function handleReset() {
             <label class="form-label">Academic Year</label>
             <select v-model="draft.academic_year" class="form-select">
               <option value="">All Academic Years</option>
-              <option value="2025-2026">2025-2026 (Current)</option>
-              <option value="2024-2025">2024-2025</option>
+              <option value="2026/2027">2026/2027</option>
             </select>
           </div>
         </div>

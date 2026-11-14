@@ -426,7 +426,7 @@ def test_partial_class_release_blocked_and_explicit_partial(client, db_session):
     admin_token = create_access_token(subject=str(admin_user.id))
     admin_headers = {"Authorization": f"Bearer {admin_token}"}
 
-    academic_year = "2025-2026"
+    academic_year = "2026/2027"
     exam_name = "Unit Testing Examination 2026"
 
     # Grade 8
@@ -494,7 +494,7 @@ def test_student_view_tracking_increments_without_duplicates(client, db_session)
 
     payload = {
         "exam_name": "Mid-Term Mathematics Exam",
-        "academic_year": "2025-2026",
+        "academic_year": "2026/2027",
         "class_id": student.current_enrollment.class_id if student.current_enrollment else 1
     }
 

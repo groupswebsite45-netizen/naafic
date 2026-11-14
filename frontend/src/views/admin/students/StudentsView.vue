@@ -45,7 +45,7 @@ const confirmDialogLoading = ref(false);
 let pendingConfirmAction: (() => Promise<void>) | null = null;
 
 // Filters
-const availableYears = ref<string[]>(['2026/2027', '2025/2026', '2027/2028']);
+const availableYears = ref<string[]>(['2026/2027']);
 
 const filters = reactive<StudentFilterParams>({
   search: '',

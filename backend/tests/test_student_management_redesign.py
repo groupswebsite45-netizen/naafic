@@ -74,7 +74,7 @@ def test_student_management_features():
         "address": "Wadajir District, Mogadishu",
         "admission_number": f"ADM-{rand_num}",
         "admission_date": "2026-09-01",
-        "academic_year": "2025-2026",
+        "academic_year": "2026/2027",
         "initial_class_id": class_id,
         "status": "ACTIVE",
         "guardian_name": "Ali Warsame",

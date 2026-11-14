@@ -29,9 +29,13 @@ def _ensure_tenant_schema(engine: Engine, db_name: str) -> None:
         from app.core.database import Base
         from app.models.timetable_setting import TimetableSetting
         from app.models.teacher_availability import TeacherAvailability
+        from app.models.form_master import FormMasterAssignment
+        from app.models.teacher_attendance import TeacherAttendance
         Base.metadata.create_all(bind=engine, tables=[
             TimetableSetting.__table__,
-            TeacherAvailability.__table__
+            TeacherAvailability.__table__,
+            FormMasterAssignment.__table__,
+            TeacherAttendance.__table__
         ])
         with engine.connect() as conn:
             cols = {
@@ -69,6 +73,24 @@ def _ensure_tenant_schema(engine: Engine, db_name: str) -> None:
                 conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS published_at TIMESTAMP WITH TIME ZONE;"))
                 conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS published_by_id INTEGER;"))
                 conn.commit()
+
+            ta_exists = conn.execute(text(
+                "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'teacher_assignments');"
+            )).scalar()
+            if ta_exists:
+                ta_constraints = {
+                    r[0] for r in conn.execute(text(
+                        "SELECT conname FROM pg_constraint WHERE conrelid = 'teacher_assignments'::regclass"
+                    )).fetchall()
+                }
+                if "uq_teacher_class_subject_year" in ta_constraints and "uq_class_subject_academic_year" not in ta_constraints:
+                    conn.execute(text("ALTER TABLE teacher_assignments DROP CONSTRAINT IF EXISTS uq_teacher_class_subject_year;"))
+                    conn.execute(text("ALTER TABLE teacher_assignments ADD CONSTRAINT uq_class_subject_academic_year UNIQUE (class_id, subject_id, academic_year);"))
+                    conn.commit()
+                elif "uq_class_subject_academic_year" not in ta_constraints:
+                    conn.execute(text("ALTER TABLE teacher_assignments DROP CONSTRAINT IF EXISTS uq_teacher_class_subject_year;"))
+                    conn.execute(text("ALTER TABLE teacher_assignments ADD CONSTRAINT uq_class_subject_academic_year UNIQUE (class_id, subject_id, academic_year);"))
+                    conn.commit()
     except Exception as exc:
         logger.debug(f"Schema auto-check on {db_name}: {exc}")
 

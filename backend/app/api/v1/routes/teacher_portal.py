@@ -297,35 +297,9 @@ def get_exam_creation_options(
         and a.subject and a.subject.status == "ACTIVE"
     ]
 
-    # 2. Canonical distinct academic years across all teacher's active assignments
-    years_set = set()
-    for a in all_assignments:
-        norm_y = a.academic_year.replace("-", "/") if "-" in a.academic_year else a.academic_year
-        years_set.add(norm_y)
-    years = sorted(list(years_set), reverse=True)
-
-    if not years:
-        return {
-            "academic_years": [],
-            "selected_academic_year": None,
-            "subjects": [],
-            "classes": [],
-            "teacher_id": teacher.id,
-            "teacher_name": teacher.full_name
-        }
-
-    # 3. Determine selected academic year
-    target_year = None
-    if academic_year and academic_year.strip():
-        y_req = academic_year.strip()
-        y_req_variants = [y_req, y_req.replace("/", "-"), y_req.replace("-", "/")]
-        for yr in years:
-            if yr in y_req_variants:
-                target_year = yr
-                break
-
-    if not target_year:
-        target_year = years[0]
+    # 2. Canonical authoritative academic year
+    years = ["2026/2027"]
+    target_year = "2026/2027"
 
     # Filter assignments for selected year
     target_variants = [target_year, target_year.replace("/", "-"), target_year.replace("-", "/")]

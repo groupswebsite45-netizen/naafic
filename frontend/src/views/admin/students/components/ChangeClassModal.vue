@@ -176,7 +176,7 @@ async function handleConfirmClassChange() {
           <input
             v-model="form.academic_year"
             type="text"
-            placeholder="e.g. 2026/2027 or 2027/2028"
+            placeholder="2026/2027"
             class="form-control"
           />
           <span class="form-hint">Specifying a new academic year preserves previous historical enrollment.</span>

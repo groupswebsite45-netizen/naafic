@@ -51,7 +51,7 @@ const emit = defineEmits<{
       >
         <option value="">All Academic Years</option>
         <option
-          v-for="year in filterOptions?.academic_years || ['2025-2026', '2026-2027']"
+          v-for="year in filterOptions?.academic_years || ['2026/2027']"
           :key="year"
           :value="year"
         >

@@ -214,7 +214,7 @@ class TestClassesAndSubjectsArchitecture:
         student = db_session.query(Student).filter(Student.status == "ACTIVE").first()
         # Find two different classes in 2026/2027
         classes = db_session.query(SchoolClass).filter(
-            SchoolClass.academic_year.in_(["2026/2027", "2026-2027"]),
+            SchoolClass.academic_year.in_(["2026/2027", "2026/2027"]),
             SchoolClass.status == "ACTIVE"
         ).limit(2).all()
 

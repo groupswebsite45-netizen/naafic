@@ -183,7 +183,7 @@ def test_suite_complete_multi_tenant_isolation():
         division="SECONDARY",
         level="Form 1",
         section="A",
-        academic_year="2026-2027",
+        academic_year="2026/2027",
         capacity=40,
         status="ACTIVE"
     )

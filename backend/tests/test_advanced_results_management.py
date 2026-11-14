@@ -137,7 +137,7 @@ def test_get_dashboard_statistics(client, auth_tokens, db):
     """Verify that all 10 KPIs are dynamically computed from live database records."""
     res = client.get(
         "/api/v1/results/dashboard/statistics",
-        params={"academic_year": "2026-2027", "exam_name": "Mid-Term Examination 2026/2027"},
+        params={"academic_year": "2026/2027", "exam_name": "Mid-Term Examination 2026/2027"},
         headers=auth_tokens["admin_headers"]
     )
     assert res.status_code == 200, res.text
@@ -161,7 +161,7 @@ def test_get_dashboard_statistics(client, auth_tokens, db):
         assert isinstance(stats[key], int), f"KPI {key} should be integer"
         assert stats[key] >= 0, f"KPI {key} should be non-negative"
 
-    # Verify counts match underlying DB for 2026-2027
+    # Verify counts match underlying DB for 2026/2027
     assert stats["total_classes_with_students"] > 0
     assert stats["total_eligible_students"] > 0
 
@@ -175,7 +175,7 @@ def test_get_class_result_sheet(client, auth_tokens, db):
     # Class 5 has 30 students and 12 subjects
     res = client.get(
         "/api/v1/results/classes/5/sheet",
-        params={"academic_year": "2026-2027", "exam_name": "Mid-Term Examination 2026/2027"},
+        params={"academic_year": "2026/2027", "exam_name": "Mid-Term Examination 2026/2027"},
         headers=auth_tokens["admin_headers"]
     )
     assert res.status_code == 200, res.text
@@ -220,7 +220,7 @@ def test_download_class_result_sheet_pdf(client, auth_tokens):
     """Verify downloading Class Results PDF produces a non-empty print-ready PDF document."""
     res = client.get(
         "/api/v1/results/classes/5/sheet/pdf",
-        params={"academic_year": "2026-2027", "exam_name": "Mid-Term Examination 2026/2027"},
+        params={"academic_year": "2026/2027", "exam_name": "Mid-Term Examination 2026/2027"},
         headers=auth_tokens["admin_headers"]
     )
     assert res.status_code == 200, res.text
@@ -240,7 +240,7 @@ def test_get_class_rankings(client, auth_tokens):
     """Verify class rankings returns students ordered with competition ranking (1, 2, 2, 4)."""
     res = client.get(
         "/api/v1/results/classes/5/rankings",
-        params={"academic_year": "2026-2027", "exam_name": "Mid-Term Examination 2026/2027"},
+        params={"academic_year": "2026/2027", "exam_name": "Mid-Term Examination 2026/2027"},
         headers=auth_tokens["admin_headers"]
     )
     assert res.status_code == 200, res.text
@@ -263,7 +263,7 @@ def test_download_class_rankings_pdf(client, auth_tokens):
     """Verify downloading Class Rankings as PDF returns valid %PDF document."""
     res = client.get(
         "/api/v1/results/classes/5/rankings/pdf",
-        params={"academic_year": "2026-2027", "exam_name": "Mid-Term Examination 2026/2027"},
+        params={"academic_year": "2026/2027", "exam_name": "Mid-Term Examination 2026/2027"},
         headers=auth_tokens["admin_headers"]
     )
     assert res.status_code == 200, res.text
@@ -276,7 +276,7 @@ def test_download_class_rankings_excel(client, auth_tokens):
     """Verify downloading Class Rankings as Excel returns valid .xlsx workbook."""
     res = client.get(
         "/api/v1/results/classes/5/rankings/excel",
-        params={"academic_year": "2026-2027", "exam_name": "Mid-Term Examination 2026/2027"},
+        params={"academic_year": "2026/2027", "exam_name": "Mid-Term Examination 2026/2027"},
         headers=auth_tokens["admin_headers"]
     )
     assert res.status_code == 200, res.text
@@ -343,7 +343,7 @@ def test_get_subject_performance_list(client, auth_tokens):
     """Verify subject performance list returns breakdown with averages, pass rates, and grade distributions."""
     res = client.get(
         "/api/v1/results/subject-performance",
-        params={"academic_year": "2026-2027", "exam_name": "Mid-Term Examination 2026/2027"},
+        params={"academic_year": "2026/2027", "exam_name": "Mid-Term Examination 2026/2027"},
         headers=auth_tokens["admin_headers"]
     )
     assert res.status_code == 200, res.text
@@ -363,7 +363,7 @@ def test_get_absent_students_list(client, auth_tokens):
     """Verify absent students tracker returns documented absences, reasons, and complaints."""
     res = client.get(
         "/api/v1/results/absent-students",
-        params={"academic_year": "2026-2027", "exam_name": "Mid-Term Examination 2026/2027"},
+        params={"academic_year": "2026/2027", "exam_name": "Mid-Term Examination 2026/2027"},
         headers=auth_tokens["admin_headers"]
     )
     assert res.status_code == 200, res.text
@@ -409,7 +409,7 @@ def test_student_privacy_isolation(client, auth_tokens, db):
     # Attempt to view other student's report
     res = client.get(
         f"/api/v1/results/students/{other_student.id}/report",
-        params={"academic_year": "2026-2027"},
+        params={"academic_year": "2026/2027"},
         headers=auth_tokens["student_headers"]
     )
     assert res.status_code == 403, "Students must receive 403 Forbidden when requesting another student's report"

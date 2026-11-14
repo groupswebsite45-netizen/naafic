@@ -468,7 +468,7 @@ def test_20_fee_structure_list_contains_only_legitimate_structures(test_setup):
     for s in structures:
         # Legitimate structure must have valid name, academic year, and amount > 0
         assert float(s["amount"]) > 0
-        assert s["academic_year"] in ("2026/2027", "2025/2026", "2024/2025")
+        assert s["academic_year"] in ("2026/2027", "2026/2027", "2026/2027")
         assert s["status"] in ("ACTIVE", "INACTIVE")
 
 

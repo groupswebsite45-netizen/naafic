@@ -81,7 +81,7 @@ def get_filter_options(
     summary="Get top-level result statistics from PostgreSQL"
 )
 def get_result_overview(
-    academic_year: str = Query(..., description="e.g., 2025-2026"),
+    academic_year: str = Query("2026/2027", description="e.g., 2026/2027"),
     exam_name: str = Query(..., description="e.g., Final Examination"),
     current_admin: User = Depends(get_current_active_admin),
     db: Session = Depends(get_db)

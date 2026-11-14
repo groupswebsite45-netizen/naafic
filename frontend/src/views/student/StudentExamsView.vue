@@ -110,7 +110,7 @@ async function triggerViewRecord(sampleResult?: StudentExamResultItem) {
   try {
     await studentPortalService.recordExamView({
       exam_name: sampleResult.exam_name,
-      academic_year: sampleResult.academic_year || selectedYear.value || '2025-2026',
+      academic_year: sampleResult.academic_year || selectedYear.value || '2026/2027',
       class_id: sampleResult.class_id,
     });
   } catch {
@@ -153,7 +153,7 @@ async function initPage() {
       selectedYear.value = academicYears.value[0];
     }
   } catch {
-    academicYears.value = ['2026/2027', '2025/2026'];
+    academicYears.value = ['2026/2027'];
     selectedYear.value = '2026/2027';
   }
   await loadData();

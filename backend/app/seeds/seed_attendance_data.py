@@ -35,7 +35,7 @@ def seed_attendance():
 
         # Generate records over 8 weeks leading up to today (2026-09-16)
         base_date = date(2026, 7, 20)  # Monday
-        academic_year = "2025-2026"
+        academic_year = "2026/2027"
 
         # Schedule template per week:
         # (day_offset, subject_id, teacher_id, period)

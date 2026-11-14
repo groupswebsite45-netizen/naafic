@@ -33,7 +33,7 @@ def test_exam_management_complete_workflow():
     print("[PASS] Admin authenticated successfully.")
 
     # 2. Test Exam Summary Endpoint (PostgreSQL live data)
-    summary_res = client.get("/api/v1/exams/summary?academic_year=2025-2026", headers=headers)
+    summary_res = client.get("/api/v1/exams/summary?academic_year=2026/2027", headers=headers)
     assert summary_res.status_code == 200
     summary = summary_res.json()
     assert "total_exams" in summary

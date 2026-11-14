@@ -28,7 +28,7 @@ const classesList = ref<SchoolClass[]>([]);
 const resultsOverview = ref<any>(null);
 
 const selectedAcademicYear = ref<string>('2026/2027');
-const availableAcademicYears = ref<string[]>(['2026/2027', '2025/2026']);
+const availableAcademicYears = ref<string[]>(['2026/2027']);
 
 const isLoading = ref<boolean>(false);
 const fetchError = ref<string | null>(null);

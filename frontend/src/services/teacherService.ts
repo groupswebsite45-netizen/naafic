@@ -27,6 +27,32 @@ export interface AssignTeacherPayload {
   section?: string | null;
 }
 
+export interface CheckAssignmentParams {
+  class_id: number;
+  subject_id: number;
+  academic_year: string;
+  teacher_id?: number;
+  exclude_assignment_id?: number;
+}
+
+export interface CheckAssignmentResponse {
+  is_assigned: boolean;
+  is_same_teacher: boolean;
+  available: boolean;
+  message: string;
+  assignment_id?: number;
+  teacher_id?: number;
+  teacher_name?: string;
+}
+
+export interface BulkAssignItem {
+  teacher_id?: number;
+  class_id: number;
+  subject_id: number;
+  academic_year: string;
+  status?: string;
+}
+
 export const teacherService = {
   async getSummary(): Promise<TeacherSummary> {
     const res = await apiClient.get<TeacherSummary>('/teachers/summary');
@@ -86,6 +112,27 @@ export const teacherService = {
 
   async assignTeacher(teacherId: number, payload: AssignTeacherPayload): Promise<TeacherAssignment> {
     const res = await apiClient.post<TeacherAssignment>(`/teachers/${teacherId}/assignments`, payload);
+    return res.data;
+  },
+
+  async updateAssignment(
+    assignmentId: number,
+    payload: Partial<AssignTeacherPayload> & { teacher_id?: number; status?: string }
+  ): Promise<TeacherAssignment> {
+    const res = await apiClient.put<TeacherAssignment>(`/teachers/assignments/${assignmentId}`, payload);
+    return res.data;
+  },
+
+  async checkAssignment(params: CheckAssignmentParams): Promise<CheckAssignmentResponse> {
+    const res = await apiClient.get<CheckAssignmentResponse>('/teachers/assignments/check', { params });
+    return res.data;
+  },
+
+  async bulkAssign(assignments: BulkAssignItem[], teacherId?: number): Promise<TeacherAssignment[]> {
+    const res = await apiClient.post<TeacherAssignment[]>('/teachers/assignments/bulk', {
+      teacher_id: teacherId,
+      assignments,
+    });
     return res.data;
   },
 

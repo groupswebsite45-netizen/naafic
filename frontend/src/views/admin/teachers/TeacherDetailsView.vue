@@ -27,6 +27,7 @@ const activeTab = ref<'overview' | 'personal' | 'professional' | 'assignments' |
 // Modals
 const isEditModalOpen = ref(false);
 const isAssignModalOpen = ref(false);
+const assignmentError = ref('');
 const isPortalModalOpen = ref(false);
 const isConfirmStatusOpen = ref(false);
 const isSubmitting = ref(false);
@@ -99,13 +100,15 @@ async function handleSaveEdit(payload: CreateTeacherPayload) {
 async function handleSaveAssignment(payload: AssignTeacherPayload) {
   if (!profile.value) return;
   isSubmitting.value = true;
+  assignmentError.value = '';
   try {
     await teacherService.assignTeacher(profile.value.id, payload);
     successMessage.value = 'Teaching assignment added successfully.';
-    isAssignModalOpen.value = false;
+    // Keep modal open so administrator can assign multiple workloads continuously
     await loadProfile();
   } catch (err: any) {
-    alert(err.response?.data?.detail || 'Failed to allocate teacher to class.');
+    const errorDetail = err.response?.data?.detail || 'Failed to allocate teacher to class.';
+    assignmentError.value = errorDetail;
   } finally {
     isSubmitting.value = false;
   }
@@ -263,7 +266,7 @@ onMounted(() => {
             <span class="hero-stat-val text-blue">
               {{ uniqueClassesCount }} {{ uniqueClassesCount === 1 ? 'Class' : 'Classes' }}
             </span>
-            <span class="hero-stat-sub">Academic Year 2025-2026</span>
+            <span class="hero-stat-sub">Academic Year 2026/2027</span>
           </div>
 
           <div class="hero-stat-card">
@@ -626,6 +629,7 @@ onMounted(() => {
       :available-classes="availableClasses"
       :available-subjects="availableSubjects"
       :is-submitting="isSubmitting"
+      :error-message="assignmentError"
       @close="isAssignModalOpen = false"
       @assign="handleSaveAssignment"
       @remove-assignment="handleRemoveAssignment"

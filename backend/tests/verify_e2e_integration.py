@@ -48,7 +48,7 @@ def run_e2e_verification():
         "division": "PRIMARY",
         "level": "Grade 8",
         "section": uid[:2],
-        "academic_year": "2025-2026",
+        "academic_year": "2026/2027",
         "capacity": 45,
         "status": "ACTIVE"
     }, headers=admin_headers)
@@ -94,7 +94,7 @@ def run_e2e_verification():
     res = requests.post(f"{BASE_URL}/teachers/{teacher_id}/assignments", json={
         "class_id": class_id,
         "subject_id": subject_id,
-        "academic_year": "2025-2026"
+        "academic_year": "2026/2027"
     }, headers=admin_headers)
     assert res.status_code == 201, f"Assign teacher failed: {res.text}"
     print(f"[OK] Teacher assigned to Class {cls['name']} & Subject {subj['name']}")
@@ -110,7 +110,7 @@ def run_e2e_verification():
         "guardian_name": "Farah Jama",
         "guardian_phone": "+252615999999",
         "initial_class_id": class_id,
-        "academic_year": "2025-2026",
+        "academic_year": "2026/2027",
         "create_portal_account": True,
         "portal_username": student_username,
         "portal_password": student_password

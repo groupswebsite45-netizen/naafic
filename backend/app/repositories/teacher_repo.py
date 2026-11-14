@@ -1,6 +1,8 @@
 from typing import Optional, List, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
+from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException, status
 from app.models.teacher import Teacher
 from app.models.teacher_assignment import TeacherAssignment
 from app.models.timetable import Timetable
@@ -102,30 +104,41 @@ class TeacherRepository(BaseRepository[Teacher]):
         subject_id: int,
         academic_year: str
     ) -> TeacherAssignment:
+        year_str = academic_year.strip()
+        year_variants = {year_str, year_str.replace('/', '-'), year_str.replace('-', '/')}
         existing = self.db.query(TeacherAssignment).filter(
-            TeacherAssignment.teacher_id == teacher_id,
             TeacherAssignment.class_id == class_id,
             TeacherAssignment.subject_id == subject_id,
-            TeacherAssignment.academic_year == academic_year.strip()
+            TeacherAssignment.academic_year.in_(year_variants),
+            TeacherAssignment.status == "ACTIVE"
         ).first()
 
         if existing:
-            existing.status = "ACTIVE"
-            self.db.commit()
-            self.db.refresh(existing)
+            if existing.teacher_id != teacher_id:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="This subject is already assigned to another teacher in this class."
+                )
             return existing
 
         assignment = TeacherAssignment(
             teacher_id=teacher_id,
             class_id=class_id,
             subject_id=subject_id,
-            academic_year=academic_year.strip(),
+            academic_year=year_str,
             status="ACTIVE"
         )
-        self.db.add(assignment)
-        self.db.commit()
-        self.db.refresh(assignment)
-        return assignment
+        try:
+            self.db.add(assignment)
+            self.db.commit()
+            self.db.refresh(assignment)
+            return assignment
+        except IntegrityError:
+            self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This subject is already assigned to another teacher in this class."
+            )
 
     def remove_assignment(self, assignment_id: int) -> bool:
         a = self.db.query(TeacherAssignment).filter(TeacherAssignment.id == assignment_id).first()

@@ -13,8 +13,8 @@ class ClassPromotionBatch(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     batch_code = Column(String(50), unique=True, nullable=False, index=True)  # e.g., "PROM-2027-0001"
-    source_academic_year = Column(String(50), nullable=False, index=True)      # e.g., "2026/2027" or "2025-2026"
-    target_academic_year = Column(String(50), nullable=False, index=True)      # e.g., "2027/2028" or "2026-2027"
+    source_academic_year = Column(String(50), nullable=False, default="2026/2027", index=True)      # e.g., "2026/2027"
+    target_academic_year = Column(String(50), nullable=False, default="2026/2027", index=True)      # e.g., "2026/2027"
     promotion_type = Column(String(30), default="BULK_PROMOTION", nullable=False)  # BULK_PROMOTION, CLASS_LEVEL, INDIVIDUAL_CHANGE
     status = Column(String(30), default="COMPLETED", nullable=False, index=True)  # COMPLETED, ROLLED_BACK, FAILED
     total_promoted = Column(Integer, default=0, nullable=False)

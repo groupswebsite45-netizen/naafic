@@ -79,7 +79,7 @@ def get_academic_years(
     summary="Get authenticated student enrolled class details, subjects, and history"
 )
 def get_my_class(
-    academic_year: Optional[str] = Query(None, description="Filter by academic year e.g. 2025-2026"),
+    academic_year: Optional[str] = Query(None, description="Filter by academic year e.g. 2026/2027"),
     current_student_user: User = Depends(get_current_active_student),
     db: Session = Depends(get_db)
 ):
@@ -96,7 +96,7 @@ def get_my_class(
     summary="Get enrolled curriculum subjects for authenticated student"
 )
 def get_my_subjects(
-    academic_year: Optional[str] = Query(None, description="Filter by academic year e.g. 2025-2026"),
+    academic_year: Optional[str] = Query(None, description="Filter by academic year e.g. 2026/2027"),
     current_student_user: User = Depends(get_current_active_student),
     db: Session = Depends(get_db)
 ):
@@ -128,7 +128,7 @@ def get_my_timetable(
     summary="Get attendance summary, subject breakdown, and history for authenticated student"
 )
 def get_my_attendance(
-    academic_year: Optional[str] = Query(None, description="Filter by academic year e.g. 2025-2026"),
+    academic_year: Optional[str] = Query(None, description="Filter by academic year e.g. 2026/2027"),
     month: Optional[int] = Query(None, description="Filter by month 1-12"),
     subject_id: Optional[int] = Query(None, description="Filter by subject ID"),
     status: Optional[str] = Query(None, description="Filter by status: PRESENT, ABSENT, EXCUSED"),

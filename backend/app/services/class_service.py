@@ -1,6 +1,7 @@
 from typing import Optional, List, Tuple
 from datetime import date
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException, status
 from app.models.school_class import SchoolClass
 from app.models.student import Student
@@ -468,38 +469,49 @@ class ClassService:
                 )
 
         # Check duplicate
+        year_str = academic_year.strip()
+        year_variants = {year_str, year_str.replace('/', '-'), year_str.replace('-', '/')}
         existing = (
             self.db.query(TeacherAssignment)
             .filter(
                 TeacherAssignment.class_id == class_id,
-                TeacherAssignment.teacher_id == teacher_id,
                 TeacherAssignment.subject_id == subject_id,
-                TeacherAssignment.academic_year == academic_year.strip(),
+                TeacherAssignment.academic_year.in_(year_variants),
                 TeacherAssignment.status == "ACTIVE"
             )
             .first()
         )
         if existing:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Teacher {teacher.full_name} is already assigned to {subject.name} for {school_class.name} ({academic_year})."
-            )
+            if existing.teacher_id != teacher_id:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="This subject is already assigned to another teacher in this class."
+                )
+            # Same teacher retains their own assignment without triggering false duplicate error
+            return existing
 
         assignment = TeacherAssignment(
             teacher_id=teacher_id,
             class_id=class_id,
             subject_id=subject_id,
-            academic_year=academic_year.strip(),
+            academic_year=year_str,
             status="ACTIVE"
         )
-        self.db.add(assignment)
-        self.db.commit()
-        self.db.refresh(assignment)
+        try:
+            self.db.add(assignment)
+            self.db.commit()
+            self.db.refresh(assignment)
+        except IntegrityError:
+            self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This subject is already assigned to another teacher in this class."
+            )
 
         self.audit_repo.log_event(
             action="TEACHER_ASSIGNED_TO_CLASS",
             user_id=user_id,
-            details={"class_id": class_id, "teacher_id": teacher_id, "subject_id": subject_id}
+            details={"class_id": class_id, "teacher_id": teacher_id, "subject_id": subject_id, "academic_year": year_str}
         )
         return assignment
 
@@ -523,3 +535,58 @@ class ClassService:
             user_id=user_id,
             details={"class_id": class_id, "assignment_id": assignment_id}
         )
+
+    def update_teacher_assignment(
+        self,
+        class_id: int,
+        assignment_id: int,
+        teacher_id: int,
+        subject_id: int,
+        academic_year: str,
+        user_id: Optional[int] = None
+    ) -> TeacherAssignment:
+        assignment = (
+            self.db.query(TeacherAssignment)
+            .filter(
+                TeacherAssignment.id == assignment_id,
+                TeacherAssignment.class_id == class_id
+            )
+            .first()
+        )
+        if not assignment:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Teacher assignment not found for this class.")
+
+        year_str = academic_year.strip()
+        year_variants = {year_str, year_str.replace('/', '-'), year_str.replace('-', '/')}
+
+        existing = (
+            self.db.query(TeacherAssignment)
+            .filter(
+                TeacherAssignment.class_id == class_id,
+                TeacherAssignment.subject_id == subject_id,
+                TeacherAssignment.academic_year.in_(year_variants),
+                TeacherAssignment.status == "ACTIVE",
+                TeacherAssignment.id != assignment_id
+            )
+            .first()
+        )
+        if existing:
+            if existing.teacher_id != teacher_id:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="This subject is already assigned to another teacher in this class."
+                )
+
+        assignment.teacher_id = teacher_id
+        assignment.subject_id = subject_id
+        assignment.academic_year = year_str
+        try:
+            self.db.commit()
+            self.db.refresh(assignment)
+            return assignment
+        except IntegrityError:
+            self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This subject is already assigned to another teacher in this class."
+            )

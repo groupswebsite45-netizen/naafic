@@ -300,6 +300,36 @@ def assign_teacher_to_subject(
     }
 
 
+@router.put(
+    "/{subject_id}/teachers/{assignment_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Update teacher allocation for subject (Admin only)"
+)
+def update_teacher_for_subject(
+    subject_id: int,
+    assignment_id: int,
+    payload: SubjectAssignTeacherPayload,
+    current_admin: User = Depends(get_current_active_admin),
+    db: Session = Depends(get_db)
+):
+    service = SubjectService(db)
+    assignment = service.update_teacher_assignment(
+        subject_id=subject_id,
+        assignment_id=assignment_id,
+        teacher_id=payload.teacher_id,
+        class_id=payload.class_id,
+        academic_year=payload.academic_year,
+        user_id=current_admin.id
+    )
+    return {
+        "message": "Teacher allocation updated successfully.",
+        "assignment_id": assignment.id,
+        "subject_id": assignment.subject_id,
+        "teacher_id": assignment.teacher_id,
+        "class_id": assignment.class_id
+    }
+
+
 @router.delete(
     "/{subject_id}/teachers/{assignment_id}",
     status_code=status.HTTP_200_OK,

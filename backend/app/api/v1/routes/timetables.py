@@ -210,6 +210,23 @@ def get_timetable_settings(
     return service.get_timetable_setting(academic_year=academic_year or "2026/2027", division=education_level or division or "ALL")
 
 
+@router.post(
+    "/settings",
+    response_model=TimetableSettingResponse,
+    summary="Create or update timetable schedule configuration (Admin only)"
+)
+def save_timetable_settings(
+    payload: TimetableSettingUpdate,
+    academic_year: Optional[str] = Query(None),
+    current_admin: User = Depends(get_current_active_admin),
+    db: Session = Depends(get_db)
+):
+    service = TimetableService(db)
+    target_year = payload.academic_year or academic_year or "2026/2027"
+    existing = service.get_timetable_setting(academic_year=target_year)
+    return service.update_timetable_setting(setting_id=existing.id, payload=payload, user_id=current_admin.id)
+
+
 @router.put(
     "/settings/{setting_id}",
     response_model=TimetableSettingResponse,

@@ -30,7 +30,7 @@ const successMessage = ref('');
 // Filters
 const filters = reactive({
   query: '',
-  academic_year: '2025-2026',
+  academic_year: '2026/2027',
   exam_type: '',
   class_id: undefined as number | undefined,
   subject_id: undefined as number | undefined,

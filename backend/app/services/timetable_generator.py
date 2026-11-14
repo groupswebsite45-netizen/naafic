@@ -1,7 +1,9 @@
 from datetime import time, datetime, timedelta
 from typing import List, Dict, Any, Optional, Tuple
+from types import SimpleNamespace
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, func
+from app.utils.logger import logger
 
 from app.models.timetable import Timetable
 from app.models.school_class import SchoolClass
@@ -78,15 +80,44 @@ class TimetableGenerator:
                 .all()
             )
 
+        # Fallback to institutional curriculum subjects if no specific teacher assignments exist yet
         if not assignments:
-            return TimetableGenerateResponse(
-                success=False,
-                class_id=school_class.id,
-                class_name=school_class.name,
-                academic_year=request.academic_year,
-                total_generated_periods=0,
-                message="No academic subjects or teacher assignments found for this class. Please assign teachers and curriculum subjects first."
+            div = school_class.division or "ALL"
+            curr_subjects = (
+                self.db.query(Subject)
+                .filter(
+                    Subject.status == "ACTIVE",
+                    Subject.division.in_([div, "ALL"])
+                )
+                .all()
             )
+            if not curr_subjects:
+                curr_subjects = self.db.query(Subject).filter(Subject.status == "ACTIVE").all()
+
+            if not curr_subjects:
+                return TimetableGenerateResponse(
+                    success=False,
+                    class_id=school_class.id,
+                    class_name=school_class.name,
+                    academic_year=request.academic_year,
+                    total_generated_periods=0,
+                    message="No active academic curriculum subjects found in the system. Please create subjects first."
+                )
+
+            from types import SimpleNamespace
+            assignments = [
+                SimpleNamespace(
+                    id=0,
+                    class_id=school_class.id,
+                    subject_id=sub.id,
+                    teacher_id=None,
+                    academic_year=year_clean,
+                    status="ACTIVE",
+                    subject=sub,
+                    teacher=None
+                )
+                for sub in curr_subjects
+            ]
 
         # 4. Build Subject Requirements
         requirements = self._build_requirements(
@@ -145,7 +176,12 @@ class TimetableGenerator:
         }
 
         # 8. Execute Constraint-Satisfaction Scheduling Algorithm
-        days = [d.strip() for d in config.school_days.split(",") if d.strip()]
+        VALID_DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+        VALID_DAYS_MAP = {d.lower(): d for d in VALID_DAYS}
+        raw_days = [d.strip() for d in config.school_days.split(",") if d.strip()]
+        days = [VALID_DAYS_MAP[d.lower()] for d in raw_days if d.lower() in VALID_DAYS_MAP]
+        if not days:
+            days = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]
         default_room = request.default_room or f"Room {school_class.code or school_class.name}"
 
         scheduled_slots, conflicts, unassigned = self._schedule_csp(
@@ -243,8 +279,8 @@ class TimetableGenerator:
             message=msg
         )
 
-    def _resolve_settings(self, request: TimetableGenerateRequest, division: str) -> TimetableSetting:
-        """Resolve active TimetableSetting or create from request parameters."""
+    def _resolve_settings(self, request: TimetableGenerateRequest, division: str) -> SimpleNamespace:
+        """Resolve active TimetableSetting into an unattached configuration object without mutating database state."""
         year_clean = request.academic_year.strip()
         year_variants = [year_clean, year_clean.replace("/", "-"), year_clean.replace("-", "/")]
 
@@ -257,51 +293,66 @@ class TimetableGenerator:
             .first()
         )
 
-        if not setting:
-            setting = TimetableSetting(
-                academic_year=year_clean,
-                division=division or "ALL",
-                school_days="Saturday,Sunday,Monday,Tuesday,Wednesday,Thursday",
-                start_time=time(7, 30),
-                end_time=time(13, 30),
-                period_duration_minutes=45,
-                break_duration_minutes=20,
-                break_after_period=3,
-                lunch_duration_minutes=30,
-                lunch_after_period=5,
-                periods_per_day=6,
-                is_active=True
-            )
+        config = SimpleNamespace(
+            academic_year=setting.academic_year if setting else year_clean,
+            division=setting.division if setting else (division or "ALL"),
+            school_days=setting.school_days if setting else "Saturday,Sunday,Monday,Tuesday,Wednesday,Thursday",
+            start_time=setting.start_time if setting else time(7, 30),
+            end_time=setting.end_time if setting else time(13, 30),
+            period_duration_minutes=setting.period_duration_minutes if setting else 45,
+            break_duration_minutes=setting.break_duration_minutes if setting else 20,
+            break_after_period=setting.break_after_period if setting else 3,
+            lunch_duration_minutes=setting.lunch_duration_minutes if setting else 30,
+            lunch_after_period=setting.lunch_after_period if setting else 5,
+            periods_per_day=setting.periods_per_day if setting else 6,
+            is_active=True
+        )
 
-        # Override from explicit request options if provided
+        VALID_DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+        VALID_DAYS_MAP = {d.lower(): d for d in VALID_DAYS}
+
+        # Override from explicit request options if provided, strictly normalizing day names
         if request.school_days:
-            setting.school_days = ",".join(request.school_days)
+            if isinstance(request.school_days, list):
+                resolved_days = []
+                for d in request.school_days:
+                    d_clean = str(d).strip().capitalize()
+                    if d_clean.lower() in VALID_DAYS_MAP and VALID_DAYS_MAP[d_clean.lower()] not in resolved_days:
+                        resolved_days.append(VALID_DAYS_MAP[d_clean.lower()])
+                if resolved_days:
+                    config.school_days = ",".join(resolved_days)
+            elif isinstance(request.school_days, str):
+                parts = [p.strip().capitalize() for p in request.school_days.split(",") if p.strip()]
+                resolved_days = [VALID_DAYS_MAP[p.lower()] for p in parts if p.lower() in VALID_DAYS_MAP]
+                if resolved_days:
+                    config.school_days = ",".join(resolved_days)
+
         if request.start_time:
             if isinstance(request.start_time, str):
                 p = request.start_time.split(":")
-                setting.start_time = time(int(p[0]), int(p[1]))
+                config.start_time = time(int(p[0]), int(p[1]))
             else:
-                setting.start_time = request.start_time
+                config.start_time = request.start_time
         if request.end_time:
             if isinstance(request.end_time, str):
                 p = request.end_time.split(":")
-                setting.end_time = time(int(p[0]), int(p[1]))
+                config.end_time = time(int(p[0]), int(p[1]))
             else:
-                setting.end_time = request.end_time
+                config.end_time = request.end_time
         if request.period_duration_minutes:
-            setting.period_duration_minutes = request.period_duration_minutes
+            config.period_duration_minutes = request.period_duration_minutes
         if request.periods_per_day:
-            setting.periods_per_day = request.periods_per_day
+            config.periods_per_day = request.periods_per_day
         if request.break_after_period is not None:
-            setting.break_after_period = request.break_after_period
+            config.break_after_period = request.break_after_period
         if request.break_duration_minutes is not None:
-            setting.break_duration_minutes = request.break_duration_minutes
+            config.break_duration_minutes = request.break_duration_minutes
         if request.lunch_after_period is not None:
-            setting.lunch_after_period = request.lunch_after_period
+            config.lunch_after_period = request.lunch_after_period
         if request.lunch_duration_minutes is not None:
-            setting.lunch_duration_minutes = request.lunch_duration_minutes
+            config.lunch_duration_minutes = request.lunch_duration_minutes
 
-        return setting
+        return config
 
     def _build_requirements(
         self,
@@ -327,24 +378,27 @@ class TimetableGenerator:
 
             # Heuristic default periods per week based on subject
             periods = 4
-            if sub and sub.name in dist:
-                periods = int(dist[sub.name])
-            elif str(a.subject_id) in dist:
-                periods = int(dist[str(a.subject_id)])
-            elif a.subject_id in dist:
-                periods = int(dist[a.subject_id])
-            elif c_req and c_req.periods_per_week:
-                periods = c_req.periods_per_week
-            elif sub:
-                name_lower = sub.name.lower()
-                if any(core in name_lower for core in ["math", "english", "somali", "arabic"]):
-                    periods = 5
-                elif any(sci in name_lower for sci in ["physic", "chem", "bio", "science"]):
-                    periods = 4
-                elif any(elec in name_lower for elec in ["islam", "geograph", "histor", "computer"]):
-                    periods = 3
-                else:
-                    periods = 2
+            try:
+                if sub and sub.name in dist:
+                    periods = max(1, int(dist[sub.name]))
+                elif str(a.subject_id) in dist:
+                    periods = max(1, int(dist[str(a.subject_id)]))
+                elif a.subject_id in dist:
+                    periods = max(1, int(dist[a.subject_id]))
+                elif c_req and c_req.periods_per_week:
+                    periods = max(1, int(c_req.periods_per_week))
+                elif sub:
+                    name_lower = sub.name.lower()
+                    if any(core in name_lower for core in ["math", "english", "somali", "arabic"]):
+                        periods = 5
+                    elif any(sci in name_lower for sci in ["physic", "chem", "bio", "science"]):
+                        periods = 4
+                    elif any(elec in name_lower for elec in ["islam", "geograph", "histor", "computer"]):
+                        periods = 3
+                    else:
+                        periods = 2
+            except (ValueError, TypeError):
+                periods = 4
 
             reqs.append({
                 "subject_id": a.subject_id,

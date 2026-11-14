@@ -75,7 +75,7 @@ def test_subject_api_integration():
         target_class = classes_resp.json()[0]
         assign_class_payload = {
             "class_id": target_class["id"],
-            "academic_year": "2025-2026",
+            "academic_year": "2026/2027",
             "periods_per_week": 4
         }
         assign_resp = requests.post(f"{BASE_URL}/subjects/{sub_id}/classes", headers=headers, json=assign_class_payload)

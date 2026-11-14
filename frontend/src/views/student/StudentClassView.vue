@@ -28,7 +28,7 @@ async function initPage() {
       selectedYear.value = academicYears.value[0];
     }
   } catch {
-    academicYears.value = ['2026/2027', '2025/2026'];
+    academicYears.value = ['2026/2027'];
     selectedYear.value = '2026/2027';
   }
   await loadData();

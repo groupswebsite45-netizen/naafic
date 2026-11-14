@@ -50,7 +50,7 @@ const currentView = ref<'weekly' | 'class' | 'teacher' | 'day'>('weekly');
 
 // Active Filters
 const filters = reactive({
-  academic_year: '2025-2026',
+  academic_year: '2026/2027',
   class_id: undefined as number | undefined,
   teacher_id: undefined as number | undefined,
   subject_id: undefined as number | undefined,
@@ -67,6 +67,7 @@ const modalDefaultDay = ref<string | undefined>(undefined);
 const modalDefaultClassId = ref<number | undefined>(undefined);
 const modalDefaultTeacherId = ref<number | undefined>(undefined);
 const isSubmittingSlot = ref(false);
+const slotModalError = ref('');
 
 const isFilterDrawerOpen = ref(false);
 
@@ -347,6 +348,7 @@ onMounted(() => {
 function openCreateModal(day?: string, classId?: number, teacherId?: number) {
   isEditing.value = false;
   selectedSlot.value = null;
+  slotModalError.value = '';
   modalDefaultDay.value = day;
   modalDefaultClassId.value = classId;
   modalDefaultTeacherId.value = teacherId;
@@ -356,6 +358,7 @@ function openCreateModal(day?: string, classId?: number, teacherId?: number) {
 function openEditModal(entry: TimetableEntry) {
   isEditing.value = true;
   selectedSlot.value = entry;
+  slotModalError.value = '';
   modalDefaultDay.value = entry.day_of_week;
   modalDefaultClassId.value = entry.class_id;
   modalDefaultTeacherId.value = entry.teacher_id || undefined;
@@ -364,6 +367,7 @@ function openEditModal(entry: TimetableEntry) {
 
 async function handleSaveSlot(payload: CreateTimetablePayload) {
   isSubmittingSlot.value = true;
+  slotModalError.value = '';
   try {
     if (isEditing.value && selectedSlot.value) {
       await timetableService.updateTimetable(selectedSlot.value.id, payload);
@@ -376,7 +380,9 @@ async function handleSaveSlot(payload: CreateTimetablePayload) {
     loadTimetable();
     loadSummary();
   } catch (err: any) {
-    errorMessage.value = err.response?.data?.detail || 'Failed to save timetable slot.';
+    const errDetail = err.response?.data?.detail || 'Failed to save timetable slot.';
+    slotModalError.value = errDetail;
+    errorMessage.value = errDetail;
   } finally {
     isSubmittingSlot.value = false;
   }
@@ -647,7 +653,7 @@ function showSuccess(msg: string) {
       :selected-room="filters.room"
       :current-view="currentView"
       :active-filter-count="activeFilterCount"
-      :academic-years="filterOptions?.academic_years || ['2025-2026', '2026-2027']"
+      :academic-years="filterOptions?.academic_years || ['2026/2027']"
       :classes="filteredClassesByLevel"
       :teachers="availableTeachers"
       :subjects="availableSubjects"
@@ -823,6 +829,7 @@ function showSuccess(msg: string) {
       :days="standardDays"
       :rooms="filterOptions?.rooms || []"
       :is-submitting="isSubmittingSlot"
+      :submit-error="slotModalError"
       @close="isSlotModalOpen = false"
       @save="handleSaveSlot"
     />

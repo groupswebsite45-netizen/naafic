@@ -23,7 +23,7 @@ const isLoadingOptions = ref(false);
 const form = reactive({
   teacher_id: '',
   subject_id: '',
-  academic_year: '2025-2026',
+  academic_year: '2026/2027',
 });
 
 const formErrors = reactive<Record<string, string>>({});
@@ -59,7 +59,7 @@ watch(
       Object.keys(formErrors).forEach((k) => delete formErrors[k]);
       form.teacher_id = '';
       form.subject_id = '';
-      form.academic_year = props.schoolClass?.academic_year || props.years[0] || '2025-2026';
+      form.academic_year = props.schoolClass?.academic_year || props.years[0] || '2026/2027';
       loadOptions();
     }
   },
@@ -85,8 +85,59 @@ function validateForm(): boolean {
   return isValid;
 }
 
-function handleAssign() {
+async function checkDuplicateAssignment(): Promise<boolean> {
+  if (!props.schoolClass?.id || !form.subject_id || !form.academic_year) return true;
+
+  // 1. Check in props.schoolClass.teachers if available
+  const classTeachers = (props.schoolClass as any)?.teachers;
+  if (Array.isArray(classTeachers)) {
+    const normYear = (y?: string) => (y || '').replace('/', '-').trim();
+    const targetNorm = normYear(form.academic_year);
+    const existing = classTeachers.find(
+      (t: any) => t.subject_id === Number(form.subject_id) && normYear(t.academic_year) === targetNorm
+    );
+    if (existing) {
+      if (form.teacher_id && existing.teacher_id !== Number(form.teacher_id)) {
+        formErrors.subject_id = 'This subject is already assigned to another teacher in this class.';
+        formErrors.general = 'This subject is already assigned to another teacher in this class.';
+        return false;
+      }
+    }
+  }
+
+  // 2. Check via API check endpoint
+  try {
+    const res = await teacherService.checkAssignment({
+      class_id: props.schoolClass.id,
+      subject_id: Number(form.subject_id),
+      academic_year: form.academic_year.trim(),
+      teacher_id: form.teacher_id ? Number(form.teacher_id) : undefined,
+    });
+    if (!res.available) {
+      formErrors.subject_id = res.message || 'This subject is already assigned to another teacher in this class.';
+      formErrors.general = res.message || 'This subject is already assigned to another teacher in this class.';
+      return false;
+    }
+  } catch (err: any) {
+    console.warn('Assignment check failed:', err);
+  }
+  return true;
+}
+
+watch(
+  [() => form.subject_id, () => form.teacher_id, () => form.academic_year],
+  () => {
+    if (form.subject_id && form.academic_year) {
+      checkDuplicateAssignment();
+    }
+  }
+);
+
+async function handleAssign() {
   if (!validateForm()) return;
+  const isAvailable = await checkDuplicateAssignment();
+  if (!isAvailable) return;
+
   emit('assign', {
     teacher_id: Number(form.teacher_id),
     subject_id: Number(form.subject_id),
@@ -128,6 +179,11 @@ function handleAssign() {
           <span>Loading teachers and subjects...</span>
         </div>
         <template v-else>
+          <!-- Error Alert Banner -->
+          <div v-if="formErrors.general" class="alert-box-error mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <span>{{ formErrors.general }}</span>
+          </div>
+
           <!-- Teacher Select -->
           <div class="form-group">
             <label class="form-label required">Select Teacher</label>

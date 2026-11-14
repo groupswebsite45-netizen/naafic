@@ -109,7 +109,7 @@ def test_student_class_and_history():
     # Enrollment history must include current academic year
     assert len(data["enrollment_history"]) >= 1
     enr_years = [e["academic_year"] for e in data["enrollment_history"]]
-    assert "2025-2026" in enr_years
+    assert "2026/2027" in enr_years
 
 
 def test_student_timetable():

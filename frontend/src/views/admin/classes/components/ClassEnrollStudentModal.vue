@@ -21,7 +21,7 @@ const isLoadingStudents = ref(false);
 const selectedStudent = ref<Student | null>(null);
 
 const form = reactive({
-  academic_year: '2025-2026',
+  academic_year: '2026/2027',
   enrollment_date: new Date().toISOString().split('T')[0],
 });
 
@@ -56,7 +56,7 @@ watch(
       students.value = [];
       selectedStudent.value = null;
       formError.value = '';
-      form.academic_year = props.schoolClass?.academic_year || props.years[0] || '2025-2026';
+      form.academic_year = props.schoolClass?.academic_year || props.years[0] || '2026/2027';
       form.enrollment_date = new Date().toISOString().split('T')[0];
     }
   },

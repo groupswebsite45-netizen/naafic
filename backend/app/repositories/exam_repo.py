@@ -59,12 +59,7 @@ class ExamRepository(BaseRepository[Exam]):
 
     def get_filter_options(self) -> Dict[str, Any]:
         """Get distinct filter values from real exam data."""
-        academic_years = [
-            r[0] for r in self.db.query(Exam.academic_year).distinct().order_by(Exam.academic_year.desc()).all()
-            if r[0]
-        ]
-        if not academic_years:
-            academic_years = ["2025-2026", "2026-2027"]
+        academic_years = ["2026/2027"]
 
         exam_types = [
             r[0] for r in self.db.query(Exam.exam_type).distinct().order_by(Exam.exam_type).all()

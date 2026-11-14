@@ -186,7 +186,7 @@ class StudentRepository(BaseRepository[Student]):
                 "exam_name": exam.name if exam else "Assessment",
                 "exam_type": exam.exam_type if exam else "EXAM",
                 "subject_name": subject.name if subject else "General",
-                "academic_year": exam.academic_year if exam else "2025-2026",
+                "academic_year": exam.academic_year if exam else "2026/2027",
                 "marks_obtained": float(r.marks_obtained) if r.marks_obtained is not None else 0.0,
                 "total_marks": float(exam.total_marks) if exam and exam.total_marks else 100.0,
                 "grade": r.grade,
