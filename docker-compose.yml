@@ -59,14 +59,11 @@ services:
     labels:
       - "coolify.managed=true"
       - "traefik.enable=true"
-      - "traefik.http.routers.schoolms-http.rule=Host(`08gkjci5ttjzqpjkvddukghf.164.68.126.77.sslip.io`)"
-      - "traefik.http.routers.schoolms-http.entryPoints=http"
-      - "traefik.http.services.schoolms-http.loadbalancer.server.port=80"
-      - "traefik.http.routers.schoolms-https.rule=Host(`08gkjci5ttjzqpjkvddukghf.164.68.126.77.sslip.io`)"
-      - "traefik.http.routers.schoolms-https.entryPoints=https"
-      - "traefik.http.routers.schoolms-https.tls=true"
-      - "traefik.http.routers.schoolms-https.tls.certresolver=letsencrypt"
-      - "traefik.http.services.schoolms-https.loadbalancer.server.port=80"
+      - "traefik.docker.network=coolify"
+      - "traefik.http.routers.schoolms.rule=Host(`08gkjci5ttjzqpjkvddukghf.164.68.126.77.sslip.io`)"
+      - "traefik.http.routers.schoolms.entryPoints=http,https"
+      - "traefik.http.routers.schoolms.service=frontend"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
 
 volumes:
   pgdata:
