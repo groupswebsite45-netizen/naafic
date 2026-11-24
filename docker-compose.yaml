@@ -41,8 +41,9 @@ services:
       - uploads_data:/app/uploads
     networks:
       - internal
-    expose:
-      - "8000"
+    labels:
+      - "coolify.managed=false"
+      - "traefik.enable=false"
 
   frontend:
     build:
